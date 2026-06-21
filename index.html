@@ -117,7 +117,7 @@
         <div class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>
         <h1 class="text-sm font-black tracking-wider text-slate-200">SỔ THEO DÕI TIỀN ĂN</h1>
       </div>
-      <span class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20">v2.2.8 PRO</span>
+      <span class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20">v2.2.9 PRO</span>
     </header>
 
     <!-- KHOẢN PHẢI THU (BALANCE CARD GRID) -->
@@ -176,19 +176,19 @@
           
           <!-- Số tiền lớn, thiết kế tối giản fintech -->
           <div>
-            <label class="block text-xs font-medium text-slate-400 mb-1.5">Tổng số tiền (VND):</label>
+            <label class="block text-xs font-medium text-slate-400 mb-1.5">Tổng số tiền (nghìn đồng - .000đ):</label>
             <div class="relative">
-              <input type="number" id="amountInput" required min="1" placeholder="Nhập số tiền..." 
-                class="w-full bg-slate-900/90 border border-slate-700 focus:border-indigo-500 text-slate-100 placeholder-slate-600 rounded-xl py-3 px-4 text-2xl font-black text-center focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all">
+              <input type="number" id="amountInput" required min="1" placeholder="Ví dụ: 30 cho 30.000đ..." 
+                class="w-full bg-slate-900/90 border border-slate-700 focus:border-indigo-500 text-slate-100 placeholder-slate-650 rounded-xl py-3 px-4 text-2xl font-black text-center focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all">
               <button type="button" onclick="clearAmount()" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 text-sm font-bold bg-slate-800 hover:bg-slate-750 px-2 py-0.5 rounded">Xóa</button>
             </div>
             
             <!-- Quick Add Amounts -->
             <div class="grid grid-cols-4 gap-1.5 mt-2">
-              <button type="button" onclick="addToAmount(15000)" class="text-[11px] bg-slate-900 hover:bg-slate-750 text-slate-300 py-1.5 px-1 rounded-lg border border-slate-800 active:scale-95 transition-all">+15k</button>
-              <button type="button" onclick="addToAmount(30000)" class="text-[11px] bg-slate-900 hover:bg-slate-750 text-slate-300 py-1.5 px-1 rounded-lg border border-slate-800 active:scale-95 transition-all">+30k</button>
-              <button type="button" onclick="addToAmount(50000)" class="text-[11px] bg-slate-900 hover:bg-slate-750 text-slate-300 py-1.5 px-1 rounded-lg border border-slate-800 active:scale-95 transition-all">+50k</button>
-              <button type="button" onclick="addToAmount(100000)" class="text-[11px] bg-slate-900 hover:bg-slate-750 text-slate-300 py-1.5 px-1 rounded-lg border border-slate-800 active:scale-95 transition-all">+100k</button>
+              <button type="button" onclick="addToAmount(15)" class="text-[11px] bg-slate-900 hover:bg-slate-750 text-slate-300 py-1.5 px-1 rounded-lg border border-slate-800 active:scale-95 transition-all">+15k</button>
+              <button type="button" onclick="addToAmount(30)" class="text-[11px] bg-slate-900 hover:bg-slate-750 text-slate-300 py-1.5 px-1 rounded-lg border border-slate-800 active:scale-95 transition-all">+30k</button>
+              <button type="button" onclick="addToAmount(50)" class="text-[11px] bg-slate-900 hover:bg-slate-750 text-slate-300 py-1.5 px-1 rounded-lg border border-slate-800 active:scale-95 transition-all">+50k</button>
+              <button type="button" onclick="addToAmount(100)" class="text-[11px] bg-slate-900 hover:bg-slate-750 text-slate-300 py-1.5 px-1 rounded-lg border border-slate-800 active:scale-95 transition-all">+100k</button>
             </div>
           </div>
 
@@ -394,7 +394,7 @@
       </div>
 
       <div class="text-center text-[9px] text-slate-600 font-mono">
-        Phiên bản: <span class="text-indigo-400 font-bold">v2.2.8</span> | 
+        Phiên bản: <span class="text-indigo-400 font-bold">v2.2.9</span> | 
         <button onclick="checkUpdatesManually()" class="text-indigo-450 hover:underline font-bold focus:outline-none"><span id="btnCheckUpdateText">Kiểm tra cập nhật</span></button>
       </div>
     </footer>
@@ -866,7 +866,8 @@
       // Cập nhật Xem Trước Kết Quả Phân Chia Thời Gian Thực
       window.updateSplitPreview = function() {
         const amountInput = document.getElementById('amountInput');
-        const amount = Math.round(Number(amountInput.value)) || 0;
+        // Nhân với 1000 vì ô nhập mặc định có đơn vị nghìn đồng
+        const amount = Math.round(Number(amountInput.value)) * 1000 || 0;
         
         const checkedNames = Array.from(selectedParticipants);
         const isProxy = (AppStore.currentMealType === 'Mua hộ');
@@ -1044,7 +1045,11 @@
           // Lọc danh sách giao dịch chỉ giữ lại các hóa đơn có mặt member này với dượng nợ > 0
           list = list.filter(tx => tx.shares[filterMember] !== undefined && tx.shares[filterMember] > 0);
           clearFilterBtn.classList.remove('hidden');
-          historyTitle.innerText = `📋 Lịch sử nợ của ${filterMember}`;
+          
+          // Tính tổng tiền nợ và tổng số bữa ăn của member này trong list
+          const totalDebt = list.reduce((sum, tx) => sum + (tx.shares[filterMember] || 0), 0);
+          const totalMeals = list.length;
+          historyTitle.innerText = `📋 Tiền ăn của ${filterMember}: ${formatVND(totalDebt)} (${totalMeals} bữa)`;
         } else {
           clearFilterBtn.classList.add('hidden');
           historyTitle.innerText = `📋 Lịch sử chi tiêu`;
@@ -1089,31 +1094,48 @@
 
           // Chi tiết phân chia nợ cho từng người
           let sharesMarkup = '';
-          if (tx.isProxy) {
-            const shareEntries = Object.entries(tx.shares).filter(([_, v]) => v > 0);
-            sharesMarkup = shareEntries.map(([name, amt]) => `
-              <span class="inline-block bg-fuchsia-950/20 text-fuchsia-400 border border-fuchsia-800/20 rounded px-1.5 py-0.5 text-[10px] font-semibold mr-1 mb-1">
-                ${name}: ${formatVND(amt)}
-              </span>
-            `).join('');
-          } else {
-            // Tính số tiền chủ hộ tự chịu
-            const totalOtherShares = Object.values(tx.shares).reduce((sum, v) => sum + v, 0);
-            const ownerAmt = tx.totalAmount - totalOtherShares;
-            
-            const shareEntries = Object.entries(tx.shares).filter(([_, v]) => v > 0);
-            const othersMarkup = shareEntries.map(([name, amt]) => `
-              <span class="inline-block bg-slate-900 text-slate-300 border border-slate-850 rounded px-1.5 py-0.5 text-[10px] font-semibold mr-1 mb-1">
-                ${name}: ${formatVND(amt)}
-              </span>
-            `).join('');
+          let displayAmount = tx.totalAmount; // Mặc định hiển thị tổng hóa đơn
+
+          if (filterMember) {
+            // Khi lọc thành viên: Chỉ hiển thị số tiền thành viên đó nợ và không bao gồm người khác
+            displayAmount = tx.shares[filterMember] || 0;
+            const tagClass = tx.isProxy
+              ? 'bg-fuchsia-950/20 text-fuchsia-400 border-fuchsia-800/20'
+              : 'bg-indigo-950/20 text-indigo-400 border-indigo-800/20';
 
             sharesMarkup = `
-              <span class="inline-block bg-indigo-950/20 text-indigo-400 border border-indigo-800/20 rounded px-1.5 py-0.5 text-[10px] font-semibold mr-1 mb-1">
-                Tôi: ${formatVND(ownerAmt)}
+              <span class="inline-block border rounded px-1.5 py-0.5 text-[10px] font-semibold mr-1 mb-1 ${tagClass}">
+                ${filterMember}: ${formatVND(displayAmount)}
               </span>
-              ${othersMarkup}
             `;
+          } else {
+            // Khi xem chung (không lọc): Hiển thị đầy đủ mọi người
+            if (tx.isProxy) {
+              const shareEntries = Object.entries(tx.shares).filter(([_, v]) => v > 0);
+              sharesMarkup = shareEntries.map(([name, amt]) => `
+                <span class="inline-block bg-fuchsia-950/20 text-fuchsia-400 border border-fuchsia-800/20 rounded px-1.5 py-0.5 text-[10px] font-semibold mr-1 mb-1">
+                  ${name}: ${formatVND(amt)}
+                </span>
+              `).join('');
+            } else {
+              // Tính số tiền chủ hộ tự chịu
+              const totalOtherShares = Object.values(tx.shares).reduce((sum, v) => sum + v, 0);
+              const ownerAmt = tx.totalAmount - totalOtherShares;
+              
+              const shareEntries = Object.entries(tx.shares).filter(([_, v]) => v > 0);
+              const othersMarkup = shareEntries.map(([name, amt]) => `
+                <span class="inline-block bg-slate-900 text-slate-300 border border-slate-850 rounded px-1.5 py-0.5 text-[10px] font-semibold mr-1 mb-1">
+                  ${name}: ${formatVND(amt)}
+                </span>
+              `).join('');
+
+              sharesMarkup = `
+                <span class="inline-block bg-indigo-950/20 text-indigo-400 border border-indigo-800/20 rounded px-1.5 py-0.5 text-[10px] font-semibold mr-1 mb-1">
+                  Tôi: ${formatVND(ownerAmt)}
+                </span>
+                ${othersMarkup}
+              `;
+            }
           }
 
           // Bố cục căn lề Pixel-Perfect với thẻ loại bữa ăn rộng w-16 cố định
@@ -1135,9 +1157,9 @@
                 </div>
               </div>
 
-              <!-- Tổng hóa đơn & Nút xóa căn phải -->
+              <!-- Số tiền & Nút xóa căn phải -->
               <div class="flex items-center space-x-2 shrink-0">
-                <span class="text-xs font-black tracking-tight text-slate-200 select-text">${formatVND(tx.totalAmount)}</span>
+                <span class="text-xs font-black tracking-tight text-slate-200 select-text">${formatVND(displayAmount)}</span>
                 
                 <!-- Nút Xóa nợ. Nếu lọc: Xóa nợ của 1 người. Nếu ko lọc: Xóa toàn bộ hóa đơn -->
                 <button onclick="handleDeleteShare('${tx.id}')" 
@@ -1192,7 +1214,8 @@
         const amountInput = document.getElementById('amountInput');
         const descInput = document.getElementById('descInput');
         
-        const amount = Math.round(Number(amountInput.value)) || 0;
+        // Nhân với 1000 vì ô nhập mặc định có đơn vị nghìn đồng
+        const amount = Math.round(Number(amountInput.value)) * 1000 || 0;
         const desc = descInput.value.trim();
         const mealType = AppStore.currentMealType;
 
