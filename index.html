@@ -117,7 +117,7 @@
         <div class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>
         <h1 class="text-sm font-black tracking-wider text-slate-200">SỔ THEO DÕI TIỀN ĂN</h1>
       </div>
-      <span class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20">v2.3.4 PRO</span>
+      <span class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20">v2.3.5 PRO</span>
     </header>
 
     <!-- KHOẢN PHẢI THU (BALANCE CARD GRID) -->
@@ -125,7 +125,7 @@
       <!-- Tổng nợ tích lũy hiển thị trên đầu -->
       <div class="bg-gradient-to-r from-rose-950/40 to-slate-900/60 border border-rose-500/20 rounded-2xl p-4 mb-4 flex items-center justify-between shadow-lg text-slate-100">
         <div>
-          <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Tổng nợ cần thu</span>
+          <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Tổng số tiền</span>
           <div id="totalDebtSummary" class="text-2xl font-black text-rose-400 tracking-tight mt-0.5">0đ</div>
         </div>
         <div class="h-10 w-10 rounded-xl bg-rose-950/60 border border-rose-500/10 flex items-center justify-center text-lg shadow-md shadow-rose-900/10">💰</div>
@@ -164,8 +164,8 @@
             
             <!-- Quick Add Amounts -->
             <div class="grid grid-cols-4 gap-1.5 mt-2">
-              <button type="button" onclick="addToAmount(15)" class="text-[11px] bg-slate-900 hover:bg-slate-750 text-slate-300 py-1.5 px-1 rounded-lg border border-slate-800 active:scale-95 transition-all">+15k</button>
-              <button type="button" onclick="addToAmount(30)" class="text-[11px] bg-slate-900 hover:bg-slate-750 text-slate-300 py-1.5 px-1 rounded-lg border border-slate-800 active:scale-95 transition-all">+30k</button>
+              <button type="button" onclick="addToAmount(90)" class="text-[11px] bg-slate-900 hover:bg-slate-750 text-slate-300 py-1.5 px-1 rounded-lg border border-slate-800 active:scale-95 transition-all">+90k</button>
+              <button type="button" onclick="addToAmount(105)" class="text-[11px] bg-slate-900 hover:bg-slate-750 text-slate-300 py-1.5 px-1 rounded-lg border border-slate-800 active:scale-95 transition-all">+105k</button>
               <button type="button" onclick="addToAmount(50)" class="text-[11px] bg-slate-900 hover:bg-slate-750 text-slate-300 py-1.5 px-1 rounded-lg border border-slate-800 active:scale-95 transition-all">+50k</button>
               <button type="button" onclick="addToAmount(100)" class="text-[11px] bg-slate-900 hover:bg-slate-750 text-slate-300 py-1.5 px-1 rounded-lg border border-slate-800 active:scale-95 transition-all">+100k</button>
             </div>
@@ -209,7 +209,7 @@
 
           <!-- Xem trước phân chia thời gian thực -->
           <div id="splitPreviewCard" class="bg-slate-900/50 border border-slate-800 rounded-xl p-3 text-xs space-y-1">
-            <span class="text-slate-500 font-bold uppercase text-[9px] tracking-wider">📊 Xem trước phân chia:</span>
+            <span class="text-slate-500 font-bold uppercase text-[9px] tracking-wider">📊 Xem trước khi chia:</span>
             <div id="splitPreviewDetail" class="text-slate-300 font-medium">Chưa có thông tin...</div>
           </div>
 
@@ -405,7 +405,7 @@
       </div>
 
       <div class="text-center text-[9px] text-slate-600 font-mono">
-        Phiên bản: <span class="text-indigo-400 font-bold">v2.3.4</span> | 
+        Phiên bản: <span class="text-indigo-400 font-bold">v2.3.5</span> | 
         <button onclick="checkUpdatesManually()" class="text-indigo-450 hover:underline font-bold focus:outline-none"><span id="btnCheckUpdateText">Kiểm tra cập nhật</span></button>
       </div>
     </footer>
@@ -1091,8 +1091,6 @@
             ? 'border-l-4 border-fuchsia-500 bg-slate-850/45 hover:bg-slate-850/70' 
             : 'border-l-4 border-indigo-500 bg-slate-850/30 hover:bg-slate-850/50';
 
-          item.className = `p-3.5 rounded-2xl border border-slate-800/80 transition-all-300 relative ${borderClass}`;
-
           // Format thẻ loại bữa ăn có độ rộng CỐ ĐỊNH để căn lề chữ bên cạnh hoàn hảo
           let tagColorClass = '';
           switch (tx.mealType) {
@@ -1111,24 +1109,61 @@
             displayDateTime = tx.date;
           }
 
-          // Chi tiết phân chia nợ cho từng người
-          let sharesMarkup = '';
-          let displayAmount = tx.totalAmount; // Mặc định hiển thị tổng hóa đơn
-
           if (filterMember) {
-            // Khi lọc thành viên: Chỉ hiển thị số tiền thành viên đó nợ và không bao gồm người khác
-            displayAmount = tx.shares[filterMember] || 0;
+            // ==========================================
+            // LAYOUT KHI LỌC THÀNH VIÊN (SIÊU GỌN, TỰ PHÌNH NẾU CÓ NOTE)
+            // ==========================================
+            const displayAmount = tx.shares[filterMember] || 0;
             const tagClass = tx.isProxy
               ? 'bg-fuchsia-950/20 text-fuchsia-400 border-fuchsia-800/20'
               : 'bg-indigo-950/20 text-indigo-400 border-indigo-800/20';
 
-            sharesMarkup = `
-              <span class="inline-block border rounded px-1.5 py-0.5 text-[10px] font-semibold mr-1 mb-1 ${tagClass}">
+            // Chiều cao tự to ra nếu có description (ghi chú)
+            item.className = `rounded-2xl border border-slate-800/80 transition-all-300 relative ${borderClass} ${tx.description ? 'p-3.5' : 'py-2 px-3.5'}`;
+
+            const amountTag = `
+              <span class="inline-block border rounded px-1.5 py-0.5 text-[10px] font-semibold ${tagClass} shrink-0">
                 số tiền: ${formatVND(displayAmount)}
               </span>
             `;
+
+            const descMarkup = tx.description 
+              ? `<div class="pl-[74px] mt-1.5 flex flex-col">
+                   <span class="text-xs font-bold text-slate-200 truncate select-text">${tx.description}</span>
+                 </div>` 
+              : '';
+
+            item.innerHTML = `
+              <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2.5 overflow-hidden flex-grow mr-2 min-w-0">
+                  <!-- Thẻ loại bữa ăn CỐ ĐỊNH CHIỀU RỘNG w-16 -->
+                  <span class="inline-block w-16 text-center text-[10px] font-extrabold py-1 px-1.5 rounded-lg border shrink-0 ${tagColorClass}">
+                    ${tx.mealType}
+                  </span>
+                  
+                  <div class="flex items-center space-x-2.5 min-w-0">
+                    <span class="text-[10px] text-slate-500 font-mono shrink-0">${displayDateTime}</span>
+                    ${amountTag}
+                  </div>
+                </div>
+
+                <!-- Nút Xóa nợ -->
+                <div class="flex items-center shrink-0">
+                  <button onclick="handleDeleteShare('${tx.id}')" 
+                    class="h-6 w-6 text-[10px] rounded-lg bg-slate-900 border border-slate-800 hover:bg-rose-950/20 hover:border-rose-500/20 hover:text-rose-400 flex items-center justify-center transition-all duration-150 active:scale-90">
+                    ✕
+                  </button>
+                </div>
+              </div>
+              ${descMarkup}
+            `;
           } else {
-            // Khi xem chung (không lọc): Hiển thị đầy đủ mọi người
+            // ==========================================
+            // LAYOUT KHI XEM CHUNG (ĐẦY ĐỦ THÀNH VIÊN, LOẠI BỎ TÔI)
+            // ==========================================
+            item.className = `p-3.5 rounded-2xl border border-slate-800/80 transition-all-300 relative ${borderClass}`;
+
+            let sharesMarkup = '';
             if (tx.isProxy) {
               const shareEntries = Object.entries(tx.shares).filter(([_, v]) => v > 0);
               sharesMarkup = shareEntries.map(([name, amt]) => `
@@ -1137,65 +1172,50 @@
                 </span>
               `).join('');
             } else {
-              // Tính số tiền chủ hộ tự chịu
-              const totalOtherShares = Object.values(tx.shares).reduce((sum, v) => sum + v, 0);
-              const ownerAmt = tx.totalAmount - totalOtherShares;
-              
               const shareEntries = Object.entries(tx.shares).filter(([_, v]) => v > 0);
-              const othersMarkup = shareEntries.map(([name, amt]) => `
+              sharesMarkup = shareEntries.map(([name, amt]) => `
                 <span class="inline-block bg-slate-900 text-slate-300 border border-slate-850 rounded px-1.5 py-0.5 text-[10px] font-semibold mr-1 mb-1">
                   ${name}: ${formatVND(amt)}
                 </span>
               `).join('');
-
-              sharesMarkup = `
-                <span class="inline-block bg-indigo-950/20 text-indigo-400 border border-indigo-800/20 rounded px-1.5 py-0.5 text-[10px] font-semibold mr-1 mb-1">
-                  Tôi: ${formatVND(ownerAmt)}
-                </span>
-                ${othersMarkup}
-              `;
             }
-          }
 
-          // Ghi chú chỉ hiển thị nếu có nội dung (không có ghi chú thì không hiển thị)
-          const descMarkup = tx.description 
-            ? `<span class="text-xs font-bold text-slate-200 mt-0.5 truncate select-text">${tx.description}</span>` 
-            : '';
+            const descMarkup = tx.description 
+              ? `<span class="text-xs font-bold text-slate-200 mt-0.5 truncate select-text">${tx.description}</span>` 
+              : '';
 
-          // Bố cục căn lề Pixel-Perfect với thẻ loại bữa ăn rộng w-16 cố định
-          item.innerHTML = `
-            <div class="flex items-start justify-between">
-              <div class="flex items-start space-x-2.5 overflow-hidden flex-grow mr-2">
-                <!-- Thẻ loại bữa ăn CỐ ĐỊNH CHIỀU RỘNG w-16 -->
-                <span class="inline-block w-16 text-center text-[10px] font-extrabold py-1 px-1.5 rounded-lg border shrink-0 ${tagColorClass}">
-                  ${tx.mealType}
-                </span>
-                
-                <div class="flex flex-col overflow-hidden min-w-0">
-                  <div class="flex items-center space-x-2 text-[10px] text-slate-500 font-mono">
-                    <span>${displayDateTime}</span>
+            item.innerHTML = `
+              <div class="flex items-start justify-between">
+                <div class="flex items-start space-x-2.5 overflow-hidden flex-grow mr-2">
+                  <!-- Thẻ loại bữa ăn CỐ ĐỊNH CHIỀU RỘNG w-16 -->
+                  <span class="inline-block w-16 text-center text-[10px] font-extrabold py-1 px-1.5 rounded-lg border shrink-0 ${tagColorClass}">
+                    ${tx.mealType}
+                  </span>
+                  
+                  <div class="flex flex-col overflow-hidden min-w-0">
+                    <div class="flex items-center space-x-2 text-[10px] text-slate-500 font-mono">
+                      <span>${displayDateTime}</span>
+                    </div>
+                    ${descMarkup}
                   </div>
-                  ${descMarkup}
+                </div>
+
+                <!-- Số tiền & Nút xóa căn phải -->
+                <div class="flex items-center space-x-2 shrink-0">
+                  <span class="text-xs font-black tracking-tight text-slate-200 select-text">${formatVND(tx.totalAmount)}</span>
+                  <button onclick="handleDeleteShare('${tx.id}')" 
+                    class="h-6 w-6 text-[10px] rounded-lg bg-slate-900 border border-slate-800 hover:bg-rose-950/20 hover:border-rose-500/20 hover:text-rose-400 flex items-center justify-center transition-all duration-150 active:scale-90">
+                    ✕
+                  </button>
                 </div>
               </div>
-
-              <!-- Số tiền & Nút xóa căn phải -->
-              <div class="flex items-center space-x-2 shrink-0">
-                ${filterMember ? '' : `<span class="text-xs font-black tracking-tight text-slate-200 select-text">${formatVND(displayAmount)}</span>`}
-                
-                <!-- Nút Xóa nợ. Nếu lọc: Xóa nợ của 1 người. Nếu ko lọc: Xóa toàn bộ hóa đơn -->
-                <button onclick="handleDeleteShare('${tx.id}')" 
-                  class="h-6 w-6 text-[10px] rounded-lg bg-slate-900 border border-slate-800 hover:bg-rose-950/20 hover:border-rose-500/20 hover:text-rose-400 flex items-center justify-center transition-all duration-150 active:scale-90">
-                  ✕
-                </button>
+              
+              <!-- Phân chia nợ bên dưới -->
+              <div class="pl-[74px] mt-2 flex flex-wrap items-center">
+                ${sharesMarkup}
               </div>
-            </div>
-            
-            <!-- Căn lề thụt đầu dòng (w-16 + space-x-2.5 = 76px) để nội dung phân chia căn thẳng hàng với Mô tả -->
-            <div class="pl-[74px] mt-2 flex flex-wrap items-center">
-              ${sharesMarkup}
-            </div>
-          `;
+            `;
+          }
 
           container.appendChild(item);
         });
@@ -1677,7 +1697,7 @@
         const btn = document.getElementById('btnCheckUpdateText');
         btn.innerText = "Đang check...";
 
-        const currentVersion = "v2.3.4";
+        const currentVersion = "v2.3.5";
 
         // Tải file index.html trực tiếp từ server để bypass cache bằng timestamp
         fetch('./index.html?t=' + Date.now())
