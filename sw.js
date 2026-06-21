@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tien-an-v2.2.1';
+const CACHE_NAME = 'tien-an-v2.2.2';
 const ASSETS = [
   './',
   './index.html',
@@ -62,4 +62,11 @@ self.addEventListener('fetch', event => {
       console.error('[Service Worker] Fetch failed:', err);
     })
   );
+});
+
+// Lắng nghe lệnh kích hoạt phiên bản mới lập tức
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });

@@ -93,7 +93,7 @@
         <div class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>
         <h1 class="text-sm font-black tracking-wider text-slate-200">SỔ THEO DÕI TIỀN ĂN</h1>
       </div>
-      <span class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20">v2.2.1 PRO</span>
+      <span class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20">v2.2.2 PRO</span>
     </header>
 
     <!-- KHOẢN PHẢI THU (BALANCE CARD GRID) -->
@@ -370,7 +370,8 @@
       </div>
 
       <div class="text-center text-[9px] text-slate-600 font-mono">
-        Phiên bản: <span class="text-indigo-400 font-bold">v2.2.1</span> | Made with ❤️ for mobile-webview
+        Phiên bản: <span class="text-indigo-400 font-bold">v2.2.2</span> | 
+        <button onclick="checkUpdatesManually()" class="text-indigo-450 hover:underline font-bold focus:outline-none"><span id="btnCheckUpdateText">Kiểm tra cập nhật</span></button>
       </div>
     </footer>
 
@@ -1554,14 +1555,95 @@
       };
 
       // ==========================================
+      // 11.8. HỆ THỐNG KIỂM TRA & CẬP NHẬT PHIÊN BẢN PWA
+      // ==========================================
+      function showUpdateBanner(reg) {
+        if (document.getElementById('pwaUpdateBanner')) return;
+        
+        const banner = document.createElement('div');
+        banner.id = 'pwaUpdateBanner';
+        banner.className = "fixed bottom-16 left-1/2 -translate-x-1/2 w-[90%] max-w-sm bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-2xl p-3.5 shadow-2xl border border-indigo-500/30 flex items-center justify-between z-50 animate-bounce glow-indigo";
+        banner.innerHTML = `
+          <div class="flex items-center space-x-2.5 min-w-0">
+            <span class="text-lg">✨</span>
+            <div class="min-w-0">
+              <div class="text-xs font-black tracking-wide">PHIÊN BẢN MỚI SẴN SÀNG!</div>
+              <div class="text-[10px] text-indigo-250 truncate">Nhấn cập nhật để áp dụng giao diện mới.</div>
+            </div>
+          </div>
+          <button id="btnApplyUpdate" class="bg-white hover:bg-slate-100 text-indigo-700 font-bold text-[10px] px-3 py-1.5 rounded-lg shrink-0 transition-colors active:scale-95">
+            Cập Nhật
+          </button>
+        `;
+        
+        document.body.appendChild(banner);
+        
+        document.getElementById('btnApplyUpdate').onclick = function() {
+          if (reg.waiting) {
+            reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+          }
+        };
+      }
+
+      window.checkUpdatesManually = function() {
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.ready.then(reg => {
+            const btn = document.getElementById('btnCheckUpdateText');
+            btn.innerText = "Đang check...";
+            
+            reg.update().then(() => {
+              setTimeout(() => {
+                btn.innerText = "Kiểm tra cập nhật";
+                if (!reg.waiting && !reg.installing) {
+                  alert("Ứng dụng của bạn đã ở phiên bản mới nhất! (v2.2.2)");
+                }
+              }, 1200);
+            }).catch(err => {
+              console.error("Lỗi kiểm tra cập nhật:", err);
+              btn.innerText = "Kiểm tra cập nhật";
+              alert("Không thể kết nối máy chủ để kiểm tra bản cập nhật lúc này!");
+            });
+          });
+        } else {
+          alert("Trình duyệt này không hỗ trợ chế độ cài đặt PWA.");
+        }
+      };
+
+      // ==========================================
       // 12. INITIALIZATION ON DOM READY
       // ==========================================
       document.addEventListener('DOMContentLoaded', () => {
-        // Đăng ký Service Worker cho PWA chạy offline
+        // Đăng ký Service Worker cho PWA chạy offline và lắng nghe cập nhật
         if ('serviceWorker' in navigator) {
           navigator.serviceWorker.register('./sw.js')
-            .then(reg => console.log('[PWA] Service Worker đăng ký thành công:', reg))
+            .then(reg => {
+              console.log('[PWA] Service Worker đã đăng ký:', reg);
+              
+              // 1. Kiểm tra cập nhật khi đang mở app
+              reg.addEventListener('updatefound', () => {
+                const newWorker = reg.installing;
+                newWorker.addEventListener('statechange', () => {
+                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    showUpdateBanner(reg);
+                  }
+                });
+              });
+              
+              // 2. Nếu có bản cập nhật đang đợi sẵn ở nền
+              if (reg.waiting) {
+                showUpdateBanner(reg);
+              }
+            })
             .catch(err => console.error('[PWA] Lỗi đăng ký Service Worker:', err));
+
+          // Reload lại trang khi Service Worker mới kích hoạt để nhận mã nguồn mới
+          let refreshing = false;
+          navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (!refreshing) {
+              refreshing = true;
+              window.location.reload();
+            }
+          });
         }
 
         // Tự động giải mã nạp cấu hình Firebase chia sẻ qua link URL
