@@ -117,7 +117,7 @@
         <div class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>
         <h1 class="text-sm font-black tracking-wider text-slate-200">SỔ THEO DÕI TIỀN ĂN</h1>
       </div>
-      <span class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20">v2.2.7 PRO</span>
+      <span class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20">v2.2.8 PRO</span>
     </header>
 
     <!-- KHOẢN PHẢI THU (BALANCE CARD GRID) -->
@@ -394,7 +394,7 @@
       </div>
 
       <div class="text-center text-[9px] text-slate-600 font-mono">
-        Phiên bản: <span class="text-indigo-400 font-bold">v2.2.7</span> | 
+        Phiên bản: <span class="text-indigo-400 font-bold">v2.2.8</span> | 
         <button onclick="checkUpdatesManually()" class="text-indigo-450 hover:underline font-bold focus:outline-none"><span id="btnCheckUpdateText">Kiểm tra cập nhật</span></button>
       </div>
     </footer>
@@ -1633,22 +1633,31 @@
           const btn = document.getElementById('btnCheckUpdateText');
           btn.innerText = "Đang check...";
           
-          // Thử lấy registration trực tiếp từ trình duyệt
+          // Đặt Timeout bảo vệ toàn cục (4 giây) đề phòng getRegistration hoặc update() bị treo vô hạn
+          const globalTimeout = setTimeout(() => {
+            btn.innerText = "Kiểm tra cập nhật";
+            if (confirm("Kiểm tra cập nhật bị chậm hoặc bị treo do bộ nhớ đệm. Bạn có muốn làm mới trang ngay lập tức để tự động nhận bản mới nhất?")) {
+              window.location.reload();
+            }
+          }, 4000);
+
           navigator.serviceWorker.getRegistration().then(reg => {
             if (!reg) {
-              // Thử nạp qua ready nếu chưa đăng ký xong
+              // Thử nạp qua ready nếu chưa xong
               navigator.serviceWorker.ready.then(readyReg => {
                 swRegistration = readyReg;
-                performUpdateCheck(readyReg);
+                performUpdateCheck(readyReg, globalTimeout);
               }).catch(err => {
+                clearTimeout(globalTimeout);
                 btn.innerText = "Kiểm tra cập nhật";
                 alert("Đang khởi chạy Service Worker. Vui lòng thử lại sau vài giây!");
               });
               return;
             }
             swRegistration = reg;
-            performUpdateCheck(reg);
+            performUpdateCheck(reg, globalTimeout);
           }).catch(err => {
+            clearTimeout(globalTimeout);
             console.error("Lỗi kiểm tra cập nhật:", err);
             btn.innerText = "Kiểm tra cập nhật";
             if (confirm("Lỗi đọc trạng thái cập nhật! Bạn có muốn tải lại trang (Force Reload) để nhận bản mới nhất?")) {
@@ -1660,27 +1669,19 @@
         }
       };
 
-      function performUpdateCheck(reg) {
+      function performUpdateCheck(reg, globalTimeout) {
         const btn = document.getElementById('btnCheckUpdateText');
-        
-        // Thêm timeout bảo vệ phòng trường hợp update() bị treo
-        const updateTimeout = setTimeout(() => {
-          btn.innerText = "Kiểm tra cập nhật";
-          if (confirm("Thời gian kiểm tra quá lâu. Có thể do lỗi bộ nhớ cache. Bạn có muốn tải lại trang để tự động làm mới?")) {
-            window.location.reload();
-          }
-        }, 5000);
 
         reg.update().then(() => {
-          clearTimeout(updateTimeout);
+          clearTimeout(globalTimeout);
           setTimeout(() => {
             btn.innerText = "Kiểm tra cập nhật";
             if (!reg.waiting && !reg.installing) {
-              alert("Ứng dụng của bạn đã ở phiên bản mới nhất! (v2.2.7)");
+              alert("Ứng dụng của bạn đã ở phiên bản mới nhất! (v2.2.8)");
             }
-          }, 1000);
+          }, 800);
         }).catch(err => {
-          clearTimeout(updateTimeout);
+          clearTimeout(globalTimeout);
           console.error("Lỗi kiểm tra cập nhật:", err);
           btn.innerText = "Kiểm tra cập nhật";
           
