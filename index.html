@@ -136,7 +136,7 @@
         <div class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>
         <h1 class="text-sm font-black tracking-wider text-slate-200">SỔ THEO DÕI TIỀN ĂN</h1>
       </div>
-      <span class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20">v2.4.2 PRO</span>
+      <span class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20">v2.4.3 PRO</span>
     </header>
 
     <!-- Banner cảnh báo không đồng bộ đám mây -->
@@ -366,7 +366,7 @@
           
           <div class="flex justify-between items-start">
             <div>
-              <span class="text-base font-bold text-slate-300 tracking-wider flex items-center flex-wrap">🔍 Tiền ăn của <span id="filterMemberName" class="text-3xl font-black text-indigo-400 mx-1.5">Name</span>:</span>
+              <span class="text-base font-bold text-slate-300 tracking-wider flex items-center flex-wrap">🔍 Tiền ăn của <span id="filterMemberName" class="text-[22px] font-black text-indigo-400 mx-1.5">Name</span>:</span>
               
               <!-- Số tiền cực lớn và nút copy bên cạnh -->
               <div class="flex items-center space-x-2 mt-2">
@@ -408,7 +408,7 @@
     <!-- BOTTOM PANEL -->
     <footer class="mt-8 border-t border-slate-800/80 bg-slate-950/80 p-4">
       <div class="text-center text-[9px] text-slate-600 font-mono">
-        Phiên bản: <span class="text-indigo-400 font-bold">v2.4.2</span> | 
+        Phiên bản: <span class="text-indigo-400 font-bold">v2.4.3</span> | 
         <button onclick="checkUpdatesManually()" class="text-indigo-450 hover:underline font-bold focus:outline-none"><span id="btnCheckUpdateText">Kiểm tra cập nhật</span></button>
       </div>
     </footer>
@@ -1693,7 +1693,7 @@
         const btn = document.getElementById('btnCheckUpdateText');
         btn.innerText = "Đang check...";
 
-        const currentVersion = "v2.4.2";
+        const currentVersion = "v2.4.3";
 
         // Tải file index.html trực tiếp từ server để bypass cache bằng timestamp
         fetch('./index.html?t=' + Date.now())
@@ -1712,24 +1712,71 @@
               if (serverVersion !== currentVersion) {
                 btn.innerText = "Đang cập nhật...";
                 
-                // Cập nhật ngầm Service Worker nếu có hỗ trợ
-                if ('serviceWorker' in navigator && swRegistration) {
-                  swRegistration.update();
-                }
-                
-                // Di cư cấu hình Firebase qua URL để tránh iOS PWA reset localStorage khi nâng cấp
-                const savedConfig = localStorage.getItem('ste_firebase_config');
-                if (savedConfig) {
-                  try {
-                    const configObj = JSON.parse(savedConfig);
-                    const configStr = btoa(unescape(encodeURIComponent(JSON.stringify(configObj))));
-                    window.location.href = window.location.origin + window.location.pathname + '?fb=' + configStr;
-                    return;
-                  } catch(e) {
-                    console.error("Lỗi mã hóa cấu hình di cư:", e);
+                // Hàm phụ trợ thực hiện reload di cư an toàn
+                const performUpdateReload = () => {
+                  const savedConfig = localStorage.getItem('ste_firebase_config');
+                  if (savedConfig) {
+                    try {
+                      const configObj = JSON.parse(savedConfig);
+                      const configStr = btoa(unescape(encodeURIComponent(JSON.stringify(configObj))));
+                      window.location.href = window.location.origin + window.location.pathname + '?fb=' + configStr;
+                      return;
+                    } catch(e) {
+                      console.error("Lỗi mã hóa cấu hình di cư:", e);
+                    }
                   }
+                  window.location.reload();
+                };
+
+                // Nếu hỗ trợ Service Worker và có đăng ký swRegistration
+                if ('serviceWorker' in navigator && swRegistration) {
+                  // Lắng nghe sự kiện cài đặt xong của Service Worker mới
+                  const handleUpdate = (reg) => {
+                    const newWorker = reg.installing || reg.waiting;
+                    if (newWorker) {
+                      const stateChangeHandler = () => {
+                        if (newWorker.state === 'installed') {
+                          // Đã tải xong mọi thứ và đang chờ, ra lệnh SKIP_WAITING để kích hoạt ngay
+                          newWorker.postMessage({ type: 'SKIP_WAITING' });
+                          newWorker.removeEventListener('statechange', stateChangeHandler);
+                        }
+                      };
+                      newWorker.addEventListener('statechange', stateChangeHandler);
+                      
+                      // Nếu trạng thái đã là installed rồi (waiting)
+                      if (newWorker.state === 'installed') {
+                        newWorker.postMessage({ type: 'SKIP_WAITING' });
+                      }
+                    }
+                  };
+
+                  // Lắng nghe sự kiện tìm thấy update tiếp theo
+                  swRegistration.addEventListener('updatefound', () => {
+                    handleUpdate(swRegistration);
+                  });
+
+                  // Nếu đã có sẵn worker đang chờ kích hoạt ở nền
+                  if (swRegistration.waiting) {
+                    swRegistration.waiting.postMessage({ type: 'SKIP_WAITING' });
+                  } else {
+                    // Nếu chưa có, kích hoạt tìm kiếm update thủ công
+                    swRegistration.update().then(reg => {
+                      handleUpdate(reg);
+                    }).catch(err => {
+                      console.error("Lỗi update SW:", err);
+                      performUpdateReload();
+                    });
+                  }
+
+                  // Thiết lập một bộ hẹn giờ dự phòng (timeout fallback) phòng trường hợp SW bị treo
+                  setTimeout(() => {
+                    performUpdateReload();
+                  }, 8000);
+
+                } else {
+                  // Nếu không có Service Worker, reload trực tiếp
+                  performUpdateReload();
                 }
-                window.location.reload();
               } else {
                 btn.innerText = `Đã ở bản mới nhất! (${currentVersion})`;
                 setTimeout(() => {
