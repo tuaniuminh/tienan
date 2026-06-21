@@ -10,6 +10,10 @@
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#020617">
   <link rel="apple-touch-icon" href="icon-192.png">
+
+  <!-- Firebase SDK (Compat Version) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -239,6 +243,76 @@
       </div>
     </section>
 
+    <!-- CLOUD SYNC (FIREBASE REALTIME DATABASE) -->
+    <section class="px-4 mb-4">
+      <div class="bg-slate-850/60 border border-slate-700/30 rounded-2xl overflow-hidden transition-all duration-300">
+        <button onclick="toggleFirebaseManager()" class="w-full px-4 py-3 flex justify-between items-center text-left hover:bg-slate-800/40">
+          <span class="text-xs font-bold text-slate-400 tracking-wider flex items-center">
+            <span class="mr-1.5">☁️</span> Đồng bộ đám mây (Firebase)
+          </span>
+          <div class="flex items-center space-x-2">
+            <!-- Đèn báo trạng thái kết nối -->
+            <span id="fbStatusDot" class="h-2 w-2 rounded-full bg-slate-500"></span>
+            <span id="fbStatusText" class="text-[10px] text-slate-400 font-semibold uppercase">Ngoại tuyến</span>
+            <span id="fbToggleArrow" class="text-xs text-slate-500 transition-transform duration-200">▼</span>
+          </div>
+        </button>
+        
+        <div id="firebaseManagerContent" class="hidden p-4 border-t border-slate-800/50 bg-slate-900/40 space-y-3">
+          <p class="text-[10px] text-slate-400 leading-relaxed">
+            Nhập cấu hình Firebase Realtime Database của bạn để đồng bộ thời gian thực giữa các thiết bị. Tạo tài khoản Firebase miễn phí và lấy thông tin cấu hình của dự án.
+          </p>
+          
+          <form id="fbConfigForm" onsubmit="saveFirebaseConfig(event)" class="space-y-2.5">
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 mb-1">API Key:</label>
+              <input type="text" id="fbApiKey" required placeholder="AIzaSy..." 
+                class="w-full bg-slate-900 border border-slate-750 focus:border-indigo-500 text-slate-200 placeholder-slate-650 rounded-lg py-1.5 px-3 text-xs focus:outline-none transition-all">
+            </div>
+            
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[10px] font-bold text-slate-400 mb-1">Database URL:</label>
+                <input type="text" id="fbDbUrl" required placeholder="https://dự-án.firebaseio.com" 
+                  class="w-full bg-slate-900 border border-slate-750 focus:border-indigo-500 text-slate-200 placeholder-slate-650 rounded-lg py-1.5 px-3 text-xs focus:outline-none transition-all">
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold text-slate-400 mb-1">Project ID:</label>
+                <input type="text" id="fbProjectId" required placeholder="tienan-12345" 
+                  class="w-full bg-slate-900 border border-slate-750 focus:border-indigo-500 text-slate-200 placeholder-slate-650 rounded-lg py-1.5 px-3 text-xs focus:outline-none transition-all">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[10px] font-bold text-slate-400 mb-1">Tên phòng (Room Name):</label>
+                <input type="text" id="fbRoomName" required placeholder="default_room" 
+                  class="w-full bg-slate-900 border border-slate-750 focus:border-indigo-500 text-slate-200 placeholder-slate-650 rounded-lg py-1.5 px-3 text-xs focus:outline-none transition-all">
+              </div>
+              <div class="flex items-end">
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs py-2 rounded-lg active:scale-95 transition-all">
+                  Lưu & Kết Nối
+                </button>
+              </div>
+            </div>
+          </form>
+
+          <div id="fbActiveActions" class="hidden border-t border-slate-800/80 pt-3 space-y-2">
+            <!-- Nút copy link chia sẻ -->
+            <button onclick="copyShareLink()" class="w-full bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-200 text-xs py-2 rounded-lg font-bold flex items-center justify-center space-x-1.5 active:scale-95 transition-all">
+              <span>🔗</span>
+              <span id="shareLinkBtnText">Copy Link Chia Sẻ Cấu Hình</span>
+            </button>
+            <div id="shareLinkFeedback" class="text-[10px] text-emerald-400 text-center mt-1 hidden font-semibold">Đã sao chép liên kết cấu hình!</div>
+            
+            <button onclick="disconnectFirebase()" class="w-full bg-rose-950/40 hover:bg-rose-900/30 border border-rose-800/30 text-rose-400 text-xs py-2 rounded-lg font-bold active:scale-95 transition-all">
+              Ngắt Kết Nối Đám Mây
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- DÂN CHƠI LỊCH SỬ (HISTORY LOG) -->
     <section class="px-4 flex-grow flex flex-col">
       <div class="flex justify-between items-center mb-3">
@@ -292,6 +366,11 @@
   <script>
     (function() {
       'use strict';
+
+      // Firebase references & status
+      let dbRef = null;
+      let isFirebaseInitialized = false;
+      let fbConfig = null;
 
       // ==========================================
       // 1. ANTI-ZOOM DI ĐỘNG & TRÌNH DUYỆT TRONG APP
@@ -413,6 +492,9 @@
           try {
             localStorage.setItem('ste_transactions', JSON.stringify(this.transactions));
             localStorage.setItem('ste_guests', JSON.stringify(this.guests));
+            if (isFirebaseInitialized) {
+              pushLocalToFirebase();
+            }
           } catch(e) {
             console.error("Lỗi lưu vào LocalStorage:", e);
           }
@@ -1248,6 +1330,180 @@
       }
 
       // ==========================================
+      // 11.5. HỆ THỐNG ĐỒNG BỘ ĐÁM MÂY (FIREBASE REALTIME ENGINE)
+      // ==========================================
+      let isFbActiveExpanded = false;
+      window.toggleFirebaseManager = function() {
+        isFbActiveExpanded = !isFbActiveExpanded;
+        const panel = document.getElementById('firebaseManagerContent');
+        const arrow = document.getElementById('fbToggleArrow');
+        if (isFbActiveExpanded) {
+          panel.classList.remove('hidden');
+          arrow.className = "text-xs text-slate-500 rotate-180 transition-transform duration-200";
+        } else {
+          panel.classList.add('hidden');
+          arrow.className = "text-xs text-slate-500 transition-transform duration-200";
+        }
+      };
+
+      function updateFirebaseStatusUI(status, message) {
+        const dot = document.getElementById('fbStatusDot');
+        const text = document.getElementById('fbStatusText');
+        const activeActions = document.getElementById('fbActiveActions');
+        
+        if (status === 'connected') {
+          dot.className = "h-2 w-2 rounded-full bg-emerald-500 animate-pulse";
+          text.innerText = message || "Đã kết nối";
+          text.className = "text-[10px] text-emerald-400 font-bold uppercase";
+          activeActions.classList.remove('hidden');
+        } else if (status === 'error') {
+          dot.className = "h-2 w-2 rounded-full bg-rose-500";
+          text.innerText = message || "Lỗi cấu hình";
+          text.className = "text-[10px] text-rose-400 font-bold uppercase";
+          activeActions.classList.add('hidden');
+        } else {
+          dot.className = "h-2 w-2 rounded-full bg-slate-500";
+          text.innerText = message || "Ngoại tuyến";
+          text.className = "text-[10px] text-slate-400 font-semibold uppercase";
+          activeActions.classList.add('hidden');
+        }
+      }
+
+      window.initFirebase = function(config) {
+        if (!config || !config.apiKey || !config.databaseURL || !config.projectId) {
+          updateFirebaseStatusUI('offline');
+          return;
+        }
+
+        // Điền lại thông số cấu hình cũ vào Form
+        document.getElementById('fbApiKey').value = config.apiKey || '';
+        document.getElementById('fbDbUrl').value = config.databaseURL || '';
+        document.getElementById('fbProjectId').value = config.projectId || '';
+        document.getElementById('fbRoomName').value = config.roomName || 'default_room';
+
+        try {
+          if (window.firebase && firebase.apps.length === 0) {
+            firebase.initializeApp(config);
+          }
+          
+          isFirebaseInitialized = true;
+          fbConfig = config;
+          
+          const db = firebase.database();
+          const room = config.roomName || 'default_room';
+          
+          // Lắng nghe trạng thái mạng
+          db.ref('.info/connected').on('value', snap => {
+            if (snap.val() === true) {
+              updateFirebaseStatusUI('connected', 'Đang online');
+            } else {
+              updateFirebaseStatusUI('connected', 'Mất mạng');
+            }
+          });
+
+          dbRef = db.ref('rooms/' + room);
+
+          // Lắng nghe sự kiện đồng bộ từ đám mây về máy
+          dbRef.on('value', snapshot => {
+            const val = snapshot.val();
+            if (val) {
+              console.log('[Firebase] Đồng bộ dữ liệu tải xuống...');
+              AppStore.transactions = migrateLegacyData(JSON.stringify(val.transactions || []));
+              AppStore.guests = val.guests || [];
+              AppStore.cleanUpEmptyMeals();
+
+              // Lưu bộ nhớ đệm
+              localStorage.setItem('ste_transactions', JSON.stringify(AppStore.transactions));
+              localStorage.setItem('ste_guests', JSON.stringify(AppStore.guests));
+
+              // Vẽ lại UI
+              renderBalanceBoxes();
+              renderParticipantsSelector();
+              renderHistoryLog();
+              updateSplitPreview();
+            } else {
+              // Nếu đám mây trống, đẩy dữ liệu hiện có ở máy lên
+              pushLocalToFirebase();
+            }
+          }, err => {
+            console.error('[Firebase] Lỗi đọc dữ liệu:', err);
+            updateFirebaseStatusUI('error', 'Quyền bảo mật lỗi');
+          });
+
+        } catch (e) {
+          console.error('[Firebase] Khởi tạo lỗi:', e);
+          updateFirebaseStatusUI('error', 'Lỗi khởi chạy');
+        }
+      };
+
+      window.pushLocalToFirebase = function() {
+        if (!isFirebaseInitialized || !dbRef) return;
+        
+        dbRef.set({
+          guests: AppStore.guests,
+          transactions: AppStore.transactions
+        }).then(() => {
+          console.log('[Firebase] Đồng bộ lên mây thành công!');
+        }).catch(err => {
+          console.error('[Firebase] Đồng bộ lên mây thất bại:', err);
+          updateFirebaseStatusUI('error', 'Lưu mây lỗi');
+        });
+      };
+
+      window.saveFirebaseConfig = function(event) {
+        if (event) event.preventDefault();
+
+        const apiKey = document.getElementById('fbApiKey').value.trim();
+        const databaseURL = document.getElementById('fbDbUrl').value.trim();
+        const projectId = document.getElementById('fbProjectId').value.trim();
+        const roomName = document.getElementById('fbRoomName').value.trim() || 'default_room';
+
+        const config = {
+          apiKey,
+          databaseURL,
+          projectId,
+          roomName
+        };
+
+        localStorage.setItem('ste_firebase_config', JSON.stringify(config));
+        alert("Đã lưu thông số. Ứng dụng sẽ kết nối và tải lại trang!");
+        window.location.reload();
+      };
+
+      window.disconnectFirebase = function() {
+        if (confirm("Bạn có chắc chắn muốn ngắt kết nối Cloud? Ứng dụng sẽ tự động chuyển sang lưu cục bộ (Offline).")) {
+          localStorage.removeItem('ste_firebase_config');
+          alert("Đã ngắt kết nối! Ứng dụng sẽ tải lại ở chế độ offline.");
+          window.location.reload();
+        }
+      };
+
+      window.copyShareLink = function() {
+        if (!fbConfig) return;
+
+        try {
+          const configStr = btoa(unescape(encodeURIComponent(JSON.stringify(fbConfig))));
+          const shareUrl = window.location.origin + window.location.pathname + '?fb=' + configStr;
+          const feedback = document.getElementById('shareLinkFeedback');
+          const btnText = document.getElementById('shareLinkBtnText');
+
+          secureCopyToClipboard(shareUrl).then(() => {
+            btnText.innerText = "Đã copy liên kết!";
+            feedback.classList.remove('hidden');
+            setTimeout(() => {
+              btnText.innerText = "Copy Link Chia Sẻ Cấu Hình";
+              feedback.classList.add('hidden');
+            }, 4000);
+          }).catch(err => {
+            console.error("Lỗi copy link:", err);
+            alert("Sao chép liên kết chia sẻ của bạn:\n\n" + shareUrl);
+          });
+        } catch(e) {
+          console.error("Lỗi mã hóa:", e);
+        }
+      };
+
+      // ==========================================
       // 12. INITIALIZATION ON DOM READY
       // ==========================================
       document.addEventListener('DOMContentLoaded', () => {
@@ -1258,8 +1514,38 @@
             .catch(err => console.error('[PWA] Lỗi đăng ký Service Worker:', err));
         }
 
-        // Load cơ sở dữ liệu
+        // Tự động giải mã nạp cấu hình Firebase chia sẻ qua link URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const fbParam = urlParams.get('fb');
+        if (fbParam) {
+          try {
+            const decodedConfig = JSON.parse(decodeURIComponent(escape(atob(fbParam))));
+            if (decodedConfig && decodedConfig.apiKey) {
+              localStorage.setItem('ste_firebase_config', JSON.stringify(decodedConfig));
+              alert("Đã nhận cấu hình đồng bộ Firebase được chia sẻ!");
+              // Dọn URL
+              window.history.replaceState({}, document.title, window.location.pathname);
+            }
+          } catch(e) {
+            console.error("Lỗi giải mã cấu hình chia sẻ:", e);
+          }
+        }
+
+        // Load cơ sở dữ liệu cục bộ
         AppStore.load();
+
+        // Khởi động đồng bộ đám mây nếu có cấu hình
+        try {
+          const savedConfig = localStorage.getItem('ste_firebase_config');
+          if (savedConfig) {
+            initFirebase(JSON.parse(savedConfig));
+          } else {
+            updateFirebaseStatusUI('offline');
+          }
+        } catch(e) {
+          console.error("Lỗi nạp cấu hình Firebase lưu trữ:", e);
+          updateFirebaseStatusUI('offline');
+        }
         
         // Đồng bộ dữ liệu hiển thị lên màn hình
         syncGuestsToInput();
