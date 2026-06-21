@@ -85,13 +85,11 @@
       border-color: #6366f1 !important; /* indigo-500 */
       background-color: rgba(30, 27, 75, 0.6) !important; /* indigo-950/60 */
       color: #c7d2fe !important; /* indigo-300 */
-      box-shadow: 0 0 15px rgba(99, 102, 241, 0.25); /* glow-indigo */
     }
     .meal-btn-active-fuchsia {
       border-color: #d946ef !important; /* fuchsia-500 */
       background-color: rgba(74, 4, 78, 0.6) !important; /* fuchsia-950/60 */
       color: #f5d0fe !important; /* fuchsia-300 */
-      box-shadow: 0 0 15px rgba(217, 70, 239, 0.25); /* glow-fuchsia */
     }
     .participant-active-indigo {
       border-color: #6366f1 !important; /* indigo-500 */
@@ -108,6 +106,23 @@
     .transition-all-300 {
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
+
+    /* Suppress default tap highlight and focus rings for native feel */
+    * {
+      -webkit-tap-highlight-color: transparent !important;
+    }
+    button:focus, button:active, button:focus-visible {
+      outline: none !important;
+      box-shadow: none !important;
+    }
+    .meal-btn {
+      outline: none !important;
+      box-shadow: none !important;
+    }
+    .meal-btn:focus, .meal-btn:active, .meal-btn:focus-visible {
+      outline: none !important;
+      box-shadow: none !important;
+    }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-full flex justify-center">
@@ -121,8 +136,15 @@
         <div class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>
         <h1 class="text-sm font-black tracking-wider text-slate-200">SỔ THEO DÕI TIỀN ĂN</h1>
       </div>
-      <span class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20">v2.3.9 PRO</span>
+      <span class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20">v2.4.0 PRO</span>
     </header>
+
+    <!-- Banner cảnh báo không đồng bộ đám mây -->
+    <div id="cloudSyncWarningBanner" class="bg-amber-950/45 border-b border-amber-500/20 px-4 py-2.5 text-[11px] text-amber-300 font-medium flex items-center space-x-2 hidden">
+      <span class="animate-pulse">⚠️</span>
+      <span class="flex-grow">Dữ liệu chưa được đồng bộ đám mây (Ngoại tuyến).</span>
+      <button onclick="toggleFirebaseManager(); document.getElementById('firebaseManagerContent').scrollIntoView({ behavior: 'smooth' });" class="text-[10px] text-amber-400 font-bold underline hover:text-amber-350 active:scale-95 transition-all">Cấu hình</button>
+    </div>
 
     <!-- KHOẢN PHẢI THU (BALANCE CARD GRID) -->
     <section class="p-4 bg-slate-950/40 border-b border-slate-800/50">
@@ -180,14 +202,14 @@
             <label class="block text-xs font-medium text-slate-400 mb-1.5">Loại khoản chi:</label>
             <div id="mealTypeContainer" class="grid grid-cols-4 gap-1.5">
               <button type="button" id="btnMealSang" onclick="setMealType('Sáng')" 
-                class="meal-btn text-xs font-bold py-2 rounded-xl transition-all-300 border border-slate-700/50 bg-slate-900 text-slate-400">Sáng</button>
+                class="meal-btn text-xs font-bold py-2 rounded-xl border border-slate-700/50 bg-slate-900 text-slate-400 focus:outline-none">Sáng</button>
               <button type="button" id="btnMealTrua" onclick="setMealType('Trưa')" 
-                class="meal-btn text-xs font-bold py-2 rounded-xl transition-all-300 border border-slate-700/50 bg-slate-900 text-slate-400">Trưa</button>
+                class="meal-btn text-xs font-bold py-2 rounded-xl border border-slate-700/50 bg-slate-900 text-slate-400 focus:outline-none">Trưa</button>
               <button type="button" id="btnMealToi" onclick="setMealType('Tối')" 
-                class="meal-btn text-xs font-bold py-2 rounded-xl transition-all-300 border border-slate-700/50 bg-slate-900 text-slate-400">Tối</button>
+                class="meal-btn text-xs font-bold py-2 rounded-xl border border-slate-700/50 bg-slate-900 text-slate-400 focus:outline-none">Tối</button>
               <!-- Mua hộ Mode Button -->
               <button type="button" id="btnMealMuaHo" onclick="setMealType('Mua hộ')" 
-                class="meal-btn text-xs font-bold py-2 rounded-xl transition-all-300 border border-slate-700/50 bg-slate-900 text-slate-400">Mua hộ</button>
+                class="meal-btn text-xs font-bold py-2 rounded-xl border border-slate-700/50 bg-slate-900 text-slate-400 focus:outline-none">Mua hộ</button>
             </div>
           </div>
 
@@ -344,19 +366,18 @@
           
           <div class="flex justify-between items-start">
             <div>
-              <span class="text-xs font-bold text-slate-400 tracking-wider">🔍 Tiền ăn của <span id="filterMemberName" class="text-slate-100 font-extrabold">Name</span>:</span>
+              <span class="text-lg font-bold text-slate-300 tracking-wider flex items-center flex-wrap">🔍 Tiền ăn của <span id="filterMemberName" class="text-5xl font-black text-indigo-400 mx-2">Name</span>:</span>
               
               <!-- Số tiền cực lớn và nút copy bên cạnh -->
-              <div class="flex items-center space-x-2.5 mt-2">
+              <div class="flex items-center space-x-2 mt-2">
                 <div id="filterTotalAmount" class="text-3xl font-black text-rose-400 tracking-tight">0đ</div>
-                <button id="btnCopyDebt" class="text-[10px] text-slate-400 bg-slate-900 hover:bg-slate-750 px-2.5 py-1.5 rounded-lg border border-slate-800 flex items-center space-x-1 active:scale-95 transition-all duration-150 shrink-0">
+                <button id="btnCopyDebt" class="text-[10px] text-slate-400 bg-slate-900 hover:bg-slate-750 p-2.5 rounded-xl border border-slate-800 flex items-center justify-center active:scale-95 transition-colors duration-150 shrink-0">
                   <span id="copyBtnIcon" class="flex items-center justify-center">
                     <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                       <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                     </svg>
                   </span>
-                  <span id="copyBtnText">Copy</span>
                 </button>
               </div>
             </div>
@@ -375,7 +396,7 @@
 
       <div class="flex justify-between items-center mb-3">
         <h3 id="historyTitle" class="text-xs font-bold text-slate-400 uppercase tracking-widest">📋 Lịch sử chi tiêu</h3>
-        <button id="btnClearFilter" onclick="clearFilter()" class="text-[10px] text-rose-400 hover:underline hidden">Hủy lọc (Xem tất cả)</button>
+        <button id="btnClearFilter" onclick="clearFilter()" class="text-[10px] text-rose-400 hover:underline hidden">Hủy lọc</button>
       </div>
 
       <!-- Khung chứa danh sách lịch sử -->
@@ -414,7 +435,7 @@
       </div>
 
       <div class="text-center text-[9px] text-slate-600 font-mono">
-        Phiên bản: <span class="text-indigo-400 font-bold">v2.3.9</span> | 
+        Phiên bản: <span class="text-indigo-400 font-bold">v2.4.0</span> | 
         <button onclick="checkUpdatesManually()" class="text-indigo-450 hover:underline font-bold focus:outline-none"><span id="btnCheckUpdateText">Kiểm tra cập nhật</span></button>
       </div>
     </footer>
@@ -875,7 +896,7 @@
         
         // Cập nhật trạng thái Active trên UI Buttons
         document.querySelectorAll('.meal-btn').forEach(btn => {
-          btn.className = 'meal-btn text-xs font-bold py-2 rounded-xl transition-colors duration-150 border border-slate-700/50 bg-slate-900 text-slate-400';
+          btn.className = 'meal-btn text-xs font-bold py-2 rounded-xl border border-slate-700/50 bg-slate-900 text-slate-400 focus:outline-none';
         });
 
         let idType = type;
@@ -887,9 +908,9 @@
         const activeBtn = document.getElementById(`btnMeal${idType}`);
         if (activeBtn) {
           if (type === 'Mua hộ') {
-            activeBtn.className = 'meal-btn text-xs font-bold py-2 rounded-xl transition-colors duration-150 meal-btn-active-fuchsia';
+            activeBtn.className = 'meal-btn text-xs font-bold py-2 rounded-xl meal-btn-active-fuchsia focus:outline-none';
           } else {
-            activeBtn.className = 'meal-btn text-xs font-bold py-2 rounded-xl transition-colors duration-150 meal-btn-active-indigo';
+            activeBtn.className = 'meal-btn text-xs font-bold py-2 rounded-xl meal-btn-active-indigo focus:outline-none';
           }
         }
 
@@ -1036,28 +1057,24 @@
         // Nút Copy
         const copyBtn = document.getElementById('btnCopyDebt');
         const copyIcon = document.getElementById('copyBtnIcon');
-        const copyText = document.getElementById('copyBtnText');
         
         // Reset trạng thái copy button
         const normalSvg = `<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
         if (copyResetTimer) clearTimeout(copyResetTimer);
-        copyBtn.className = "text-[10px] text-slate-400 bg-slate-900 hover:bg-slate-750 px-2.5 py-1.5 rounded-lg border border-slate-800 flex items-center space-x-1 active:scale-95 transition-all duration-150 shrink-0";
+        copyBtn.className = "text-[10px] text-slate-400 bg-slate-900 hover:bg-slate-750 p-2.5 rounded-xl border border-slate-800 flex items-center justify-center active:scale-95 transition-colors duration-150 shrink-0";
         copyIcon.innerHTML = normalSvg;
-        copyText.innerText = "Copy";
 
         copyBtn.onclick = function() {
           const debtString = formatVND(totalDebt);
           secureCopyToClipboard(debtString).then(() => {
             // Đổi trạng thái copy sang tích xanh trong 5 giây
-            copyBtn.className = "text-[10px] text-emerald-400 bg-emerald-950/60 hover:bg-emerald-900/60 px-2.5 py-1.5 rounded-lg border border-emerald-500/30 flex items-center space-x-1 active:scale-95 transition-all duration-150 glow-emerald shrink-0";
+            copyBtn.className = "text-[10px] text-emerald-400 bg-emerald-950/60 hover:bg-emerald-900/60 p-2.5 rounded-xl border border-emerald-500/30 flex items-center justify-center active:scale-95 transition-colors duration-150 glow-emerald shrink-0";
             copyIcon.innerHTML = "✓";
-            copyText.innerText = "Xong";
 
             if (copyResetTimer) clearTimeout(copyResetTimer);
             copyResetTimer = setTimeout(() => {
-              copyBtn.className = "text-[10px] text-slate-400 bg-slate-900 hover:bg-slate-750 px-2.5 py-1.5 rounded-lg border border-slate-800 flex items-center space-x-1 active:scale-95 transition-all duration-150 shrink-0";
+              copyBtn.className = "text-[10px] text-slate-400 bg-slate-900 hover:bg-slate-750 p-2.5 rounded-xl border border-slate-800 flex items-center justify-center active:scale-95 transition-colors duration-150 shrink-0";
               copyIcon.innerHTML = normalSvg;
-              copyText.innerText = "Copy";
             }, 5000);
           }).catch(err => {
             console.error("Lỗi copy:", err);
@@ -1549,27 +1566,41 @@
         const dot = document.getElementById('fbStatusDot');
         const text = document.getElementById('fbStatusText');
         const activeActions = document.getElementById('fbActiveActions');
+        const banner = document.getElementById('cloudSyncWarningBanner');
         
         if (status === 'connected') {
           dot.className = "h-2 w-2 rounded-full bg-emerald-500 animate-pulse";
           text.innerText = message || "Đang online";
           text.className = "text-[10px] text-emerald-400 font-bold uppercase";
           activeActions.classList.remove('hidden');
+          if (banner) banner.classList.add('hidden');
         } else if (status === 'disconnected') {
           dot.className = "h-2 w-2 rounded-full bg-amber-500 animate-pulse";
           text.innerText = message || "Đang kết nối...";
           text.className = "text-[10px] text-amber-400 font-bold uppercase";
           activeActions.classList.remove('hidden');
+          if (banner) {
+            banner.classList.remove('hidden');
+            banner.querySelector('span:not(.animate-pulse)').innerText = "Đang kết nối đồng bộ đám mây...";
+          }
         } else if (status === 'error') {
           dot.className = "h-2 w-2 rounded-full bg-rose-500";
           text.innerText = message || "Lỗi cấu hình";
           text.className = "text-[10px] text-rose-400 font-bold uppercase";
           activeActions.classList.add('hidden');
+          if (banner) {
+            banner.classList.remove('hidden');
+            banner.querySelector('span:not(.animate-pulse)').innerText = "Lỗi kết nối đồng bộ đám mây (Kiểm tra cấu hình).";
+          }
         } else {
           dot.className = "h-2 w-2 rounded-full bg-slate-500";
           text.innerText = message || "Ngoại tuyến";
           text.className = "text-[10px] text-slate-400 font-semibold uppercase";
           activeActions.classList.add('hidden');
+          if (banner) {
+            banner.classList.remove('hidden');
+            banner.querySelector('span:not(.animate-pulse)').innerText = "Dữ liệu chưa được đồng bộ đám mây (Ngoại tuyến).";
+          }
         }
       }
 
@@ -1786,7 +1817,7 @@
         const btn = document.getElementById('btnCheckUpdateText');
         btn.innerText = "Đang check...";
 
-        const currentVersion = "v2.3.9";
+        const currentVersion = "v2.4.0";
 
         // Tải file index.html trực tiếp từ server để bypass cache bằng timestamp
         fetch('./index.html?t=' + Date.now())
