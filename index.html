@@ -93,7 +93,7 @@
         <div class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>
         <h1 class="text-sm font-black tracking-wider text-slate-200">SỔ THEO DÕI TIỀN ĂN</h1>
       </div>
-      <span class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20">v2.2.0 PRO</span>
+      <span class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20">v2.2.1 PRO</span>
     </header>
 
     <!-- KHOẢN PHẢI THU (BALANCE CARD GRID) -->
@@ -370,7 +370,7 @@
       </div>
 
       <div class="text-center text-[9px] text-slate-600 font-mono">
-        Phiên bản: <span class="text-indigo-400 font-bold">v2.2.0</span> | Made with ❤️ for mobile-webview
+        Phiên bản: <span class="text-indigo-400 font-bold">v2.2.1</span> | Made with ❤️ for mobile-webview
       </div>
     </footer>
 
@@ -750,11 +750,8 @@
           checkedList.add(cb.value);
         });
 
-        // Nếu mới load chưa chọn ai, tự động tick hết
-        const isFirstRender = document.querySelectorAll('.participant-cb').length === 0;
-
         members.forEach((m, idx) => {
-          const isChecked = isFirstRender || checkedList.has(m);
+          const isChecked = checkedList.has(m);
           
           // Tạo nhãn nút bấm
           const label = document.createElement('label');
