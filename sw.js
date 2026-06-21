@@ -1,11 +1,13 @@
-const CACHE_NAME = 'tien-an-v2.3.0';
+const CACHE_NAME = 'tien-an-v2.3.1';
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
-  'https://cdn.tailwindcss.com'
+  'https://cdn.tailwindcss.com',
+  'https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js',
+  'https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js'
 ];
 
 // Cài đặt Service Worker và cache các tài nguyên chính
