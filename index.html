@@ -93,7 +93,7 @@
         <div class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>
         <h1 class="text-sm font-black tracking-wider text-slate-200">SỔ THEO DÕI TIỀN ĂN</h1>
       </div>
-      <span class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20">v2.2.3 PRO</span>
+      <span class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20">v2.2.4 PRO</span>
     </header>
 
     <!-- KHOẢN PHẢI THU (BALANCE CARD GRID) -->
@@ -370,7 +370,7 @@
       </div>
 
       <div class="text-center text-[9px] text-slate-600 font-mono">
-        Phiên bản: <span class="text-indigo-400 font-bold">v2.2.3</span> | 
+        Phiên bản: <span class="text-indigo-400 font-bold">v2.2.4</span> | 
         <button onclick="checkUpdatesManually()" class="text-indigo-450 hover:underline font-bold focus:outline-none"><span id="btnCheckUpdateText">Kiểm tra cập nhật</span></button>
       </div>
     </footer>
@@ -386,6 +386,7 @@
       let dbRef = null;
       let isFirebaseInitialized = false;
       let fbConfig = null;
+      let swRegistration = null;
 
       // ==========================================
       // 1. ANTI-ZOOM DI ĐỘNG & TRÌNH DUYỆT TRONG APP
@@ -1586,40 +1587,56 @@
       }
 
       window.checkUpdatesManually = function() {
+        if (window.location.protocol === 'file:') {
+          alert("Ứng dụng đang chạy cục bộ từ tệp (file://). Tính năng kiểm tra cập nhật PWA chỉ hoạt động khi bạn mở ứng dụng qua liên kết trực tuyến HTTPS (GitHub Pages).");
+          return;
+        }
+
         if ('serviceWorker' in navigator) {
           const btn = document.getElementById('btnCheckUpdateText');
           btn.innerText = "Đang check...";
           
-          navigator.serviceWorker.getRegistration().then(reg => {
+          // Ưu tiên sử dụng đối tượng lưu trữ sẵn, nếu chưa có sẽ tự lấy từ getRegistration
+          const checkReg = swRegistration ? Promise.resolve(swRegistration) : navigator.serviceWorker.getRegistration();
+          
+          checkReg.then(reg => {
             if (!reg) {
-              setTimeout(() => {
+              // Thử nạp qua ready để đề phòng đang trong quá trình kích hoạt
+              navigator.serviceWorker.ready.then(readyReg => {
+                swRegistration = readyReg;
+                performUpdateCheck(readyReg);
+              }).catch(err => {
                 btn.innerText = "Kiểm tra cập nhật";
-                alert("Không tìm thấy Service Worker! Có thể do bạn đang chạy ứng dụng cục bộ từ tệp (file://) hoặc tiến trình đăng ký chưa hoàn tất.");
-              }, 800);
+                alert("Hệ thống PWA đang được khởi chạy. Vui lòng làm mới trang hoặc thử lại sau vài giây!");
+              });
               return;
             }
-            
-            reg.update().then(() => {
-              setTimeout(() => {
-                btn.innerText = "Kiểm tra cập nhật";
-                if (!reg.waiting && !reg.installing) {
-                  alert("Ứng dụng của bạn đã ở phiên bản mới nhất! (v2.2.3)");
-                }
-              }, 1200);
-            }).catch(err => {
-              console.error("Lỗi kiểm tra cập nhật:", err);
-              btn.innerText = "Kiểm tra cập nhật";
-              alert("Không thể kết nối máy chủ để kiểm tra bản cập nhật lúc này!");
-            });
+            performUpdateCheck(reg);
           }).catch(err => {
-            console.error("Lỗi đọc registration:", err);
+            console.error("Lỗi kiểm tra cập nhật:", err);
             btn.innerText = "Kiểm tra cập nhật";
-            alert("Lỗi kiểm tra trạng thái Service Worker!");
+            alert("Lỗi đọc trạng thái cập nhật từ trình duyệt!");
           });
         } else {
           alert("Trình duyệt này không hỗ trợ chế độ cài đặt PWA.");
         }
       };
+
+      function performUpdateCheck(reg) {
+        const btn = document.getElementById('btnCheckUpdateText');
+        reg.update().then(() => {
+          setTimeout(() => {
+            btn.innerText = "Kiểm tra cập nhật";
+            if (!reg.waiting && !reg.installing) {
+              alert("Ứng dụng của bạn đã ở phiên bản mới nhất! (v2.2.4)");
+            }
+          }, 1200);
+        }).catch(err => {
+          console.error("Lỗi kiểm tra cập nhật:", err);
+          btn.innerText = "Kiểm tra cập nhật";
+          alert("Không thể kết nối máy chủ để kiểm tra bản cập nhật lúc này!");
+        });
+      }
 
       // ==========================================
       // 12. INITIALIZATION ON DOM READY
@@ -1630,6 +1647,7 @@
           navigator.serviceWorker.register('./sw.js')
             .then(reg => {
               console.log('[PWA] Service Worker đã đăng ký:', reg);
+              swRegistration = reg; // Lưu trữ đối tượng đăng ký để kiểm tra cập nhật nhanh
               
               // 1. Kiểm tra cập nhật khi đang mở app
               reg.addEventListener('updatefound', () => {
