@@ -136,7 +136,7 @@
         <div class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>
         <h1 class="text-sm font-black tracking-wider text-slate-200">SỔ THEO DÕI TIỀN ĂN</h1>
       </div>
-      <span class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20">v2.4.0 PRO</span>
+      <span class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20">v2.4.1 PRO</span>
     </header>
 
     <!-- Banner cảnh báo không đồng bộ đám mây -->
@@ -435,7 +435,7 @@
       </div>
 
       <div class="text-center text-[9px] text-slate-600 font-mono">
-        Phiên bản: <span class="text-indigo-400 font-bold">v2.4.0</span> | 
+        Phiên bản: <span class="text-indigo-400 font-bold">v2.4.1</span> | 
         <button onclick="checkUpdatesManually()" class="text-indigo-450 hover:underline font-bold focus:outline-none"><span id="btnCheckUpdateText">Kiểm tra cập nhật</span></button>
       </div>
     </footer>
@@ -1495,8 +1495,8 @@
         try {
           const parsed = JSON.parse(rawText);
           
-          let importedTransactions = [];
-          let importedGuests = [];
+          let importedTransactions = null;
+          let importedGuests = null;
 
           if (parsed && typeof parsed === 'object') {
             // Format v2.0 phức tạp hơn
@@ -1510,9 +1510,35 @@
             if (Array.isArray(parsed.guests)) {
               importedGuests = parsed.guests.filter(n => typeof n === 'string' && n.trim() !== '');
             }
-          } else {
-            showImportFeedback("Cấu trúc JSON không hợp lệ!", false);
+          }
+
+          // Cấu trúc hợp lệ nếu tìm thấy ít nhất mảng giao dịch hoặc danh sách khách
+          if (importedTransactions === null && importedGuests === null) {
+            showImportFeedback("Cấu trúc JSON không hợp lệ hoặc không tìm thấy dữ liệu để nhập!", false);
             return;
+          }
+
+          if (importedTransactions === null) {
+            importedTransactions = [];
+          }
+
+          // Nếu thiếu danh sách khách trong file backup, tự động quét từ các giao dịch để tránh mất khách
+          if (importedGuests === null) {
+            const guestsSet = new Set();
+            importedTransactions.forEach(tx => {
+              if (tx.shares) {
+                Object.keys(tx.shares).forEach(name => {
+                  if (name !== 'Tôi' && name !== 'Thắng' && name !== 'Phú') {
+                    guestsSet.add(name);
+                  }
+                });
+              }
+            });
+            if (guestsSet.size > 0) {
+              importedGuests = Array.from(guestsSet);
+            } else {
+              importedGuests = AppStore.guests; // Giữ nguyên danh sách hiện tại
+            }
           }
 
           // Cập nhật bộ nhớ hệ thống
@@ -1531,6 +1557,7 @@
           area.value = '';
           showImportFeedback("Nhập dữ liệu thành công! Đã đồng bộ giao diện.", true);
         } catch(e) {
+          console.error("[Backup] Lỗi giải mã chuỗi khôi phục:", e);
           showImportFeedback("Lỗi parse JSON: Hãy kiểm tra kỹ chuỗi nhập!", false);
         }
       };
@@ -1817,7 +1844,7 @@
         const btn = document.getElementById('btnCheckUpdateText');
         btn.innerText = "Đang check...";
 
-        const currentVersion = "v2.4.0";
+        const currentVersion = "v2.4.1";
 
         // Tải file index.html trực tiếp từ server để bypass cache bằng timestamp
         fetch('./index.html?t=' + Date.now())
