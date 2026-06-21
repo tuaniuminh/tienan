@@ -21,7 +21,7 @@
       theme: {
         extend: {
           fontFamily: {
-            sans: ['Outfit', 'sans-serif'],
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
           },
           colors: {
             slate: {
@@ -33,10 +33,10 @@
     }
   </script>
 
-  <!-- Google Fonts: Outfit -->
+  <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
   <style>
     /* Chống lựa chọn văn bản vô ý khi chạm nhanh trên thiết bị di động */
@@ -44,7 +44,7 @@
       -webkit-touch-callout: none;
       -webkit-user-select: none;
       user-select: none;
-      font-family: 'Outfit', sans-serif;
+      font-family: 'Plus Jakarta Sans', sans-serif;
     }
     
     /* Cho phép chọn văn bản trong các ô nhập liệu và khu vực sao lưu */
@@ -117,13 +117,22 @@
         <div class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>
         <h1 class="text-sm font-black tracking-wider text-slate-200">SỔ THEO DÕI TIỀN ĂN</h1>
       </div>
-      <span class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20">v2.3.1 PRO</span>
+      <span class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20">v2.3.2 PRO</span>
     </header>
 
     <!-- KHOẢN PHẢI THU (BALANCE CARD GRID) -->
     <section class="p-4 bg-slate-950/40 border-b border-slate-800/50">
+      <!-- Tổng nợ tích lũy hiển thị trên đầu -->
+      <div class="bg-gradient-to-r from-rose-950/40 to-slate-900/60 border border-rose-500/20 rounded-2xl p-4 mb-4 flex items-center justify-between shadow-lg text-slate-100">
+        <div>
+          <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Tổng nợ cần thu</span>
+          <div id="totalDebtSummary" class="text-2xl font-black text-rose-400 tracking-tight mt-0.5">0đ</div>
+        </div>
+        <div class="h-10 w-10 rounded-xl bg-rose-950/60 border border-rose-500/10 flex items-center justify-center text-lg shadow-md shadow-rose-900/10">💰</div>
+      </div>
+
       <div class="flex justify-between items-center mb-3">
-        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">💰 Số dư nợ cần đòi</h2>
+        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">👤 Số dư từng người</h2>
         <span id="activeFilterIndicator" class="text-[11px] text-indigo-400 hidden animate-pulse">Đang lọc view</span>
       </div>
       
@@ -133,37 +142,7 @@
       </div>
     </section>
 
-    <!-- PREMIUM FINTECH FILTER WIDGET (Ẩn theo mặc định, chỉ hiện khi lọc) -->
-    <section id="filterWidget" class="hidden px-4 pt-4 transition-all-300">
-      <div class="bg-slate-850 border border-indigo-500/30 rounded-2xl p-4 shadow-lg flex flex-col relative overflow-hidden">
-        <!-- Hiệu ứng trang trí nền -->
-        <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-indigo-500/5 rounded-full blur-xl pointer-events-none"></div>
-        
-        <div class="flex justify-between items-start">
-          <div>
-            <span class="text-xs font-semibold text-slate-400 tracking-wider">🔍 Tiền ăn của:</span>
-            <div class="flex items-center space-x-2 mt-0.5">
-              <span id="filterMemberName" class="text-lg font-black text-slate-100">Name</span>
-              <button id="btnCopyDebt" class="text-xs text-slate-400 bg-slate-900 hover:bg-slate-700/80 px-2 py-1 rounded-md border border-slate-700 flex items-center space-x-1 active:scale-95 transition-all duration-150">
-                <span id="copyBtnIcon">📋</span>
-                <span id="copyBtnText">Copy</span>
-              </button>
-            </div>
-            <!-- Số tiền cực lớn -->
-            <div id="filterTotalAmount" class="text-3xl font-black text-rose-400 tracking-tight mt-1.5">0đ</div>
-          </div>
-          
-          <!-- Nút trả hết tích hợp xác nhận bảo mật bằng cách nhấn đúp/thay đổi trạng thái -->
-          <div class="flex flex-col items-end">
-            <button id="btnPayAll" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-2 rounded-xl shadow-md transition-all duration-300 active:scale-95 flex items-center space-x-1">
-              <span>✅</span>
-              <span id="payAllText">Trả hết</span>
-            </button>
-            <span id="payAllTimer" class="text-[9px] text-amber-400 font-mono mt-1 hidden">Nhấn lại để xác nhận!</span>
-          </div>
-        </div>
-      </div>
-    </section>
+
 
     <!-- FORM THÊM GIAO DỊCH MỚI -->
     <section class="p-4" id="transactionFormSection">
@@ -176,9 +155,9 @@
           
           <!-- Số tiền lớn, thiết kế tối giản fintech -->
           <div>
-            <label class="block text-xs font-medium text-slate-400 mb-1.5">Tổng số tiền (nghìn đồng - .000đ):</label>
+            <label class="block text-xs font-medium text-slate-400 mb-1.5">Tổng số tiền (.000 đ):</label>
             <div class="relative">
-              <input type="number" id="amountInput" required min="1" placeholder="Ví dụ: 30 cho 30.000đ..." 
+              <input type="number" id="amountInput" required min="1" placeholder="Nhập số tiền..." 
                 class="w-full bg-slate-900/90 border border-slate-700 focus:border-indigo-500 text-slate-100 placeholder-slate-650 rounded-xl py-3 px-4 text-2xl font-black text-center focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all">
               <button type="button" onclick="clearAmount()" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 text-sm font-bold bg-slate-800 hover:bg-slate-750 px-2 py-0.5 rounded">Xóa</button>
             </div>
@@ -358,6 +337,38 @@
         <button id="btnClearFilter" onclick="clearFilter()" class="text-[10px] text-rose-400 hover:underline hidden">Hủy lọc (Xem tất cả)</button>
       </div>
 
+      <!-- PREMIUM FINTECH FILTER WIDGET (Di chuyển xuống dưới tiêu đề lịch sử) -->
+      <div id="filterWidget" class="hidden mb-3 transition-all-300">
+        <div class="bg-slate-850 border border-indigo-500/30 rounded-2xl p-4 shadow-lg flex flex-col relative overflow-hidden">
+          <!-- Hiệu ứng trang trí nền -->
+          <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-indigo-500/5 rounded-full blur-xl pointer-events-none"></div>
+          
+          <div class="flex justify-between items-start">
+            <div>
+              <span class="text-xs font-semibold text-slate-400 tracking-wider">🔍 Tiền ăn của:</span>
+              <div class="flex items-center space-x-2 mt-0.5">
+                <span id="filterMemberName" class="text-lg font-black text-slate-100">Name</span>
+                <button id="btnCopyDebt" class="text-xs text-slate-400 bg-slate-900 hover:bg-slate-700/80 px-2 py-1 rounded-md border border-slate-700 flex items-center space-x-1 active:scale-95 transition-all duration-150">
+                  <span id="copyBtnIcon">📋</span>
+                  <span id="copyBtnText">Copy</span>
+                </button>
+              </div>
+              <!-- Số tiền cực lớn -->
+              <div id="filterTotalAmount" class="text-3xl font-black text-rose-400 tracking-tight mt-1.5">0đ</div>
+            </div>
+            
+            <!-- Nút trả hết tích hợp xác nhận bảo mật bằng cách nhấn đúp/thay đổi trạng thái -->
+            <div class="flex flex-col items-end">
+              <button id="btnPayAll" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-2 rounded-xl shadow-md transition-all duration-300 active:scale-95 flex items-center space-x-1">
+                <span>✅</span>
+                <span id="payAllText">Trả hết</span>
+              </button>
+              <span id="payAllTimer" class="text-[9px] text-amber-400 font-mono mt-1 hidden">Nhấn lại để xác nhận!</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Khung chứa danh sách lịch sử -->
       <div id="historyContainer" class="space-y-2 flex-grow">
         <!-- JS renders items here -->
@@ -394,7 +405,7 @@
       </div>
 
       <div class="text-center text-[9px] text-slate-600 font-mono">
-        Phiên bản: <span class="text-indigo-400 font-bold">v2.3.1</span> | 
+        Phiên bản: <span class="text-indigo-400 font-bold">v2.3.2</span> | 
         <button onclick="checkUpdatesManually()" class="text-indigo-450 hover:underline font-bold focus:outline-none"><span id="btnCheckUpdateText">Kiểm tra cập nhật</span></button>
       </div>
     </footer>
@@ -735,6 +746,13 @@
         balanceGrid.innerHTML = '';
         
         const balances = AppStore.getBalances();
+
+        // Tính tổng tiền nợ của tất cả các thành viên
+        const totalAllDebt = Object.values(balances).reduce((sum, val) => sum + val, 0);
+        const totalDebtSummary = document.getElementById('totalDebtSummary');
+        if (totalDebtSummary) {
+          totalDebtSummary.innerText = formatVND(totalAllDebt);
+        }
         
         Object.entries(balances).forEach(([name, amt]) => {
           const isActive = AppStore.activeFilter === name;
@@ -1049,7 +1067,7 @@
           // Tính tổng tiền nợ và tổng số bữa ăn của member này trong list
           const totalDebt = list.reduce((sum, tx) => sum + (tx.shares[filterMember] || 0), 0);
           const totalMeals = list.length;
-          historyTitle.innerText = `📋 Tiền ăn của ${filterMember}: ${formatVND(totalDebt)} (${totalMeals} bữa)`;
+          historyTitle.innerText = `📋 Lịch sử tiền ăn của ${filterMember}: ${formatVND(totalDebt)} (${totalMeals} bữa)`;
         } else {
           clearFilterBtn.classList.add('hidden');
           historyTitle.innerText = `📋 Lịch sử chi tiêu`;
@@ -1138,6 +1156,11 @@
             }
           }
 
+          // Ghi chú chỉ hiển thị nếu có nội dung (không có ghi chú thì không hiển thị)
+          const descMarkup = tx.description 
+            ? `<span class="text-xs font-bold text-slate-200 mt-0.5 truncate select-text">${tx.description}</span>` 
+            : '';
+
           // Bố cục căn lề Pixel-Perfect với thẻ loại bữa ăn rộng w-16 cố định
           item.innerHTML = `
             <div class="flex items-start justify-between">
@@ -1151,9 +1174,7 @@
                   <div class="flex items-center space-x-2 text-[10px] text-slate-500 font-mono">
                     <span>${displayDateTime}</span>
                   </div>
-                  <span class="text-xs font-bold text-slate-200 mt-0.5 truncate select-text">
-                    ${tx.description || '<span class="italic text-slate-600 font-normal">Không có ghi chú</span>'}
-                  </span>
+                  ${descMarkup}
                 </div>
               </div>
 
@@ -1177,6 +1198,7 @@
 
           container.appendChild(item);
         });
+      }
       }
 
       // Xử lý sự kiện nhấn nút xóa nợ trên từng dòng
@@ -1655,7 +1677,7 @@
         const btn = document.getElementById('btnCheckUpdateText');
         btn.innerText = "Đang check...";
 
-        const currentVersion = "v2.3.1";
+        const currentVersion = "v2.3.2";
 
         // Tải file index.html trực tiếp từ server để bypass cache bằng timestamp
         fetch('./index.html?t=' + Date.now())
