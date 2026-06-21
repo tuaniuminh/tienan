@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi" class="h-full">
+<html lang="vi" class="h-full overflow-hidden">
 <head>
   <meta charset="UTF-8">
   <!-- Mobile & Anti-Zoom Guard: Ngăn chặn phóng to thu nhỏ trên trình duyệt di động -->
@@ -57,7 +57,7 @@
       user-select: text;
     }
 
-    /* Ẩn hoàn toàn thanh cuộn trên mọi thiết bị và trình duyệt nhưng vẫn giữ cuộn mượt mà native */
+    /* Ẩn hoàn toàn thanh cuộn trên mọi thiết bị và trình duyệt */
     ::-webkit-scrollbar {
       display: none !important;
       width: 0 !important;
@@ -66,6 +66,18 @@
     * {
       -ms-overflow-style: none !important;
       scrollbar-width: none !important;
+    }
+
+    /* Tăng tốc phần cứng GPU và tăng độ mượt cuộn cho container main trên iOS */
+    main {
+      -webkit-overflow-scrolling: touch;
+      will-change: scroll-position;
+      transform: translateZ(0);
+    }
+    main::-webkit-scrollbar {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
     }
     
     /* Hiệu ứng nhấp nháy/viền sáng fintech */
@@ -124,10 +136,10 @@
     }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-full flex justify-center">
+<body class="bg-slate-950 text-slate-100 h-full overflow-hidden flex justify-center fixed inset-0">
 
   <!-- Mobile Wrapper chính -->
-  <main class="w-full max-w-md bg-slate-900 min-h-screen flex flex-col relative shadow-2xl pb-16 border-x border-slate-800">
+  <main class="w-full max-w-md bg-slate-900 h-full overflow-y-scroll flex flex-col relative shadow-2xl pb-16 border-x border-slate-800">
     
     <!-- TOP HEADER -->
     <header class="bg-slate-950/90 backdrop-blur-md border-b border-slate-800/80 sticky top-0 z-40 px-4 py-3.5 flex items-center justify-between">
@@ -135,7 +147,7 @@
         <div class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>
         <h1 class="text-sm font-black tracking-wider text-slate-200">SỔ THEO DÕI TIỀN ĂN</h1>
       </div>
-      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.4.9 PRO</button>
+      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.0 PRO</button>
     </header>
 
     <!-- Banner cảnh báo không đồng bộ đám mây -->
@@ -1687,7 +1699,7 @@
         if (btn) btn.innerText = "Đang check...";
         if (headerBtn) headerBtn.innerText = "Checking...";
 
-        const currentVersion = "v2.4.9";
+        const currentVersion = "v2.5.0";
 
         // Tải file index.html trực tiếp từ server để bypass cache bằng timestamp
         fetch('./index.html?t=' + Date.now())
