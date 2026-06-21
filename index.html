@@ -117,7 +117,7 @@
         <div class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>
         <h1 class="text-sm font-black tracking-wider text-slate-200">SỔ THEO DÕI TIỀN ĂN</h1>
       </div>
-      <span class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20">v2.2.9 PRO</span>
+      <span class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20">v2.3.0 PRO</span>
     </header>
 
     <!-- KHOẢN PHẢI THU (BALANCE CARD GRID) -->
@@ -394,7 +394,7 @@
       </div>
 
       <div class="text-center text-[9px] text-slate-600 font-mono">
-        Phiên bản: <span class="text-indigo-400 font-bold">v2.2.9</span> | 
+        Phiên bản: <span class="text-indigo-400 font-bold">v2.3.0</span> | 
         <button onclick="checkUpdatesManually()" class="text-indigo-450 hover:underline font-bold focus:outline-none"><span id="btnCheckUpdateText">Kiểm tra cập nhật</span></button>
       </div>
     </footer>
@@ -1652,67 +1652,48 @@
           return;
         }
 
-        if ('serviceWorker' in navigator) {
-          const btn = document.getElementById('btnCheckUpdateText');
-          btn.innerText = "Đang check...";
-          
-          // Đặt Timeout bảo vệ toàn cục (4 giây) đề phòng getRegistration hoặc update() bị treo vô hạn
-          const globalTimeout = setTimeout(() => {
-            btn.innerText = "Kiểm tra cập nhật";
-            if (confirm("Kiểm tra cập nhật bị chậm hoặc bị treo do bộ nhớ đệm. Bạn có muốn làm mới trang ngay lập tức để tự động nhận bản mới nhất?")) {
-              window.location.reload();
-            }
-          }, 4000);
-
-          navigator.serviceWorker.getRegistration().then(reg => {
-            if (!reg) {
-              // Thử nạp qua ready nếu chưa xong
-              navigator.serviceWorker.ready.then(readyReg => {
-                swRegistration = readyReg;
-                performUpdateCheck(readyReg, globalTimeout);
-              }).catch(err => {
-                clearTimeout(globalTimeout);
-                btn.innerText = "Kiểm tra cập nhật";
-                alert("Đang khởi chạy Service Worker. Vui lòng thử lại sau vài giây!");
-              });
-              return;
-            }
-            swRegistration = reg;
-            performUpdateCheck(reg, globalTimeout);
-          }).catch(err => {
-            clearTimeout(globalTimeout);
-            console.error("Lỗi kiểm tra cập nhật:", err);
-            btn.innerText = "Kiểm tra cập nhật";
-            if (confirm("Lỗi đọc trạng thái cập nhật! Bạn có muốn tải lại trang (Force Reload) để nhận bản mới nhất?")) {
-              window.location.reload();
-            }
-          });
-        } else {
-          alert("Trình duyệt này không hỗ trợ chế độ cài đặt PWA.");
-        }
-      };
-
-      function performUpdateCheck(reg, globalTimeout) {
         const btn = document.getElementById('btnCheckUpdateText');
+        btn.innerText = "Đang check...";
 
-        reg.update().then(() => {
-          clearTimeout(globalTimeout);
-          setTimeout(() => {
+        const currentVersion = "v2.3.0";
+
+        // Tải file index.html trực tiếp từ server để bypass cache bằng timestamp
+        fetch('./index.html?t=' + Date.now())
+          .then(response => {
+            if (!response.ok) throw new Error("Không thể kết nối máy chủ");
+            return response.text();
+          })
+          .then(htmlText => {
             btn.innerText = "Kiểm tra cập nhật";
-            if (!reg.waiting && !reg.installing) {
-              alert("Ứng dụng của bạn đã ở phiên bản mới nhất! (v2.2.8)");
+
+            // Tìm version hiện tại trên server bằng Regex
+            const match = htmlText.match(/Phiên bản:\s*<span[^>]*>(v\d+\.\d+\.\d+)<\/span>/);
+            const serverVersion = match ? match[1] : null;
+
+            if (serverVersion) {
+              if (serverVersion !== currentVersion) {
+                if (confirm(`Đã phát hiện phiên bản mới ${serverVersion} trên máy chủ (phiên bản hiện tại: ${currentVersion}). Bạn có muốn làm mới trang để cập nhật ngay?`)) {
+                  // Cập nhật ngầm Service Worker nếu có hỗ trợ
+                  if ('serviceWorker' in navigator && swRegistration) {
+                    swRegistration.update();
+                  }
+                  window.location.reload();
+                }
+              } else {
+                alert(`Ứng dụng của bạn đang ở phiên bản mới nhất! (${currentVersion})`);
+              }
+            } else {
+              if (confirm("Không phát hiện được thông tin phiên bản trên server. Bạn có muốn làm mới trang để tự động đồng bộ?")) {
+                window.location.reload();
+              }
             }
-          }, 800);
-        }).catch(err => {
-          clearTimeout(globalTimeout);
-          console.error("Lỗi kiểm tra cập nhật:", err);
-          btn.innerText = "Kiểm tra cập nhật";
-          
-          if (confirm("Không thể kết nối máy chủ để kiểm tra cập nhật lúc này. Bạn có muốn làm mới trang để cập nhật tự động?")) {
-            window.location.reload();
-          }
-        });
-      }
+          })
+          .catch(err => {
+            console.error("Lỗi kiểm tra phiên bản:", err);
+            btn.innerText = "Kiểm tra cập nhật";
+            alert("Không thể kết nối máy chủ để kiểm tra bản cập nhật lúc này!");
+          });
+      };
 
       // ==========================================
       // 12. INITIALIZATION ON DOM READY
