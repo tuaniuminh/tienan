@@ -147,7 +147,7 @@
         <img src="icon-192.png" alt="Logo" class="h-8 w-8 rounded-lg object-contain border border-indigo-500/20 shadow-md shadow-indigo-500/10">
         <h1 class="text-sm font-black tracking-wider text-slate-200">SỔ THEO DÕI TIỀN ĂN</h1>
       </div>
-      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.6 PRO</button>
+      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.7 PRO</button>
     </header>
 
     <!-- Banner cảnh báo không đồng bộ đám mây -->
@@ -242,6 +242,13 @@
             <label class="block text-xs font-medium text-slate-400 mb-1">Ghi chú chi tiết:</label>
             <input type="text" id="descInput" placeholder="Ví dụ: Bún chả, Mua hộ trà sữa..." 
               class="w-full bg-slate-900 border border-slate-700 focus:border-indigo-500 text-slate-100 placeholder-slate-600 rounded-xl py-2 px-3 text-xs focus:outline-none transition-all">
+          </div>
+
+          <!-- Chọn ngày chi -->
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Ngày chi:</label>
+            <input type="date" id="dateInput" style="color-scheme: dark;"
+              class="w-full bg-slate-900 border border-slate-700 focus:border-indigo-500 text-slate-100 rounded-xl py-2 px-3 text-xs focus:outline-none transition-all">
           </div>
 
           <!-- Xem trước phân chia thời gian thực -->
@@ -564,7 +571,7 @@
           return merged.filter((item, index) => merged.indexOf(item) === index);
         },
 
-        addTransaction(amount, mealType, description, selectedParticipants) {
+        addTransaction(amount, mealType, description, selectedParticipants, customDate) {
           const isProxy = (mealType === 'Mua hộ');
           const totalAmount = Math.round(Number(amount)) || 0;
           
@@ -572,11 +579,15 @@
           if (selectedParticipants.length === 0) return null;
 
           const now = new Date();
-          // Lấy định dạng YYYY-MM-DD
-          const year = now.getFullYear();
-          const month = String(now.getMonth() + 1).padStart(2, '0');
-          const dateVal = String(now.getDate()).padStart(2, '0');
-          const date = `${year}-${month}-${dateVal}`;
+          let date;
+          if (customDate) {
+            date = customDate;
+          } else {
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const dateVal = String(now.getDate()).padStart(2, '0');
+            date = `${year}-${month}-${dateVal}`;
+          }
           
           const time = now.toTimeString().split(' ')[0].substring(0, 5);
           const id = 'tx_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
@@ -1318,11 +1329,13 @@
 
         const amountInput = document.getElementById('amountInput');
         const descInput = document.getElementById('descInput');
+        const dateInput = document.getElementById('dateInput');
         
         // Nhân với 1000 vì ô nhập mặc định có đơn vị nghìn đồng
         const amount = Math.round(Number(amountInput.value)) * 1000 || 0;
         const desc = descInput.value.trim();
         const mealType = AppStore.currentMealType;
+        const date = dateInput ? dateInput.value : '';
 
         const participants = Array.from(selectedParticipants);
 
@@ -1342,7 +1355,7 @@
         }
 
         // Thực hiện ghi nhận giao dịch
-        AppStore.addTransaction(amount, mealType, desc, participants);
+        AppStore.addTransaction(amount, mealType, desc, participants, date);
 
         // Reset lựa chọn tham gia về trống cho lượt chi mới
         selectedParticipants.clear();
@@ -1351,6 +1364,9 @@
         // Reset form
         amountInput.value = '';
         descInput.value = '';
+        if (dateInput) {
+          dateInput.value = new Date().toISOString().split('T')[0];
+        }
         
         // Phát hiện lại bữa ăn theo giờ thực
         setMealType(autoDetectMeal());
@@ -1699,7 +1715,7 @@
         if (btn) btn.innerText = "Đang check...";
         if (headerBtn) headerBtn.innerText = "Checking...";
 
-        const currentVersion = "v2.5.6";
+        const currentVersion = "v2.5.7";
 
         // Tải file index.html trực tiếp từ server để bypass cache bằng timestamp
         fetch('./index.html?t=' + Date.now())
@@ -1914,6 +1930,12 @@
         renderBalanceBoxes();
         renderParticipantsSelector();
         
+        // Thiết lập ngày mặc định cho ô chọn ngày chi
+        const dateInput = document.getElementById('dateInput');
+        if (dateInput) {
+          dateInput.value = new Date().toISOString().split('T')[0];
+        }
+
         // Tự động kích hoạt loại bữa ăn hiện tại
         const detected = autoDetectMeal();
         setMealType(detected);
