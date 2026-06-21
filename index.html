@@ -117,7 +117,7 @@
         <div class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>
         <h1 class="text-sm font-black tracking-wider text-slate-200">SỔ THEO DÕI TIỀN ĂN</h1>
       </div>
-      <span class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20">v2.3.3 PRO</span>
+      <span class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20">v2.3.4 PRO</span>
     </header>
 
     <!-- KHOẢN PHẢI THU (BALANCE CARD GRID) -->
@@ -332,12 +332,7 @@
 
     <!-- DÂN CHƠI LỊCH SỬ (HISTORY LOG) -->
     <section class="px-4 flex-grow flex flex-col">
-      <div class="flex justify-between items-center mb-3">
-        <h3 id="historyTitle" class="text-xs font-bold text-slate-400 uppercase tracking-widest">📋 Lịch sử chi tiêu</h3>
-        <button id="btnClearFilter" onclick="clearFilter()" class="text-[10px] text-rose-400 hover:underline hidden">Hủy lọc (Xem tất cả)</button>
-      </div>
-
-      <!-- PREMIUM FINTECH FILTER WIDGET (Di chuyển xuống dưới tiêu đề lịch sử) -->
+      <!-- PREMIUM FINTECH FILTER WIDGET (Di chuyển lên trên tiêu đề lịch sử) -->
       <div id="filterWidget" class="hidden mb-3 transition-all-300">
         <div class="bg-slate-850 border border-indigo-500/30 rounded-2xl p-4 shadow-lg flex flex-col relative overflow-hidden">
           <!-- Hiệu ứng trang trí nền -->
@@ -367,6 +362,11 @@
             </div>
           </div>
         </div>
+      </div>
+
+      <div class="flex justify-between items-center mb-3">
+        <h3 id="historyTitle" class="text-xs font-bold text-slate-400 uppercase tracking-widest">📋 Lịch sử chi tiêu</h3>
+        <button id="btnClearFilter" onclick="clearFilter()" class="text-[10px] text-rose-400 hover:underline hidden">Hủy lọc (Xem tất cả)</button>
       </div>
 
       <!-- Khung chứa danh sách lịch sử -->
@@ -405,7 +405,7 @@
       </div>
 
       <div class="text-center text-[9px] text-slate-600 font-mono">
-        Phiên bản: <span class="text-indigo-400 font-bold">v2.3.3</span> | 
+        Phiên bản: <span class="text-indigo-400 font-bold">v2.3.4</span> | 
         <button onclick="checkUpdatesManually()" class="text-indigo-450 hover:underline font-bold focus:outline-none"><span id="btnCheckUpdateText">Kiểm tra cập nhật</span></button>
       </div>
     </footer>
@@ -1050,6 +1050,9 @@
       // 8. RENDER LỊCH SỬ GIAO DỊCH
       // ==========================================
       function renderHistoryLog() {
+        // Tự động vẽ/cập nhật bảng lọc tiền nợ bất cứ khi nào vẽ lại lịch sử
+        renderFilterWidget();
+
         const container = document.getElementById('historyContainer');
         const clearFilterBtn = document.getElementById('btnClearFilter');
         const historyTitle = document.getElementById('historyTitle');
@@ -1064,10 +1067,8 @@
           list = list.filter(tx => tx.shares[filterMember] !== undefined && tx.shares[filterMember] > 0);
           clearFilterBtn.classList.remove('hidden');
           
-          // Tính tổng tiền nợ và tổng số bữa ăn của member này trong list
-          const totalDebt = list.reduce((sum, tx) => sum + (tx.shares[filterMember] || 0), 0);
-          const totalMeals = list.length;
-          historyTitle.innerText = `📋 Lịch sử tiền ăn của ${filterMember}: ${formatVND(totalDebt)} (${totalMeals} bữa)`;
+          // Chỉ hiển thị tiêu đề lịch sử sạch sẽ
+          historyTitle.innerText = `📋 Lịch sử tiền ăn của ${filterMember}`;
         } else {
           clearFilterBtn.classList.add('hidden');
           historyTitle.innerText = `📋 Lịch sử chi tiêu`;
@@ -1123,7 +1124,7 @@
 
             sharesMarkup = `
               <span class="inline-block border rounded px-1.5 py-0.5 text-[10px] font-semibold mr-1 mb-1 ${tagClass}">
-                ${filterMember}: ${formatVND(displayAmount)}
+                số tiền: ${formatVND(displayAmount)}
               </span>
             `;
           } else {
@@ -1180,7 +1181,7 @@
 
               <!-- Số tiền & Nút xóa căn phải -->
               <div class="flex items-center space-x-2 shrink-0">
-                <span class="text-xs font-black tracking-tight text-slate-200 select-text">${formatVND(displayAmount)}</span>
+                ${filterMember ? '' : `<span class="text-xs font-black tracking-tight text-slate-200 select-text">${formatVND(displayAmount)}</span>`}
                 
                 <!-- Nút Xóa nợ. Nếu lọc: Xóa nợ của 1 người. Nếu ko lọc: Xóa toàn bộ hóa đơn -->
                 <button onclick="handleDeleteShare('${tx.id}')" 
@@ -1676,7 +1677,7 @@
         const btn = document.getElementById('btnCheckUpdateText');
         btn.innerText = "Đang check...";
 
-        const currentVersion = "v2.3.3";
+        const currentVersion = "v2.3.4";
 
         // Tải file index.html trực tiếp từ server để bypass cache bằng timestamp
         fetch('./index.html?t=' + Date.now())
@@ -1714,7 +1715,10 @@
                 }
                 window.location.reload();
               } else {
-                alert(`Ứng dụng của bạn đang ở phiên bản mới nhất! (${currentVersion})`);
+                btn.innerText = `Đã ở bản mới nhất! (${currentVersion})`;
+                setTimeout(() => {
+                  btn.innerText = "Kiểm tra cập nhật";
+                }, 4000);
               }
             } else {
               window.location.reload();
@@ -1722,8 +1726,10 @@
           })
           .catch(err => {
             console.error("Lỗi kiểm tra phiên bản:", err);
-            btn.innerText = "Kiểm tra cập nhật";
-            alert("Không thể kết nối máy chủ để kiểm tra bản cập nhật lúc này!");
+            btn.innerText = "Lỗi kết nối máy chủ!";
+            setTimeout(() => {
+              btn.innerText = "Kiểm tra cập nhật";
+            }, 4000);
           });
       };
 
