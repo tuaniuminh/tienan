@@ -263,6 +263,20 @@
             Nhập cấu hình Firebase Realtime Database của bạn để đồng bộ thời gian thực giữa các thiết bị. Tạo tài khoản Firebase miễn phí và lấy thông tin cấu hình của dự án.
           </p>
           
+          <!-- Nhập nhanh bằng Link chia sẻ -->
+          <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 space-y-1.5 mb-2">
+            <label class="block text-[9px] font-bold text-slate-400 uppercase">⚡ Nạp nhanh bằng Link chia sẻ:</label>
+            <div class="flex space-x-2">
+              <input type="text" id="fbSharePasteInput" placeholder="Dán liên kết chia sẻ tại đây..." 
+                class="flex-grow bg-slate-950 border border-slate-750 focus:border-indigo-500 text-slate-200 placeholder-slate-650 rounded-lg py-1.5 px-2.5 text-[10px] focus:outline-none transition-all">
+              <button type="button" onclick="importShareConfig()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[10px] px-3 py-1.5 rounded-lg active:scale-95 transition-all shrink-0">
+                Nạp Cấu Hình
+              </button>
+            </div>
+          </div>
+          
+          <div class="text-center text-[9px] text-slate-500 font-bold uppercase py-1 border-t border-slate-800/50">Hoặc nhập thủ công</div>
+
           <form id="fbConfigForm" onsubmit="saveFirebaseConfig(event)" class="space-y-2.5">
             <div>
               <label class="block text-[10px] font-bold text-slate-400 mb-1">API Key:</label>
@@ -1480,6 +1494,40 @@
           localStorage.removeItem('ste_firebase_config');
           alert("Đã ngắt kết nối! Ứng dụng sẽ tải lại ở chế độ offline.");
           window.location.reload();
+        }
+      };
+
+      window.importShareConfig = function() {
+        const input = document.getElementById('fbSharePasteInput');
+        let val = input.value.trim();
+        if (!val) {
+          alert("Vui lòng dán liên kết hoặc mã cấu hình chia sẻ!");
+          return;
+        }
+
+        // Nếu là liên kết đầy đủ chứa tham số ?fb=
+        if (val.includes('?fb=')) {
+          try {
+            const url = new URL(val);
+            val = url.searchParams.get('fb');
+          } catch(e) {
+            const parts = val.split('?fb=');
+            val = parts[1] ? parts[1].split('&')[0] : val;
+          }
+        }
+
+        try {
+          const decodedConfig = JSON.parse(decodeURIComponent(escape(atob(val))));
+          if (decodedConfig && decodedConfig.apiKey) {
+            localStorage.setItem('ste_firebase_config', JSON.stringify(decodedConfig));
+            alert("Nạp cấu hình đồng bộ Firebase thành công! Trang web sẽ tự nạp lại.");
+            window.location.reload();
+          } else {
+            alert("Mã cấu hình không đúng định dạng!");
+          }
+        } catch(e) {
+          console.error("Lỗi giải mã cấu hình dán vào:", e);
+          alert("Lỗi: Không thể nhận diện cấu hình này. Hãy kiểm tra xem bạn đã copy đúng link chưa!");
         }
       };
 
