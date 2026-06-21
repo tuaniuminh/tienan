@@ -57,16 +57,15 @@
       user-select: text;
     }
 
-    /* Tối ưu hóa thanh cuộn mượt mà chuẩn di động */
+    /* Ẩn hoàn toàn thanh cuộn trên di động (đặc biệt iOS Safari/PWA) nhưng vẫn cho phép cuộn mượt mà */
     ::-webkit-scrollbar {
-      width: 4px;
+      display: none;
+      width: 0;
+      height: 0;
     }
-    ::-webkit-scrollbar-track {
-      background: #0f172a;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #334155;
-      border-radius: 9999px;
+    body, html, main, div {
+      -ms-overflow-style: none;  /* IE và Edge */
+      scrollbar-width: none;  /* Firefox */
     }
     
     /* Hiệu ứng nhấp nháy/viền sáng fintech */
@@ -136,7 +135,7 @@
         <div class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>
         <h1 class="text-sm font-black tracking-wider text-slate-200">SỔ THEO DÕI TIỀN ĂN</h1>
       </div>
-      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.4.6 PRO</button>
+      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.4.7 PRO</button>
     </header>
 
     <!-- Banner cảnh báo không đồng bộ đám mây -->
@@ -1688,7 +1687,7 @@
         if (btn) btn.innerText = "Đang check...";
         if (headerBtn) headerBtn.innerText = "Checking...";
 
-        const currentVersion = "v2.4.6";
+        const currentVersion = "v2.4.7";
 
         // Tải file index.html trực tiếp từ server để bypass cache bằng timestamp
         fetch('./index.html?t=' + Date.now())
