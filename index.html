@@ -147,7 +147,7 @@
         <img src="icon-192.png" alt="Logo" class="h-8 w-8 rounded-lg object-contain border border-indigo-500/20 shadow-md shadow-indigo-500/10">
         <h1 class="text-sm font-black tracking-wider text-slate-200">SỔ THEO DÕI TIỀN ĂN</h1>
       </div>
-      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.4 PRO</button>
+      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.5 PRO</button>
     </header>
 
     <!-- Banner cảnh báo không đồng bộ đám mây -->
@@ -1699,7 +1699,7 @@
         if (btn) btn.innerText = "Đang check...";
         if (headerBtn) headerBtn.innerText = "Checking...";
 
-        const currentVersion = "v2.5.4";
+        const currentVersion = "v2.5.5";
 
         // Tải file index.html trực tiếp từ server để bypass cache bằng timestamp
         fetch('./index.html?t=' + Date.now())
@@ -1746,7 +1746,10 @@
                         if (newWorker.state === 'installed') {
                           // Đã tải xong mọi thứ và đang chờ, ra lệnh SKIP_WAITING để kích hoạt ngay
                           newWorker.postMessage({ type: 'SKIP_WAITING' });
+                        } else if (newWorker.state === 'activated') {
+                          // Đã kích hoạt thành công, tiến hành tải lại trang ngay để nhận mã nguồn mới
                           newWorker.removeEventListener('statechange', stateChangeHandler);
+                          performUpdateReload();
                         }
                       };
                       newWorker.addEventListener('statechange', stateChangeHandler);
@@ -1754,6 +1757,8 @@
                       // Nếu trạng thái đã là installed rồi (waiting)
                       if (newWorker.state === 'installed') {
                         newWorker.postMessage({ type: 'SKIP_WAITING' });
+                      } else if (newWorker.state === 'activated') {
+                        performUpdateReload();
                       }
                     }
                   };
@@ -1814,7 +1819,7 @@
       document.addEventListener('DOMContentLoaded', () => {
         // Đăng ký Service Worker cho PWA chạy offline và lắng nghe cập nhật
         if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.register('./sw.js')
+          navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' })
             .then(reg => {
               console.log('[PWA] Service Worker đã đăng ký:', reg);
               swRegistration = reg; // Lưu trữ đối tượng đăng ký để kiểm tra cập nhật nhanh
