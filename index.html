@@ -76,6 +76,30 @@
       box-shadow: 0 0 15px rgba(16, 185, 129, 0.25);
     }
 
+    /* Style định hình cố định cho các nút đang hoạt động (active) tránh lỗi Tailwind CSS CDN không tải kịp class động */
+    .meal-btn-active-indigo {
+      border-color: #6366f1 !important; /* indigo-500 */
+      background-color: rgba(30, 27, 75, 0.6) !important; /* indigo-950/60 */
+      color: #c7d2fe !important; /* indigo-300 */
+      box-shadow: 0 0 15px rgba(99, 102, 241, 0.25); /* glow-indigo */
+    }
+    .meal-btn-active-fuchsia {
+      border-color: #d946ef !important; /* fuchsia-500 */
+      background-color: rgba(74, 4, 78, 0.6) !important; /* fuchsia-950/60 */
+      color: #f5d0fe !important; /* fuchsia-300 */
+      box-shadow: 0 0 15px rgba(217, 70, 239, 0.25); /* glow-fuchsia */
+    }
+    .participant-active-indigo {
+      border-color: #6366f1 !important; /* indigo-500 */
+      background-color: rgba(30, 27, 75, 0.4) !important; /* indigo-950/40 */
+      color: #c7d2fe !important; /* indigo-300 */
+    }
+    .participant-active-fuchsia {
+      border-color: #d946ef !important; /* fuchsia-500 */
+      background-color: rgba(74, 4, 78, 0.4) !important; /* fuchsia-950/40 */
+      color: #f5d0fe !important; /* fuchsia-300 */
+    }
+
     /* Hiệu ứng chuyển động mượt */
     .transition-all-300 {
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -93,7 +117,7 @@
         <div class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>
         <h1 class="text-sm font-black tracking-wider text-slate-200">SỔ THEO DÕI TIỀN ĂN</h1>
       </div>
-      <span class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20">v2.2.5 PRO</span>
+      <span class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20">v2.2.7 PRO</span>
     </header>
 
     <!-- KHOẢN PHẢI THU (BALANCE CARD GRID) -->
@@ -370,7 +394,7 @@
       </div>
 
       <div class="text-center text-[9px] text-slate-600 font-mono">
-        Phiên bản: <span class="text-indigo-400 font-bold">v2.2.5</span> | 
+        Phiên bản: <span class="text-indigo-400 font-bold">v2.2.7</span> | 
         <button onclick="checkUpdatesManually()" class="text-indigo-450 hover:underline font-bold focus:outline-none"><span id="btnCheckUpdateText">Kiểm tra cập nhật</span></button>
       </div>
     </footer>
@@ -395,6 +419,7 @@
       let isFirebaseInitialized = false;
       let fbConfig = null;
       let swRegistration = null;
+      let selectedParticipants = new Set();
 
       // ==========================================
       // 1. ANTI-ZOOM DI ĐỘNG & TRÌNH DUYỆT TRONG APP
@@ -754,14 +779,8 @@
         const members = AppStore.getMembers();
         const isProxy = (AppStore.currentMealType === 'Mua hộ');
 
-        // Lấy danh sách checkbox đã chọn trước đó để giữ lại trạng thái
-        const checkedList = new Set();
-        document.querySelectorAll('.participant-cb:checked').forEach(cb => {
-          checkedList.add(cb.value);
-        });
-
         members.forEach((m, idx) => {
-          const isChecked = checkedList.has(m);
+          const isChecked = selectedParticipants.has(m);
           
           // Tạo nhãn nút bấm
           const label = document.createElement('label');
@@ -769,10 +788,10 @@
           
           // Áp dụng chủ đề Fuchsia cho Mua hộ, Indigo cho Standard
           const activeClass = isProxy 
-            ? 'border-fuchsia-500 bg-fuchsia-950/40 text-fuchsia-300'
-            : 'border-indigo-500 bg-indigo-950/40 text-indigo-300';
+            ? 'participant-active-fuchsia'
+            : 'participant-active-indigo';
             
-          const inactiveClass = 'border-slate-755 bg-slate-900 text-slate-400 hover:border-slate-705';
+          const inactiveClass = 'border-slate-700 bg-slate-900 text-slate-400 hover:border-slate-600';
 
           label.className = `flex flex-col items-center justify-center p-2.5 rounded-xl border text-center font-bold text-xs cursor-pointer select-none transition-all duration-200 active:scale-95 ${
             isChecked ? activeClass : inactiveClass
@@ -791,30 +810,28 @@
       // Xử lý khi nhấn nút chọn/bỏ chọn một người ăn
       window.handleParticipantChange = function(checkbox) {
         const val = checkbox.value;
-        const label = document.getElementById(`label_cb_${val}`);
         const isChecked = checkbox.checked;
-        const isProxy = (AppStore.currentMealType === 'Mua hộ');
-
-        const activeClass = isProxy 
-          ? 'border-fuchsia-500 bg-fuchsia-950/40 text-fuchsia-300'
-          : 'border-indigo-500 bg-indigo-950/40 text-indigo-300';
-          
-        const inactiveClass = 'border-slate-755 bg-slate-900 text-slate-400 hover:border-slate-705';
 
         if (isChecked) {
-          label.className = label.className.replace(inactiveClass, activeClass);
+          selectedParticipants.add(val);
         } else {
-          label.className = label.className.replace(activeClass, inactiveClass);
+          selectedParticipants.delete(val);
         }
+        
+        renderParticipantsSelector();
         updateSplitPreview();
       };
 
       // Nút Chọn Nhanh tất cả người tham gia
       window.selectAllParticipants = function(checkAll) {
-        document.querySelectorAll('.participant-cb').forEach(cb => {
-          cb.checked = checkAll;
-          handleParticipantChange(cb);
-        });
+        const members = AppStore.getMembers();
+        if (checkAll) {
+          members.forEach(m => selectedParticipants.add(m));
+        } else {
+          selectedParticipants.clear();
+        }
+        renderParticipantsSelector();
+        updateSplitPreview();
       };
 
       // Cập nhật Loại Bữa Ăn (Sáng / Trưa / Tối / Mua hộ)
@@ -826,12 +843,18 @@
           btn.className = 'meal-btn text-xs font-bold py-2 rounded-xl transition-all-300 border border-slate-700/50 bg-slate-900 text-slate-400';
         });
 
-        const activeBtn = document.getElementById(`btnMeal${type === 'Mua hộ' ? 'MuaHo' : type}`);
+        let idType = type;
+        if (type === 'Sáng') idType = 'Sang';
+        else if (type === 'Trưa') idType = 'Trua';
+        else if (type === 'Tối') idType = 'Toi';
+        else if (type === 'Mua hộ') idType = 'MuaHo';
+
+        const activeBtn = document.getElementById(`btnMeal${idType}`);
         if (activeBtn) {
           if (type === 'Mua hộ') {
-            activeBtn.className = 'meal-btn text-xs font-bold py-2 rounded-xl transition-all-300 border border-fuchsia-500 bg-fuchsia-950/60 text-fuchsia-300 glow-fuchsia';
+            activeBtn.className = 'meal-btn text-xs font-bold py-2 rounded-xl transition-all-300 meal-btn-active-fuchsia';
           } else {
-            activeBtn.className = 'meal-btn text-xs font-bold py-2 rounded-xl transition-all-300 border border-indigo-500 bg-indigo-950/60 text-indigo-300 glow-indigo';
+            activeBtn.className = 'meal-btn text-xs font-bold py-2 rounded-xl transition-all-300 meal-btn-active-indigo';
           }
         }
 
@@ -845,8 +868,7 @@
         const amountInput = document.getElementById('amountInput');
         const amount = Math.round(Number(amountInput.value)) || 0;
         
-        const checkedCbs = document.querySelectorAll('.participant-cb:checked');
-        const checkedNames = Array.from(checkedCbs).map(cb => cb.value);
+        const checkedNames = Array.from(selectedParticipants);
         const isProxy = (AppStore.currentMealType === 'Mua hộ');
 
         const previewDetail = document.getElementById('splitPreviewDetail');
@@ -1174,8 +1196,7 @@
         const desc = descInput.value.trim();
         const mealType = AppStore.currentMealType;
 
-        const checkedCbs = document.querySelectorAll('.participant-cb:checked');
-        const participants = Array.from(checkedCbs).map(cb => cb.value);
+        const participants = Array.from(selectedParticipants);
 
         if (amount <= 0) {
           alert("Vui lòng nhập số tiền lớn hơn 0!");
@@ -1190,7 +1211,10 @@
         // Thực hiện ghi nhận giao dịch
         AppStore.addTransaction(amount, mealType, desc, participants);
 
-        // Reset form & Giữ nguyên người dùng đã chọn để tăng tốc nhập nhanh
+        // Reset lựa chọn tham gia về trống cho lượt chi mới
+        selectedParticipants.clear();
+
+        // Reset form
         amountInput.value = '';
         descInput.value = '';
         
@@ -1600,30 +1624,36 @@
           return;
         }
 
+        if (!navigator.onLine) {
+          alert("Hiện không có kết nối Internet! Vui lòng kết nối mạng để kiểm tra cập nhật.");
+          return;
+        }
+
         if ('serviceWorker' in navigator) {
           const btn = document.getElementById('btnCheckUpdateText');
           btn.innerText = "Đang check...";
           
-          // Ưu tiên sử dụng đối tượng lưu trữ sẵn, nếu chưa có sẽ tự lấy từ getRegistration
-          const checkReg = swRegistration ? Promise.resolve(swRegistration) : navigator.serviceWorker.getRegistration();
-          
-          checkReg.then(reg => {
+          // Thử lấy registration trực tiếp từ trình duyệt
+          navigator.serviceWorker.getRegistration().then(reg => {
             if (!reg) {
-              // Thử nạp qua ready để đề phòng đang trong quá trình kích hoạt
+              // Thử nạp qua ready nếu chưa đăng ký xong
               navigator.serviceWorker.ready.then(readyReg => {
                 swRegistration = readyReg;
                 performUpdateCheck(readyReg);
               }).catch(err => {
                 btn.innerText = "Kiểm tra cập nhật";
-                alert("Hệ thống PWA đang được khởi chạy. Vui lòng làm mới trang hoặc thử lại sau vài giây!");
+                alert("Đang khởi chạy Service Worker. Vui lòng thử lại sau vài giây!");
               });
               return;
             }
+            swRegistration = reg;
             performUpdateCheck(reg);
           }).catch(err => {
             console.error("Lỗi kiểm tra cập nhật:", err);
             btn.innerText = "Kiểm tra cập nhật";
-            alert("Lỗi đọc trạng thái cập nhật từ trình duyệt!");
+            if (confirm("Lỗi đọc trạng thái cập nhật! Bạn có muốn tải lại trang (Force Reload) để nhận bản mới nhất?")) {
+              window.location.reload();
+            }
           });
         } else {
           alert("Trình duyệt này không hỗ trợ chế độ cài đặt PWA.");
@@ -1632,17 +1662,31 @@
 
       function performUpdateCheck(reg) {
         const btn = document.getElementById('btnCheckUpdateText');
+        
+        // Thêm timeout bảo vệ phòng trường hợp update() bị treo
+        const updateTimeout = setTimeout(() => {
+          btn.innerText = "Kiểm tra cập nhật";
+          if (confirm("Thời gian kiểm tra quá lâu. Có thể do lỗi bộ nhớ cache. Bạn có muốn tải lại trang để tự động làm mới?")) {
+            window.location.reload();
+          }
+        }, 5000);
+
         reg.update().then(() => {
+          clearTimeout(updateTimeout);
           setTimeout(() => {
             btn.innerText = "Kiểm tra cập nhật";
             if (!reg.waiting && !reg.installing) {
-              alert("Ứng dụng của bạn đã ở phiên bản mới nhất! (v2.2.5)");
+              alert("Ứng dụng của bạn đã ở phiên bản mới nhất! (v2.2.7)");
             }
-          }, 1200);
+          }, 1000);
         }).catch(err => {
+          clearTimeout(updateTimeout);
           console.error("Lỗi kiểm tra cập nhật:", err);
           btn.innerText = "Kiểm tra cập nhật";
-          alert("Không thể kết nối máy chủ để kiểm tra bản cập nhật lúc này!");
+          
+          if (confirm("Không thể kết nối máy chủ để kiểm tra cập nhật lúc này. Bạn có muốn làm mới trang để cập nhật tự động?")) {
+            window.location.reload();
+          }
         });
       }
 
