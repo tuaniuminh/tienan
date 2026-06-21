@@ -136,7 +136,7 @@
         <div class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>
         <h1 class="text-sm font-black tracking-wider text-slate-200">SỔ THEO DÕI TIỀN ĂN</h1>
       </div>
-      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.4.5 PRO</button>
+      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.4.6 PRO</button>
     </header>
 
     <!-- Banner cảnh báo không đồng bộ đám mây -->
@@ -404,14 +404,6 @@
         <!-- JS renders items here -->
       </div>
     </section>
-
-    <!-- BOTTOM PANEL -->
-    <footer class="mt-8 border-t border-slate-800/80 bg-slate-950/80 p-4">
-      <div class="text-center text-[9px] text-slate-600 font-mono">
-        Phiên bản: <span class="text-indigo-400 font-bold">v2.4.5</span> | 
-        <button onclick="checkUpdatesManually()" class="text-indigo-450 hover:underline font-bold focus:outline-none"><span id="btnCheckUpdateText">Kiểm tra cập nhật</span></button>
-      </div>
-    </footer>
 
   </main>
 
@@ -1693,10 +1685,10 @@
         const btn = document.getElementById('btnCheckUpdateText');
         const headerBtn = document.getElementById('headerVersionTag');
         
-        btn.innerText = "Đang check...";
+        if (btn) btn.innerText = "Đang check...";
         if (headerBtn) headerBtn.innerText = "Checking...";
 
-        const currentVersion = "v2.4.5";
+        const currentVersion = "v2.4.6";
 
         // Tải file index.html trực tiếp từ server để bypass cache bằng timestamp
         fetch('./index.html?t=' + Date.now())
@@ -1705,16 +1697,16 @@
             return response.text();
           })
           .then(htmlText => {
-            btn.innerText = "Kiểm tra cập nhật";
+            if (btn) btn.innerText = "Kiểm tra cập nhật";
             if (headerBtn) headerBtn.innerText = `${currentVersion} PRO`;
 
-            // Tìm version hiện tại trên server bằng Regex
-            const match = htmlText.match(/Phiên bản:\s*<span[^>]*>(v\d+\.\d+\.\d+)<\/span>/);
+            // Tìm version hiện tại trên server bằng Regex (tìm từ headerVersionTag)
+            const match = htmlText.match(/id="headerVersionTag"[^>]*>(v\d+\.\d+\.\d+)/);
             const serverVersion = match ? match[1] : null;
 
             if (serverVersion) {
               if (serverVersion !== currentVersion) {
-                btn.innerText = "Đang cập nhật...";
+                if (btn) btn.innerText = "Đang cập nhật...";
                 if (headerBtn) headerBtn.innerText = "Updating...";
                 
                 // Hàm phụ trợ thực hiện reload di cư an toàn
@@ -1783,10 +1775,10 @@
                   performUpdateReload();
                 }
               } else {
-                btn.innerText = `Đã ở bản mới nhất! (${currentVersion})`;
+                if (btn) btn.innerText = `Đã ở bản mới nhất! (${currentVersion})`;
                 if (headerBtn) headerBtn.innerText = `Up to date (${currentVersion})`;
                 setTimeout(() => {
-                  btn.innerText = "Kiểm tra cập nhật";
+                  if (btn) btn.innerText = "Kiểm tra cập nhật";
                   if (headerBtn) headerBtn.innerText = `${currentVersion} PRO`;
                 }, 4000);
               }
@@ -1796,10 +1788,10 @@
           })
           .catch(err => {
             console.error("Lỗi kiểm tra phiên bản:", err);
-            btn.innerText = "Lỗi kết nối máy chủ!";
+            if (btn) btn.innerText = "Lỗi kết nối máy chủ!";
             if (headerBtn) headerBtn.innerText = "Error!";
             setTimeout(() => {
-              btn.innerText = "Kiểm tra cập nhật";
+              if (btn) btn.innerText = "Kiểm tra cập nhật";
               if (headerBtn) headerBtn.innerText = `${currentVersion} PRO`;
             }, 4000);
           });
