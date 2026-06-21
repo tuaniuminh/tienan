@@ -117,7 +117,7 @@
         <div class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>
         <h1 class="text-sm font-black tracking-wider text-slate-200">SỔ THEO DÕI TIỀN ĂN</h1>
       </div>
-      <span class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20">v2.3.5 PRO</span>
+      <span class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20">v2.3.6 PRO</span>
     </header>
 
     <!-- KHOẢN PHẢI THU (BALANCE CARD GRID) -->
@@ -125,7 +125,7 @@
       <!-- Tổng nợ tích lũy hiển thị trên đầu -->
       <div class="bg-gradient-to-r from-rose-950/40 to-slate-900/60 border border-rose-500/20 rounded-2xl p-4 mb-4 flex items-center justify-between shadow-lg text-slate-100">
         <div>
-          <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Tổng số tiền</span>
+          <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Tổng số tiền đã ứng</span>
           <div id="totalDebtSummary" class="text-2xl font-black text-rose-400 tracking-tight mt-0.5">0đ</div>
         </div>
         <div class="h-10 w-10 rounded-xl bg-rose-950/60 border border-rose-500/10 flex items-center justify-center text-lg shadow-md shadow-rose-900/10">💰</div>
@@ -238,7 +238,7 @@
           <div class="flex space-x-2">
             <input type="text" id="guestNamesInput" placeholder="Ví dụ: Nam, An, Bình..." 
               class="flex-grow bg-slate-900 border border-slate-700 focus:border-indigo-500 text-slate-100 placeholder-slate-650 rounded-xl py-2 px-3 text-xs focus:outline-none transition-all">
-            <button onclick="saveGuests()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-4 py-2 rounded-xl active:scale-95 transition-all">
+            <button id="btnSaveGuests" onclick="saveGuests()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-4 py-2 rounded-xl active:scale-95 transition-all">
               Lưu
             </button>
           </div>
@@ -405,7 +405,7 @@
       </div>
 
       <div class="text-center text-[9px] text-slate-600 font-mono">
-        Phiên bản: <span class="text-indigo-400 font-bold">v2.3.5</span> | 
+        Phiên bản: <span class="text-indigo-400 font-bold">v2.3.6</span> | 
         <button onclick="checkUpdatesManually()" class="text-indigo-450 hover:underline font-bold focus:outline-none"><span id="btnCheckUpdateText">Kiểm tra cập nhật</span></button>
       </div>
     </footer>
@@ -531,7 +531,7 @@
         transactions: [],
         guests: [],
         activeFilter: null,
-        currentMealType: 'Trưa',
+        currentMealType: null,
 
         load() {
           try {
@@ -690,7 +690,7 @@
         if (hour >= 4 && hour < 10) {
           return 'Sáng';
         } else if (hour >= 10 && hour < 16) {
-          return 'Trưa';
+          return null; // Không tự động chọn bữa trưa
         } else {
           return 'Tối';
         }
@@ -755,6 +755,11 @@
         }
         
         Object.entries(balances).forEach(([name, amt]) => {
+          // Chỉ hiển thị 'Thắng', 'Phú' hoặc những khách có số dư nợ > 0
+          if (name !== 'Thắng' && name !== 'Phú' && amt === 0) {
+            return;
+          }
+          
           const isActive = AppStore.activeFilter === name;
           
           const box = document.createElement('button');
@@ -1149,8 +1154,8 @@
 
                 <!-- Nút Xóa nợ -->
                 <div class="flex items-center shrink-0">
-                  <button onclick="handleDeleteShare('${tx.id}')" 
-                    class="h-6 w-6 text-[10px] rounded-lg bg-slate-900 border border-slate-800 hover:bg-rose-950/20 hover:border-rose-500/20 hover:text-rose-400 flex items-center justify-center transition-all duration-150 active:scale-90">
+                  <button onclick="handleDeleteShare(this, '${tx.id}')" 
+                    class="h-6 w-6 text-[10px] rounded-lg bg-slate-900 border border-slate-800 hover:bg-rose-950/20 hover:border-rose-500/20 hover:text-rose-400 flex items-center justify-center transition-all duration-150 active:scale-90 animate-all">
                     ✕
                   </button>
                 </div>
@@ -1203,8 +1208,8 @@
                 <!-- Số tiền & Nút xóa căn phải -->
                 <div class="flex items-center space-x-2 shrink-0">
                   <span class="text-xs font-black tracking-tight text-slate-200 select-text">${formatVND(tx.totalAmount)}</span>
-                  <button onclick="handleDeleteShare('${tx.id}')" 
-                    class="h-6 w-6 text-[10px] rounded-lg bg-slate-900 border border-slate-800 hover:bg-rose-950/20 hover:border-rose-500/20 hover:text-rose-400 flex items-center justify-center transition-all duration-150 active:scale-90">
+                  <button onclick="handleDeleteShare(this, '${tx.id}')" 
+                    class="h-6 w-6 text-[10px] rounded-lg bg-slate-900 border border-slate-800 hover:bg-rose-950/20 hover:border-rose-500/20 hover:text-rose-400 flex items-center justify-center transition-all duration-150 active:scale-90 animate-all">
                     ✕
                   </button>
                 </div>
@@ -1221,17 +1226,39 @@
         });
       }
 
-      // Xử lý sự kiện nhấn nút xóa nợ trên từng dòng
-      window.handleDeleteShare = function(txId) {
+      // Xử lý sự kiện nhấn nút xóa nợ trên từng dòng (yêu cầu nhấn 2 lần xác nhận)
+      let pendingDeleteTxId = null;
+      let deleteConfirmTimer = null;
+
+      window.handleDeleteShare = function(btn, txId) {
         const activeFilter = AppStore.activeFilter;
         
-        // Hộp thoại tùy chỉnh inline trong mobile bằng cách xác nhận đơn giản nếu cần thiết
-        AppStore.deleteTransactionShare(txId, activeFilter);
-        
-        // Reload lại các phần UI bị tác động
-        renderBalanceBoxes();
-        renderFilterWidget();
-        renderHistoryLog();
+        if (pendingDeleteTxId !== txId) {
+          // Khôi phục nút xóa khác nếu đang chờ xác nhận
+          if (pendingDeleteTxId) {
+            renderHistoryLog();
+          }
+          
+          pendingDeleteTxId = txId;
+          btn.innerHTML = '⚠️';
+          btn.className = "h-6 w-6 text-[10px] rounded-lg bg-amber-950/20 border border-amber-500/30 text-amber-400 flex items-center justify-center transition-all duration-150 active:scale-90 animate-pulse";
+          
+          if (deleteConfirmTimer) clearTimeout(deleteConfirmTimer);
+          deleteConfirmTimer = setTimeout(() => {
+            pendingDeleteTxId = null;
+            renderHistoryLog(); // Khôi phục trạng thái nút Xóa
+          }, 3000);
+        } else {
+          if (deleteConfirmTimer) clearTimeout(deleteConfirmTimer);
+          pendingDeleteTxId = null;
+          
+          // Thực hiện xóa nợ
+          AppStore.deleteTransactionShare(txId, activeFilter);
+          
+          // Reload lại các phần UI bị tác động
+          renderBalanceBoxes();
+          renderHistoryLog();
+        }
       };
 
       // ==========================================
@@ -1262,6 +1289,11 @@
         const mealType = AppStore.currentMealType;
 
         const participants = Array.from(selectedParticipants);
+
+        if (!mealType) {
+          alert("Vui lòng chọn loại khoản chi (Sáng / Trưa / Tối / Mua hộ)!");
+          return;
+        }
 
         if (amount <= 0) {
           alert("Vui lòng nhập số tiền lớn hơn 0!");
@@ -1697,7 +1729,7 @@
         const btn = document.getElementById('btnCheckUpdateText');
         btn.innerText = "Đang check...";
 
-        const currentVersion = "v2.3.5";
+        const currentVersion = "v2.3.6";
 
         // Tải file index.html trực tiếp từ server để bypass cache bằng timestamp
         fetch('./index.html?t=' + Date.now())
@@ -1810,8 +1842,21 @@
           try {
             const decodedConfig = JSON.parse(decodeURIComponent(escape(atob(fbParam))));
             if (decodedConfig && decodedConfig.apiKey) {
+              const currentConfigRaw = localStorage.getItem('ste_firebase_config');
+              const currentConfig = currentConfigRaw ? JSON.parse(currentConfigRaw) : null;
+              
+              // So sánh xem có khác cấu hình hiện tại không để tránh alert phiền phức khi update bản mới
+              const isDifferent = !currentConfig || 
+                currentConfig.apiKey !== decodedConfig.apiKey || 
+                currentConfig.databaseURL !== decodedConfig.databaseURL || 
+                currentConfig.projectId !== decodedConfig.projectId ||
+                currentConfig.roomName !== decodedConfig.roomName;
+              
               localStorage.setItem('ste_firebase_config', JSON.stringify(decodedConfig));
-              alert("Đã nhận cấu hình đồng bộ Firebase được chia sẻ!");
+              
+              if (isDifferent) {
+                alert("Đã nhận cấu hình đồng bộ Firebase được chia sẻ!");
+              }
               // Dọn URL
               window.history.replaceState({}, document.title, window.location.pathname);
             }
