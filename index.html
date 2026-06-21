@@ -136,7 +136,7 @@
         <div class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>
         <h1 class="text-sm font-black tracking-wider text-slate-200">SỔ THEO DÕI TIỀN ĂN</h1>
       </div>
-      <span class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20">v2.4.1 PRO</span>
+      <span class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20">v2.4.2 PRO</span>
     </header>
 
     <!-- Banner cảnh báo không đồng bộ đám mây -->
@@ -366,7 +366,7 @@
           
           <div class="flex justify-between items-start">
             <div>
-              <span class="text-lg font-bold text-slate-300 tracking-wider flex items-center flex-wrap">🔍 Tiền ăn của <span id="filterMemberName" class="text-5xl font-black text-indigo-400 mx-2">Name</span>:</span>
+              <span class="text-base font-bold text-slate-300 tracking-wider flex items-center flex-wrap">🔍 Tiền ăn của <span id="filterMemberName" class="text-3xl font-black text-indigo-400 mx-1.5">Name</span>:</span>
               
               <!-- Số tiền cực lớn và nút copy bên cạnh -->
               <div class="flex items-center space-x-2 mt-2">
@@ -405,37 +405,10 @@
       </div>
     </section>
 
-    <!-- DATA BACKUP BLOCK & GARBAGE INFO (BOTTOM PANEL) -->
-    <footer class="mt-8 border-t border-slate-800/80 bg-slate-950/80 p-4 space-y-4">
-      <div class="flex justify-between items-center">
-        <span class="text-[10px] text-slate-500">Bảo mật thiết bị & Lưu trữ LocalStorage</span>
-        <button onclick="toggleBackupManager()" class="text-[10px] text-indigo-400 hover:underline font-semibold">📤 Nhập/Xuất Dữ Liệu</button>
-      </div>
-
-      <!-- Expandable Backup Panel -->
-      <div id="backupContent" class="hidden bg-slate-900 p-3 rounded-xl border border-slate-800 space-y-3">
-        <div>
-          <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Sao lưu dữ liệu</label>
-          <button onclick="exportData()" class="w-full bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-200 text-xs py-2 rounded-lg font-bold flex items-center justify-center space-x-1.5 active:scale-95 transition-all">
-            <span>📤</span>
-            <span id="exportBtnText">Xuất Dữ Liệu & Copy</span>
-          </button>
-          <div id="exportFeedback" class="text-[10px] text-emerald-400 text-center mt-1 hidden font-semibold">Đã sao chép chuỗi backup vào clipboard!</div>
-        </div>
-        
-        <div class="border-t border-slate-800 pt-3">
-          <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">Khôi phục dữ liệu</label>
-          <textarea id="importTextarea" rows="3" placeholder="Dán chuỗi dữ liệu JSON đã sao lưu vào đây..." 
-            class="w-full bg-slate-950 border border-slate-800 text-slate-300 placeholder-slate-650 rounded-lg p-2 text-[10px] font-mono focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20"></textarea>
-          <button onclick="importData()" class="w-full mt-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs py-2 rounded-lg font-bold active:scale-95 transition-all">
-            📥 Nhập & Ghi Đè Dữ Liệu
-          </button>
-          <div id="importFeedback" class="text-[10px] text-center mt-1.5 hidden font-semibold"></div>
-        </div>
-      </div>
-
+    <!-- BOTTOM PANEL -->
+    <footer class="mt-8 border-t border-slate-800/80 bg-slate-950/80 p-4">
       <div class="text-center text-[9px] text-slate-600 font-mono">
-        Phiên bản: <span class="text-indigo-400 font-bold">v2.4.1</span> | 
+        Phiên bản: <span class="text-indigo-400 font-bold">v2.4.2</span> | 
         <button onclick="checkUpdatesManually()" class="text-indigo-450 hover:underline font-bold focus:outline-none"><span id="btnCheckUpdateText">Kiểm tra cập nhật</span></button>
       </div>
     </footer>
@@ -1447,130 +1420,6 @@
       }
 
       // ==========================================
-      // 11. DATA BACKUP & RESTORE MANAGEMENT
-      // ==========================================
-      let isBackupExpanded = false;
-      window.toggleBackupManager = function() {
-        isBackupExpanded = !isBackupExpanded;
-        const panel = document.getElementById('backupContent');
-        if (isBackupExpanded) {
-          panel.classList.remove('hidden');
-        } else {
-          panel.classList.add('hidden');
-        }
-      };
-
-      window.exportData = function() {
-        const payload = {
-          version: "2.0",
-          timestamp: Date.now(),
-          guests: AppStore.guests,
-          transactions: AppStore.transactions
-        };
-
-        const jsonString = JSON.stringify(payload);
-        const feedback = document.getElementById('exportFeedback');
-
-        secureCopyToClipboard(jsonString).then(() => {
-          feedback.classList.remove('hidden');
-          setTimeout(() => {
-            feedback.classList.add('hidden');
-          }, 3000);
-        }).catch(err => {
-          console.error("Lỗi sao lưu:", err);
-          alert("Không thể tự động copy. Chuỗi backup của bạn:\n\n" + jsonString);
-        });
-      };
-
-      window.importData = function() {
-        const area = document.getElementById('importTextarea');
-        const feedback = document.getElementById('importFeedback');
-        const rawText = area.value.trim();
-
-        if (!rawText) {
-          showImportFeedback("Vui lòng dán chuỗi JSON đã sao lưu!", false);
-          return;
-        }
-
-        try {
-          const parsed = JSON.parse(rawText);
-          
-          let importedTransactions = null;
-          let importedGuests = null;
-
-          if (parsed && typeof parsed === 'object') {
-            // Format v2.0 phức tạp hơn
-            if (Array.isArray(parsed.transactions)) {
-              importedTransactions = migrateLegacyData(JSON.stringify(parsed.transactions));
-            } else if (Array.isArray(parsed)) {
-              // Hoặc backup cũ chỉ có danh sách mảng giao dịch
-              importedTransactions = migrateLegacyData(rawText);
-            }
-            
-            if (Array.isArray(parsed.guests)) {
-              importedGuests = parsed.guests.filter(n => typeof n === 'string' && n.trim() !== '');
-            }
-          }
-
-          // Cấu trúc hợp lệ nếu tìm thấy ít nhất mảng giao dịch hoặc danh sách khách
-          if (importedTransactions === null && importedGuests === null) {
-            showImportFeedback("Cấu trúc JSON không hợp lệ hoặc không tìm thấy dữ liệu để nhập!", false);
-            return;
-          }
-
-          if (importedTransactions === null) {
-            importedTransactions = [];
-          }
-
-          // Nếu thiếu danh sách khách trong file backup, tự động quét từ các giao dịch để tránh mất khách
-          if (importedGuests === null) {
-            const guestsSet = new Set();
-            importedTransactions.forEach(tx => {
-              if (tx.shares) {
-                Object.keys(tx.shares).forEach(name => {
-                  if (name !== 'Tôi' && name !== 'Thắng' && name !== 'Phú') {
-                    guestsSet.add(name);
-                  }
-                });
-              }
-            });
-            if (guestsSet.size > 0) {
-              importedGuests = Array.from(guestsSet);
-            } else {
-              importedGuests = AppStore.guests; // Giữ nguyên danh sách hiện tại
-            }
-          }
-
-          // Cập nhật bộ nhớ hệ thống
-          AppStore.transactions = importedTransactions;
-          AppStore.guests = importedGuests;
-          AppStore.cleanUpEmptyMeals();
-          AppStore.save();
-
-          // Reload UI hoàn chỉnh
-          syncGuestsToInput();
-          renderBalanceBoxes();
-          renderParticipantsSelector();
-          renderHistoryLog();
-          updateSplitPreview();
-          
-          area.value = '';
-          showImportFeedback("Nhập dữ liệu thành công! Đã đồng bộ giao diện.", true);
-        } catch(e) {
-          console.error("[Backup] Lỗi giải mã chuỗi khôi phục:", e);
-          showImportFeedback("Lỗi parse JSON: Hãy kiểm tra kỹ chuỗi nhập!", false);
-        }
-      };
-
-      function showImportFeedback(msg, isSuccess) {
-        const feedback = document.getElementById('importFeedback');
-        feedback.innerText = msg;
-        feedback.className = `text-[10px] text-center mt-1.5 font-semibold ${isSuccess ? 'text-emerald-400' : 'text-rose-400'}`;
-        feedback.classList.remove('hidden');
-        setTimeout(() => {
-          feedback.classList.add('hidden');
-        }, 4000);
-      }
 
       // ==========================================
       // 11.5. HỆ THỐNG ĐỒNG BỘ ĐÁM MÂY (FIREBASE REALTIME ENGINE)
@@ -1844,7 +1693,7 @@
         const btn = document.getElementById('btnCheckUpdateText');
         btn.innerText = "Đang check...";
 
-        const currentVersion = "v2.4.1";
+        const currentVersion = "v2.4.2";
 
         // Tải file index.html trực tiếp từ server để bypass cache bằng timestamp
         fetch('./index.html?t=' + Date.now())
