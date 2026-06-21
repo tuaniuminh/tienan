@@ -93,7 +93,7 @@
         <div class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>
         <h1 class="text-sm font-black tracking-wider text-slate-200">SỔ THEO DÕI TIỀN ĂN</h1>
       </div>
-      <span class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20">v2.2.4 PRO</span>
+      <span class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20">v2.2.5 PRO</span>
     </header>
 
     <!-- KHOẢN PHẢI THU (BALANCE CARD GRID) -->
@@ -370,7 +370,7 @@
       </div>
 
       <div class="text-center text-[9px] text-slate-600 font-mono">
-        Phiên bản: <span class="text-indigo-400 font-bold">v2.2.4</span> | 
+        Phiên bản: <span class="text-indigo-400 font-bold">v2.2.5</span> | 
         <button onclick="checkUpdatesManually()" class="text-indigo-450 hover:underline font-bold focus:outline-none"><span id="btnCheckUpdateText">Kiểm tra cập nhật</span></button>
       </div>
     </footer>
@@ -381,6 +381,14 @@
   <script>
     (function() {
       'use strict';
+
+      // Tự động sửa lỗi thiếu dấu gạch chéo cuối URL (trailing slash) trên GitHub Pages để PWA hoạt động chính xác
+      if (window.location.hostname.includes('github.io') && 
+          !window.location.pathname.endsWith('/') && 
+          !window.location.pathname.split('/').pop().includes('.')) {
+        window.location.replace(window.location.href + '/');
+        return;
+      }
 
       // Firebase references & status
       let dbRef = null;
@@ -1628,7 +1636,7 @@
           setTimeout(() => {
             btn.innerText = "Kiểm tra cập nhật";
             if (!reg.waiting && !reg.installing) {
-              alert("Ứng dụng của bạn đã ở phiên bản mới nhất! (v2.2.4)");
+              alert("Ứng dụng của bạn đã ở phiên bản mới nhất! (v2.2.5)");
             }
           }, 1200);
         }).catch(err => {
