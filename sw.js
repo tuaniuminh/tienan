@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tien-an-v2.4.3';
+const CACHE_NAME = 'tien-an-v2.4.4';
 const ASSETS = [
   './',
   './index.html',
@@ -15,7 +15,9 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
       console.log('[Service Worker] Caching files');
-      return cache.addAll(ASSETS);
+      // Sử dụng Request với cache: 'reload' để bypass HTTP cache của trình duyệt khi cập nhật
+      const requests = ASSETS.map(url => new Request(url, { cache: 'reload' }));
+      return cache.addAll(requests);
     }).then(() => self.skipWaiting())
   );
 });
@@ -42,23 +44,22 @@ self.addEventListener('fetch', event => {
   if (!event.request.url.startsWith('http')) return;
 
   event.respondWith(
-    caches.match(event.request).then(cachedResponse => {
-      if (cachedResponse) {
-        // Trả về từ cache nếu có
-        return cachedResponse;
-      }
-
-      // Nếu không có trong cache, tải từ mạng
-      return fetch(event.request).then(response => {
-        // Cache động cho các tài nguyên phông chữ từ Google Fonts
-        if (event.request.url.startsWith('https://fonts.googleapis.com') || 
-            event.request.url.startsWith('https://fonts.gstatic.com')) {
-          return caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, response.clone());
-            return response;
-          });
+    caches.open(CACHE_NAME).then(cache => {
+      return cache.match(event.request).then(cachedResponse => {
+        if (cachedResponse) {
+          // Trả về từ cache nếu có
+          return cachedResponse;
         }
-        return response;
+
+        // Nếu không có trong cache, tải từ mạng
+        return fetch(event.request).then(response => {
+          // Cache động cho các tài nguyên phông chữ từ Google Fonts
+          if (event.request.url.startsWith('https://fonts.googleapis.com') || 
+              event.request.url.startsWith('https://fonts.gstatic.com')) {
+            cache.put(event.request, response.clone());
+          }
+          return response;
+        });
       });
     }).catch(err => {
       console.error('[Service Worker] Fetch failed:', err);
