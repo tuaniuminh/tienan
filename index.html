@@ -121,7 +121,7 @@
         <div class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>
         <h1 class="text-sm font-black tracking-wider text-slate-200">SỔ THEO DÕI TIỀN ĂN</h1>
       </div>
-      <span class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20">v2.3.8 PRO</span>
+      <span class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20">v2.3.9 PRO</span>
     </header>
 
     <!-- KHOẢN PHẢI THU (BALANCE CARD GRID) -->
@@ -414,7 +414,7 @@
       </div>
 
       <div class="text-center text-[9px] text-slate-600 font-mono">
-        Phiên bản: <span class="text-indigo-400 font-bold">v2.3.8</span> | 
+        Phiên bản: <span class="text-indigo-400 font-bold">v2.3.9</span> | 
         <button onclick="checkUpdatesManually()" class="text-indigo-450 hover:underline font-bold focus:outline-none"><span id="btnCheckUpdateText">Kiểm tra cập nhật</span></button>
       </div>
     </footer>
@@ -1385,6 +1385,7 @@
         }
       };
 
+      let saveGuestsTimer = null;
       window.saveGuests = function() {
         const input = document.getElementById('guestNamesInput');
         const rawText = input.value.trim();
@@ -1405,7 +1406,19 @@
         renderParticipantsSelector();
         updateSplitPreview();
 
-        alert("Đã cập nhật danh sách khách thành công!");
+        // Hiển thị hiệu ứng tích V thành công thay thế cho alert
+        const btn = document.getElementById('btnSaveGuests');
+        if (btn) {
+          if (saveGuestsTimer) clearTimeout(saveGuestsTimer);
+          
+          btn.innerText = "✓";
+          btn.className = "bg-emerald-600 text-white font-bold text-xs px-4 py-2 rounded-xl active:scale-95 transition-colors duration-150 glow-emerald shrink-0";
+          
+          saveGuestsTimer = setTimeout(() => {
+            btn.innerText = "Lưu";
+            btn.className = "bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-4 py-2 rounded-xl active:scale-95 transition-colors duration-150 shrink-0";
+          }, 1000);
+        }
       };
 
       // Đồng bộ danh sách khách hiện tại lên ô nhập liệu
@@ -1773,7 +1786,7 @@
         const btn = document.getElementById('btnCheckUpdateText');
         btn.innerText = "Đang check...";
 
-        const currentVersion = "v2.3.8";
+        const currentVersion = "v2.3.9";
 
         // Tải file index.html trực tiếp từ server để bypass cache bằng timestamp
         fetch('./index.html?t=' + Date.now())
