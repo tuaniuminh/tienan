@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tien-an-v2.5.8';
+const CACHE_NAME = 'tien-an-v2.5.9';
 const ASSETS = [
   './',
   './index.html',
@@ -7,7 +7,8 @@ const ASSETS = [
   './icon-512.png',
   'https://cdn.tailwindcss.com',
   'https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js',
-  'https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js'
+  'https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'
 ];
 
 // Cài đặt Service Worker và cache các tài nguyên chính

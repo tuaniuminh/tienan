@@ -14,6 +14,8 @@
   <!-- Firebase SDK (Compat Version) -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <!-- html2canvas Library for Capturing Screenshots -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -170,7 +172,7 @@
         <img src="icon-192.png" alt="Logo" class="h-8 w-8 rounded-lg object-contain border border-indigo-500/20 shadow-md shadow-indigo-500/10">
         <h1 class="text-sm font-black tracking-wider text-slate-200">SỔ THEO DÕI TIỀN ĂN</h1>
       </div>
-      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.8 PRO</button>
+      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.9 PRO</button>
     </header>
 
     <!-- Banner cảnh báo không đồng bộ đám mây -->
@@ -398,7 +400,7 @@
     </section>
 
     <!-- DÂN CHƠI LỊCH SỬ (HISTORY LOG) -->
-    <section class="px-4 flex-grow flex flex-col">
+    <section id="historySection" class="px-4 flex-grow flex flex-col">
       <!-- PREMIUM FINTECH FILTER WIDGET (Di chuyển lên trên tiêu đề lịch sử) -->
       <div id="filterWidget" class="hidden mb-3 transition-all-300">
         <div class="bg-slate-850 border border-indigo-500/30 rounded-2xl p-4 shadow-lg flex flex-col relative overflow-hidden">
@@ -437,7 +439,12 @@
 
       <div class="flex justify-between items-center mb-3">
         <h3 id="historyTitle" class="text-xs font-bold text-slate-400 uppercase tracking-widest">📋 Lịch sử chi tiêu</h3>
-        <button id="btnClearFilter" onclick="clearFilter()" class="text-[10px] text-rose-400 hover:underline hidden">Hủy lọc</button>
+        <div class="flex items-center space-x-2.5">
+          <button id="btnCaptureHistory" onclick="captureHistoryImage()" class="text-[10px] text-indigo-400 hover:underline hidden flex items-center space-x-1 select-none">
+            <span>📸 Tải ảnh</span>
+          </button>
+          <button id="btnClearFilter" onclick="clearFilter()" class="text-[10px] text-rose-400 hover:underline hidden select-none">Hủy lọc</button>
+        </div>
       </div>
 
       <!-- Khung chứa danh sách lịch sử -->
@@ -1128,6 +1135,7 @@
 
         const container = document.getElementById('historyContainer');
         const clearFilterBtn = document.getElementById('btnClearFilter');
+        const captureBtn = document.getElementById('btnCaptureHistory');
         const historyTitle = document.getElementById('historyTitle');
         
         container.innerHTML = '';
@@ -1139,11 +1147,13 @@
           // Lọc danh sách giao dịch chỉ giữ lại các hóa đơn có mặt member này với dượng nợ > 0
           list = list.filter(tx => tx.shares[filterMember] !== undefined && tx.shares[filterMember] > 0);
           clearFilterBtn.classList.remove('hidden');
+          if (captureBtn) captureBtn.classList.remove('hidden');
           
           // Chỉ hiển thị tiêu đề lịch sử sạch sẽ
           historyTitle.innerText = `📋 Lịch sử tiền ăn của ${filterMember}`;
         } else {
           clearFilterBtn.classList.add('hidden');
+          if (captureBtn) captureBtn.classList.add('hidden');
           historyTitle.innerText = `📋 Lịch sử chi tiêu`;
         }
 
@@ -1377,6 +1387,110 @@
         undoActiveFilter = null;
         dismissUndoToast();
       };
+
+      window.captureHistoryImage = function() {
+        const target = document.getElementById('historySection');
+        if (!target) return;
+
+        // Tránh nhấn đúp liên tục khi đang xử lý
+        if (window.isCapturingImage) return;
+        window.isCapturingImage = true;
+
+        const capBtn = document.getElementById('btnCaptureHistory');
+        const originalText = capBtn.innerHTML;
+        capBtn.innerHTML = '⏳ Đang tạo ảnh...';
+
+        // Ẩn tạm thời các nút để ảnh chụp sạch đẹp
+        const buttonsToHide = [
+          document.getElementById('btnClearFilter'),
+          document.getElementById('btnCaptureHistory'),
+          document.getElementById('btnCopyDebt'),
+          document.getElementById('btnPayAll')
+        ];
+
+        buttonsToHide.forEach(btn => {
+          if (btn) btn.style.visibility = 'hidden';
+        });
+
+        // Đợi 150ms để DOM cập nhật trạng thái ẩn trước khi render canvas
+        setTimeout(() => {
+          if (typeof html2canvas === 'undefined') {
+            console.error('html2canvas is not loaded');
+            capBtn.innerHTML = originalText;
+            window.isCapturingImage = false;
+            buttonsToHide.forEach(btn => {
+              if (btn) btn.style.visibility = 'visible';
+            });
+            alert('Lỗi: Thư viện tạo ảnh chưa được tải xong, vui lòng thử lại sau.');
+            return;
+          }
+
+          html2canvas(target, {
+            backgroundColor: '#020617', // khớp bg-slate-950
+            scale: 2, // Tăng chất lượng ảnh HD 2x
+            useCORS: true,
+            logging: false,
+            // Chụp toàn bộ chiều cao thực tế của danh sách
+            height: target.scrollHeight,
+            windowHeight: target.scrollHeight
+          }).then(canvas => {
+            // Hiện lại các nút ngay lập tức
+            buttonsToHide.forEach(btn => {
+              if (btn) btn.style.visibility = 'visible';
+            });
+            capBtn.innerHTML = originalText;
+            window.isCapturingImage = false;
+
+            const memberName = document.getElementById('filterMemberName')?.innerText?.trim() || 'Thanh_vien';
+            const dateStr = new Date().toISOString().split('T')[0];
+            const filename = `TienAn_${memberName}_${dateStr}.png`;
+
+            // Tối ưu cho iPhone: Dùng Web Share API để mở iOS Share Sheet
+            if (navigator.share && navigator.canShare) {
+              canvas.toBlob(blob => {
+                if (!blob) {
+                  triggerDirectDownload(canvas, filename);
+                  return;
+                }
+                const file = new File([blob], filename, { type: 'image/png' });
+                if (navigator.canShare({ files: [file] })) {
+                  navigator.share({
+                    files: [file],
+                    title: `Tiền ăn của ${memberName}`,
+                    text: `Bảng kê chi tiết tiền ăn của ${memberName}`
+                  }).catch(shareErr => {
+                    console.log('Chia sẻ bị hủy hoặc lỗi:', shareErr);
+                    triggerDirectDownload(canvas, filename);
+                  });
+                } else {
+                  triggerDirectDownload(canvas, filename);
+                }
+              }, 'image/png');
+            } else {
+              triggerDirectDownload(canvas, filename);
+            }
+          }).catch(err => {
+            console.error('Lỗi khi chụp ảnh:', err);
+            // Hiện lại các nút
+            buttonsToHide.forEach(btn => {
+              if (btn) btn.style.visibility = 'visible';
+            });
+            capBtn.innerHTML = originalText;
+            window.isCapturingImage = false;
+            alert('Lỗi khi tạo ảnh giao dịch: ' + err.message);
+          });
+        }, 150);
+      };
+
+      // Hàm phụ tải ảnh trực tiếp (download link) cho các trình duyệt desktop/android
+      function triggerDirectDownload(canvas, filename) {
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = canvas.toDataURL('image/png');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
 
       // Xử lý sự kiện nhấn nút xóa nợ trên từng dòng (yêu cầu nhấn 2 lần xác nhận, không dùng full redraw khi chuyển đổi)
       let pendingDeleteTxId = null;
@@ -1839,7 +1953,7 @@
         if (btn) btn.innerText = "Đang check...";
         if (headerBtn) headerBtn.innerText = "Checking...";
 
-        const currentVersion = "v2.5.8";
+        const currentVersion = "v2.5.9";
 
         // Tải file index.html trực tiếp từ server để bypass cache bằng timestamp
         fetch('./index.html?t=' + Date.now())
