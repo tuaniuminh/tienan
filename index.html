@@ -172,7 +172,7 @@
         <img src="icon-192.png" alt="Logo" class="h-8 w-8 rounded-lg object-contain border border-indigo-500/20 shadow-md shadow-indigo-500/10">
         <h1 class="text-sm font-black tracking-wider text-slate-200">SỔ THEO DÕI TIỀN ĂN</h1>
       </div>
-      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.6.0 PRO</button>
+      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.6.1 PRO</button>
     </header>
 
     <!-- Banner cảnh báo không đồng bộ đám mây -->
@@ -1400,8 +1400,11 @@
         const originalText = capBtn.innerHTML;
         capBtn.innerHTML = '⏳ Đang tạo ảnh...';
 
-        // Đợi 50ms để DOM cập nhật trạng thái đổi nhãn trước khi render canvas
-        setTimeout(() => {
+        // Đợi phông chữ tải xong hoàn toàn và DOM sẵn sàng để chụp
+        Promise.all([
+          document.fonts ? document.fonts.ready : Promise.resolve(),
+          new Promise(resolve => setTimeout(resolve, 80))
+        ]).then(() => {
           if (typeof html2canvas === 'undefined') {
             console.error('html2canvas is not loaded');
             capBtn.innerHTML = originalText;
@@ -1434,6 +1437,14 @@
               const clonedPayAllContainer = clonedDoc.getElementById('payAllContainer');
               if (clonedPayAllContainer) clonedPayAllContainer.style.display = 'none';
 
+              // Ẩn toàn bộ nút X (btn-delete-share) và phần tử cha của nó theo yêu cầu người dùng
+              clonedDoc.querySelectorAll('.btn-delete-share').forEach(btn => {
+                btn.style.display = 'none';
+                if (btn.parentElement) {
+                  btn.parentElement.style.display = 'none';
+                }
+              });
+
               // 2. Cân chỉnh lề và khoảng cách cho thẻ section được chụp để cân đối trong viền
               const clonedTarget = clonedDoc.getElementById('historySection');
               if (clonedTarget) {
@@ -1444,6 +1455,22 @@
                 clonedTarget.style.boxSizing = 'border-box';
                 clonedTarget.style.width = targetWidth + 'px';
               }
+
+              // 3. Sửa lỗi căn dọc (vertical centering) cho các ô bữa ăn trong bản sao chụp
+              // html2canvas đôi khi tính toán sai baseline của inline-block/flex trong iframe.
+              // Ta ép cứng định dạng flex items-center inline cho các div/span chứa thông tin.
+              clonedDoc.querySelectorAll('.flex.items-center').forEach(el => {
+                el.style.display = 'flex';
+                el.style.alignItems = 'center';
+              });
+
+              // Ép cứng căn giữa cho thẻ mealType và các tag số tiền
+              clonedDoc.querySelectorAll('span.inline-block.w-16, span.inline-block.border.rounded').forEach(el => {
+                el.style.display = 'inline-flex';
+                el.style.alignItems = 'center';
+                el.style.justifyContent = 'center';
+                el.style.lineHeight = '1';
+              });
             }
           }).then(canvas => {
             capBtn.innerHTML = originalText;
@@ -1483,7 +1510,7 @@
             window.isCapturingImage = false;
             alert('Lỗi khi tạo ảnh giao dịch: ' + err.message);
           });
-        }, 50);
+        });
       };
 
       // Hàm phụ tải ảnh trực tiếp (download link) cho các trình duyệt desktop/android
@@ -1957,7 +1984,7 @@
         if (btn) btn.innerText = "Đang check...";
         if (headerBtn) headerBtn.innerText = "Checking...";
 
-        const currentVersion = "v2.6.0";
+        const currentVersion = "v2.6.1";
 
         // Tải file index.html trực tiếp từ server để bypass cache bằng timestamp
         fetch('./index.html?t=' + Date.now())
