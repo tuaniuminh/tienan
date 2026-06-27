@@ -172,7 +172,7 @@
         <img src="icon-192.png" alt="Logo" class="h-8 w-8 rounded-lg object-contain border border-indigo-500/20 shadow-md shadow-indigo-500/10">
         <h1 class="text-sm font-black tracking-wider text-slate-200">SỔ THEO DÕI TIỀN ĂN</h1>
       </div>
-      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.6.5 PRO</button>
+      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.6.6 PRO</button>
     </header>
 
     <!-- Banner cảnh báo không đồng bộ đám mây -->
@@ -1429,8 +1429,8 @@
               if (element.id === 'btnCopyDebt') return true;
               if (element.id === 'payAllContainer') return true;
               if (element.classList && element.classList.contains('btn-delete-share')) return true;
-              // Ẩn luôn phần tử cha của nút X nếu nó chỉ chứa nút X (để dọn sạch flex space)
-              if (element.querySelector && element.querySelector('.btn-delete-share') && element.children.length === 1) return true;
+              // Chỉ ẩn phần tử cha TRỰC TIẾP của nút X nếu nó chỉ chứa nút X (để dọn sạch flex space)
+              if (element.children.length === 1 && element.firstElementChild && element.firstElementChild.classList && element.firstElementChild.classList.contains('btn-delete-share')) return true;
               return false;
             },
             onclone: (clonedDoc) => {
@@ -1958,7 +1958,7 @@
         if (btn) btn.innerText = "Đang check...";
         if (headerBtn) headerBtn.innerText = "Checking...";
 
-        const currentVersion = "v2.6.5";
+        const currentVersion = "v2.6.6";
 
         // Tải file index.html trực tiếp từ server để bypass cache bằng timestamp
         fetch('./index.html?t=' + Date.now())
