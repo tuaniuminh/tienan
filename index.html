@@ -172,7 +172,7 @@
         <img src="icon-192.png" alt="Logo" class="h-8 w-8 rounded-lg object-contain border border-indigo-500/20 shadow-md shadow-indigo-500/10">
         <h1 class="text-sm font-black tracking-wider text-slate-200">SỔ THEO DÕI TIỀN ĂN</h1>
       </div>
-      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.6.3 PRO</button>
+      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.6.4 PRO</button>
     </header>
 
     <!-- Banner cảnh báo không đồng bộ đám mây -->
@@ -1423,23 +1423,26 @@
             windowWidth: targetWidth,
             height: target.scrollHeight,
             windowHeight: target.scrollHeight,
-            onclone: (clonedDoc, clonedElement) => {
+            onclone: (clonedDoc) => {
+              // Tìm thẻ historySection được chụp trong document nhân bản
+              const clonedTarget = clonedDoc.querySelector('#historySection');
+              if (!clonedTarget) {
+                console.error('Không tìm thấy historySection trong clonedDoc');
+                return;
+              }
+
               // 1. Ẩn hoàn toàn các nút tương tác và container nút trong bản sao để ảnh chụp sạch đẹp, giải phóng không gian
-              const clonedBtnContainer = clonedElement.querySelector('#historyButtonsContainer') || clonedDoc.getElementById('historyButtonsContainer');
+              const clonedBtnContainer = clonedTarget.querySelector('#historyButtonsContainer');
               if (clonedBtnContainer) clonedBtnContainer.style.display = 'none';
 
-              const clonedCopyBtn = clonedElement.querySelector('#btnCopyDebt') || clonedDoc.getElementById('btnCopyDebt');
+              const clonedCopyBtn = clonedTarget.querySelector('#btnCopyDebt');
               if (clonedCopyBtn) clonedCopyBtn.style.display = 'none';
 
-              const clonedPayAllContainer = clonedElement.querySelector('#payAllContainer') || clonedDoc.getElementById('payAllContainer');
+              const clonedPayAllContainer = clonedTarget.querySelector('#payAllContainer');
               if (clonedPayAllContainer) clonedPayAllContainer.style.display = 'none';
 
               // Ẩn toàn bộ nút X (btn-delete-share) và phần tử cha của nó theo yêu cầu người dùng
-              const deleteBtns = clonedElement.querySelectorAll('.btn-delete-share');
-              const fallbackDeleteBtns = clonedDoc.querySelectorAll('.btn-delete-share');
-              const allDeleteBtns = deleteBtns.length > 0 ? deleteBtns : fallbackDeleteBtns;
-
-              allDeleteBtns.forEach(btn => {
+              clonedTarget.querySelectorAll('.btn-delete-share').forEach(btn => {
                 btn.style.display = 'none';
                 if (btn.parentElement) {
                   btn.parentElement.style.display = 'none';
@@ -1447,29 +1450,26 @@
               });
 
               // 2. Cân chỉnh lề và khoảng cách cho thẻ section được chụp để cân đối trong viền
-              const finalTarget = clonedElement || clonedDoc.getElementById('historySection');
-              if (finalTarget) {
-                finalTarget.style.paddingLeft = '20px';
-                finalTarget.style.paddingRight = '20px';
-                finalTarget.style.paddingTop = '20px';
-                finalTarget.style.paddingBottom = '24px';
-                finalTarget.style.boxSizing = 'border-box';
-                finalTarget.style.width = targetWidth + 'px';
+              clonedTarget.style.paddingLeft = '20px';
+              clonedTarget.style.paddingRight = '20px';
+              clonedTarget.style.paddingTop = '20px';
+              clonedTarget.style.paddingBottom = '24px';
+              clonedTarget.style.boxSizing = 'border-box';
+              clonedTarget.style.width = targetWidth + 'px';
 
-                // 3. Sửa lỗi căn dọc (vertical centering) cho các ô bữa ăn trong bản sao chụp
-                finalTarget.querySelectorAll('.flex.items-center').forEach(el => {
-                  el.style.display = 'flex';
-                  el.style.alignItems = 'center';
-                });
+              // 3. Sửa lỗi căn dọc (vertical centering) cho các ô bữa ăn trong bản sao chụp
+              clonedTarget.querySelectorAll('.flex.items-center').forEach(el => {
+                el.style.display = 'flex';
+                el.style.alignItems = 'center';
+              });
 
-                // Ép cứng căn giữa cho thẻ mealType và các tag số tiền
-                finalTarget.querySelectorAll('span.inline-block.w-16, span.inline-block.border.rounded').forEach(el => {
-                  el.style.display = 'inline-flex';
-                  el.style.alignItems = 'center';
-                  el.style.justifyContent = 'center';
-                  el.style.lineHeight = '1';
-                });
-              }
+              // Ép cứng căn giữa cho thẻ mealType và các tag số tiền
+              clonedTarget.querySelectorAll('span.inline-block.w-16, span.inline-block.border.rounded').forEach(el => {
+                el.style.display = 'inline-flex';
+                el.style.alignItems = 'center';
+                el.style.justifyContent = 'center';
+                el.style.lineHeight = '1';
+              });
             }
           }).then(canvas => {
             capBtn.innerHTML = originalText;
@@ -1983,7 +1983,7 @@
         if (btn) btn.innerText = "Đang check...";
         if (headerBtn) headerBtn.innerText = "Checking...";
 
-        const currentVersion = "v2.6.3";
+        const currentVersion = "v2.6.4";
 
         // Tải file index.html trực tiếp từ server để bypass cache bằng timestamp
         fetch('./index.html?t=' + Date.now())
