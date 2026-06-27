@@ -172,7 +172,7 @@
         <img src="icon-192.png" alt="Logo" class="h-8 w-8 rounded-lg object-contain border border-indigo-500/20 shadow-md shadow-indigo-500/10">
         <h1 class="text-sm font-black tracking-wider text-slate-200">SỔ THEO DÕI TIỀN ĂN</h1>
       </div>
-      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.11 PRO</button>
+      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.14 PRO</button>
     </header>
 
     <!-- Banner cảnh báo không đồng bộ đám mây -->
@@ -1118,7 +1118,21 @@
             undoActiveFilter = AppStore.activeFilter;
 
             AppStore.payAllForMember(member);
-            clearFilter();
+            
+            if (payAllResetTimer) {
+              clearTimeout(payAllResetTimer);
+              payAllResetTimer = null;
+            }
+            const activePayAll = document.querySelector('.btn-pay-all[data-pending="true"]');
+            if (activePayAll) {
+              activePayAll.setAttribute('data-pending', 'false');
+              activePayAll.innerHTML = 'Trả hết';
+              activePayAll.className = "btn-pay-all text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20 text-xs font-bold py-1.5 px-3 rounded-lg active:scale-95 transition-all border border-indigo-500/20 whitespace-nowrap";
+            }
+
+            renderBalanceBoxes();
+            renderFilterWidget();
+            renderHistoryLog();
 
             // Hiển thị Toast hoàn tác
             showUndoToast(`Đã xóa toàn bộ nợ của ${member}`);
@@ -1329,10 +1343,10 @@
           </div>
           <div class="flex items-center space-x-3">
             <button onclick="performUndo(event)" class="text-amber-400 font-bold text-xs py-1.5 px-3 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 active:scale-95 transition-all duration-150 flex-shrink-0">
-              Khôi phục lại (Undo)
+              Hoàn tác
             </button>
-            <button onclick="dismissUndoToast(event)" class="text-slate-400 hover:text-slate-200 text-sm font-semibold flex-shrink-0 active:scale-90 transition-all px-2 py-1 bg-slate-800 rounded">
-              Đóng
+            <button onclick="dismissUndoToast(event)" class="text-slate-400 hover:text-slate-200 text-sm flex-shrink-0 active:scale-90 transition-all p-1">
+              ✕
             </button>
           </div>
           <div class="absolute bottom-0 left-0 h-[2px] bg-amber-500 toast-progress"></div>
@@ -1954,7 +1968,7 @@
         if (btn) btn.innerText = "Đang check...";
         if (headerBtn) headerBtn.innerText = "Checking...";
 
-        const currentVersion = "v2.5.11";
+        const currentVersion = "v2.5.14";
 
         // Tải file index.html trực tiếp từ server để bypass cache bằng timestamp
         fetch('./index.html?t=' + Date.now())
