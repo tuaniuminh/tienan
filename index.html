@@ -172,7 +172,7 @@
         <img src="icon-192.png" alt="Logo" class="h-8 w-8 rounded-lg object-contain border border-indigo-500/20 shadow-md shadow-indigo-500/10">
         <h1 class="text-sm font-black tracking-wider text-slate-200">SỔ THEO DÕI TIỀN ĂN</h1>
       </div>
-      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.6.2 PRO</button>
+      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.6.3 PRO</button>
     </header>
 
     <!-- Banner cảnh báo không đồng bộ đám mây -->
@@ -1423,19 +1423,23 @@
             windowWidth: targetWidth,
             height: target.scrollHeight,
             windowHeight: target.scrollHeight,
-            onclone: (clonedDoc) => {
+            onclone: (clonedDoc, clonedElement) => {
               // 1. Ẩn hoàn toàn các nút tương tác và container nút trong bản sao để ảnh chụp sạch đẹp, giải phóng không gian
-              const clonedBtnContainer = clonedDoc.getElementById('historyButtonsContainer');
+              const clonedBtnContainer = clonedElement.querySelector('#historyButtonsContainer') || clonedDoc.getElementById('historyButtonsContainer');
               if (clonedBtnContainer) clonedBtnContainer.style.display = 'none';
 
-              const clonedCopyBtn = clonedDoc.getElementById('btnCopyDebt');
+              const clonedCopyBtn = clonedElement.querySelector('#btnCopyDebt') || clonedDoc.getElementById('btnCopyDebt');
               if (clonedCopyBtn) clonedCopyBtn.style.display = 'none';
 
-              const clonedPayAllContainer = clonedDoc.getElementById('payAllContainer');
+              const clonedPayAllContainer = clonedElement.querySelector('#payAllContainer') || clonedDoc.getElementById('payAllContainer');
               if (clonedPayAllContainer) clonedPayAllContainer.style.display = 'none';
 
               // Ẩn toàn bộ nút X (btn-delete-share) và phần tử cha của nó theo yêu cầu người dùng
-              clonedDoc.querySelectorAll('.btn-delete-share').forEach(btn => {
+              const deleteBtns = clonedElement.querySelectorAll('.btn-delete-share');
+              const fallbackDeleteBtns = clonedDoc.querySelectorAll('.btn-delete-share');
+              const allDeleteBtns = deleteBtns.length > 0 ? deleteBtns : fallbackDeleteBtns;
+
+              allDeleteBtns.forEach(btn => {
                 btn.style.display = 'none';
                 if (btn.parentElement) {
                   btn.parentElement.style.display = 'none';
@@ -1443,36 +1447,62 @@
               });
 
               // 2. Cân chỉnh lề và khoảng cách cho thẻ section được chụp để cân đối trong viền
-              const clonedTarget = clonedDoc.getElementById('historySection');
-              if (clonedTarget) {
-                clonedTarget.style.paddingLeft = '20px';
-                clonedTarget.style.paddingRight = '20px';
-                clonedTarget.style.paddingTop = '20px';
-                clonedTarget.style.paddingBottom = '24px';
-                clonedTarget.style.boxSizing = 'border-box';
-                clonedTarget.style.width = targetWidth + 'px';
+              const finalTarget = clonedElement || clonedDoc.getElementById('historySection');
+              if (finalTarget) {
+                finalTarget.style.paddingLeft = '20px';
+                finalTarget.style.paddingRight = '20px';
+                finalTarget.style.paddingTop = '20px';
+                finalTarget.style.paddingBottom = '24px';
+                finalTarget.style.boxSizing = 'border-box';
+                finalTarget.style.width = targetWidth + 'px';
+
+                // 3. Sửa lỗi căn dọc (vertical centering) cho các ô bữa ăn trong bản sao chụp
+                finalTarget.querySelectorAll('.flex.items-center').forEach(el => {
+                  el.style.display = 'flex';
+                  el.style.alignItems = 'center';
+                });
+
+                // Ép cứng căn giữa cho thẻ mealType và các tag số tiền
+                finalTarget.querySelectorAll('span.inline-block.w-16, span.inline-block.border.rounded').forEach(el => {
+                  el.style.display = 'inline-flex';
+                  el.style.alignItems = 'center';
+                  el.style.justifyContent = 'center';
+                  el.style.lineHeight = '1';
+                });
               }
-
-              // 3. Sửa lỗi căn dọc (vertical centering) cho các ô bữa ăn trong bản sao chụp
-              clonedDoc.querySelectorAll('.flex.items-center').forEach(el => {
-                el.style.display = 'flex';
-                el.style.alignItems = 'center';
-              });
-
-              // Ép cứng căn giữa cho thẻ mealType và các tag số tiền
-              clonedDoc.querySelectorAll('span.inline-block.w-16, span.inline-block.border.rounded').forEach(el => {
-                el.style.display = 'inline-flex';
-                el.style.alignItems = 'center';
-                el.style.justifyContent = 'center';
-                el.style.lineHeight = '1';
-              });
             }
           }).then(canvas => {
             capBtn.innerHTML = originalText;
             window.isCapturingImage = false;
 
-            const dataUrl = canvas.toDataURL('image/png');
-            showCapturedImageModal(dataUrl);
+            const memberName = document.getElementById('filterMemberName')?.innerText?.trim() || 'Thanh_vien';
+            const dateStr = new Date().toISOString().split('T')[0];
+            const filename = `TienAn_${memberName}_${dateStr}.png`;
+
+            // Tối ưu cho iPhone: Dùng Web Share API để mở iOS Share Sheet
+            if (navigator.share && navigator.canShare) {
+              canvas.toBlob(blob => {
+                if (!blob) {
+                  triggerDirectDownload(canvas, filename);
+                  return;
+                }
+                const file = new File([blob], filename, { type: 'image/png' });
+                if (navigator.canShare({ files: [file] })) {
+                  navigator.share({
+                    files: [file],
+                    title: `Tiền ăn của ${memberName}`,
+                    text: `Bảng kê chi tiết tiền ăn của ${memberName}`
+                  }).catch(shareErr => {
+                    console.log('Chia sẻ bị hủy hoặc lỗi:', shareErr);
+                    triggerDirectDownload(canvas, filename);
+                  });
+                } else {
+                  triggerDirectDownload(canvas, filename);
+                }
+              }, 'image/png');
+            } else {
+              triggerDirectDownload(canvas, filename);
+            }
           }).catch(err => {
             console.error('Lỗi khi chụp ảnh:', err);
             capBtn.innerHTML = originalText;
@@ -1482,43 +1512,14 @@
         }, 150);
       };
 
-      // Hiển thị popup xem trước ảnh để nhấn giữ lưu ảnh trên iPhone
-      window.showCapturedImageModal = function(dataUrl) {
-        const existingModal = document.getElementById('capturedImageModal');
-        if (existingModal) {
-          existingModal.remove();
-        }
-
-        const modal = document.createElement('div');
-        modal.id = 'capturedImageModal';
-        modal.className = 'fixed inset-0 bg-slate-950/90 backdrop-blur-md z-[10000] flex flex-col items-center justify-center p-4 select-none';
-        
-        modal.innerHTML = `
-          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 max-w-sm w-full flex flex-col space-y-3.5 max-h-[85vh] shadow-2xl relative">
-            <button onclick="closeCapturedImageModal()" class="absolute top-3.5 right-3.5 text-slate-400 hover:text-slate-200 text-lg p-1 active:scale-90 transition-all focus:outline-none">
-              ✕
-            </button>
-            <div class="text-center pt-2">
-              <h4 class="text-xs font-black text-slate-300 uppercase tracking-wider">📸 Ảnh Báo Cáo Nợ</h4>
-              <p class="text-[9px] text-amber-400 font-semibold mt-1">💡 Nhấn giữ vào ảnh dưới đây để "Thêm vào Ảnh" hoặc "Chia sẻ"</p>
-            </div>
-            <div class="flex-grow overflow-y-auto rounded-xl border border-slate-800 bg-slate-950 p-1 flex items-center justify-center min-h-[150px]">
-              <img src="${dataUrl}" class="max-w-full max-h-[50vh] object-contain rounded-lg" style="-webkit-user-select: auto; user-select: auto; -webkit-touch-callout: default;">
-            </div>
-            <button onclick="closeCapturedImageModal()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-750 text-slate-200 rounded-xl font-bold text-xs active:scale-95 transition-all focus:outline-none">
-              Đóng
-            </button>
-          </div>
-        `;
-
-        document.body.appendChild(modal);
-      };
-
-      window.closeCapturedImageModal = function() {
-        const modal = document.getElementById('capturedImageModal');
-        if (modal) {
-          modal.remove();
-        }
+      // Hàm phụ tải ảnh trực tiếp (download link) cho các trình duyệt desktop/android
+      function triggerDirectDownload(canvas, filename) {
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = canvas.toDataURL('image/png');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
       }
 
       // Xử lý sự kiện nhấn nút xóa nợ trên từng dòng (yêu cầu nhấn 2 lần xác nhận, không dùng full redraw khi chuyển đổi)
@@ -1982,7 +1983,7 @@
         if (btn) btn.innerText = "Đang check...";
         if (headerBtn) headerBtn.innerText = "Checking...";
 
-        const currentVersion = "v2.6.2";
+        const currentVersion = "v2.6.3";
 
         // Tải file index.html trực tiếp từ server để bypass cache bằng timestamp
         fetch('./index.html?t=' + Date.now())
