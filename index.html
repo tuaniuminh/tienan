@@ -172,7 +172,7 @@
         <img src="icon-192.png" alt="Logo" class="h-8 w-8 rounded-lg object-contain border border-indigo-500/20 shadow-md shadow-indigo-500/10">
         <h1 class="text-sm font-black tracking-wider text-slate-200">SỔ THEO DÕI TIỀN ĂN</h1>
       </div>
-      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.9 PRO</button>
+      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.10 PRO</button>
     </header>
 
     <!-- Banner cảnh báo không đồng bộ đám mây -->
@@ -1784,14 +1784,33 @@
               localStorage.setItem('ste_transactions', JSON.stringify(AppStore.transactions));
               localStorage.setItem('ste_guests', JSON.stringify(AppStore.guests));
 
+              // Đánh dấu đã từng đồng bộ thành công
+              localStorage.setItem('firebase_synced_once', 'true');
+
               // Vẽ lại UI
               renderBalanceBoxes();
               renderParticipantsSelector();
               renderHistoryLog();
               updateSplitPreview();
             } else {
-              // Nếu đám mây trống, đẩy dữ liệu hiện có ở máy lên
-              pushLocalToFirebase();
+              // Nếu đám mây trống
+              if (!localStorage.getItem('firebase_synced_once') && AppStore.transactions.length > 0) {
+                // Chỉ đẩy lên nếu là lần đầu tiên kết nối và có dữ liệu cũ ở máy
+                pushLocalToFirebase();
+                localStorage.setItem('firebase_synced_once', 'true');
+              } else {
+                // Nếu đã từng đồng bộ mà đám mây trống -> Có người vừa xóa sạch dữ liệu -> Xóa sạch máy
+                AppStore.transactions = [];
+                AppStore.guests = [];
+                
+                localStorage.setItem('ste_transactions', JSON.stringify([]));
+                localStorage.setItem('ste_guests', JSON.stringify([]));
+                
+                renderBalanceBoxes();
+                renderParticipantsSelector();
+                renderHistoryLog();
+                updateSplitPreview();
+              }
             }
           }, err => {
             console.error('[Firebase] Lỗi đọc dữ liệu:', err);
@@ -1953,7 +1972,7 @@
         if (btn) btn.innerText = "Đang check...";
         if (headerBtn) headerBtn.innerText = "Checking...";
 
-        const currentVersion = "v2.5.9";
+        const currentVersion = "v2.5.10";
 
         // Tải file index.html trực tiếp từ server để bypass cache bằng timestamp
         fetch('./index.html?t=' + Date.now())
