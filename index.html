@@ -172,7 +172,7 @@
         <img src="icon-192.png" alt="Logo" class="h-8 w-8 rounded-lg object-contain border border-indigo-500/20 shadow-md shadow-indigo-500/10">
         <h1 class="text-sm font-black tracking-wider text-slate-200">SỔ THEO DÕI TIỀN ĂN</h1>
       </div>
-      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.7.0 PRO</button>
+      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.7.2 PRO</button>
     </header>
 
     <!-- Banner cảnh báo không đồng bộ đám mây -->
@@ -1113,18 +1113,36 @@
             }, 3000); // 3 giây để nhấn lại
           } else {
             // Lần nhấn 2: Thực hiện Trả Hết nợ
-            // Sao lưu trước khi thanh toán sạch nợ
-            undoBackup = JSON.parse(JSON.stringify(AppStore.transactions));
-            undoActiveFilter = AppStore.activeFilter;
+            try {
+              // Đảm bảo backup không gây lỗi
+              try {
+                undoBackup = JSON.parse(JSON.stringify(AppStore.transactions));
+                undoActiveFilter = AppStore.activeFilter;
+              } catch(e) {
+                console.error("Backup failed", e);
+              }
 
-            AppStore.payAllForMember(member);
-            resetPayAllButton();
-            renderBalanceBoxes();
-            renderFilterWidget();
-            renderHistoryLog();
+              // Xóa nợ tận gốc
+              AppStore.transactions = AppStore.transactions.map(tx => {
+                if (tx.shares && tx.shares[member] !== undefined) {
+                  tx.shares[member] = 0;
+                }
+                return tx;
+              });
 
-            // Hiển thị Toast hoàn tác
-            showUndoToast(`Đã xóa toàn bộ nợ của ${member}`);
+              AppStore.cleanUpEmptyMeals();
+              AppStore.save();
+              
+              resetPayAllButton();
+              renderBalanceBoxes();
+              renderFilterWidget();
+              renderHistoryLog();
+
+              // Hiển thị Toast hoàn tác
+              showUndoToast(`Đã xóa toàn bộ nợ của ${member}`);
+            } catch (err) {
+              alert("Lỗi khi xử lý trả hết: " + err.message);
+            }
           }
         };
       }
@@ -1973,7 +1991,7 @@
         if (btn) btn.innerText = "Đang check...";
         if (headerBtn) headerBtn.innerText = "Checking...";
 
-        const currentVersion = "v2.7.0";
+        const currentVersion = "v2.7.2";
 
         // Tải file index.html trực tiếp từ server để bypass cache bằng timestamp
         fetch('./index.html?t=' + Date.now())

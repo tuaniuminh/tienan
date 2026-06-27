@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tien-an-v2.7.0';
+const CACHE_NAME = 'tien-an-v2.7.2';
 const ASSETS = [
   './',
   './index.html',
