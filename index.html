@@ -173,7 +173,7 @@
         <img src="icon-192.png" alt="Logo" class="h-8 w-8 rounded-lg object-contain border border-indigo-500/20 shadow-md shadow-indigo-500/10">
         <h1 class="text-sm font-black tracking-wider text-slate-200">SỔ THEO DÕI TIỀN ĂN</h1>
       </div>
-      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.14 PRO</button>
+      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.15 PRO</button>
     </header>
 
     <!-- Banner cảnh báo không đồng bộ đám mây -->
@@ -400,6 +400,65 @@
       </div>
     </section>
 
+    <!-- BANK QR CONFIG (Cấu hình ngân hàng VietQR) -->
+    <section class="px-4 mb-4">
+      <div class="bg-slate-850/60 border border-slate-700/30 rounded-2xl overflow-hidden transition-all duration-300">
+        <button onclick="toggleBankManager()" class="w-full px-4 py-3 flex justify-between items-center text-left hover:bg-slate-800/40">
+          <span class="text-xs font-bold text-slate-400 tracking-wider flex items-center">
+            <span class="mr-1.5">🏦</span> Cấu hình QR Ngân hàng (Tùy chọn)
+          </span>
+          <span id="bankToggleArrow" class="text-xs text-slate-500 transition-transform duration-200">▼</span>
+        </button>
+        
+        <div id="bankManagerContent" class="hidden p-4 border-t border-slate-800/50 bg-slate-900/40 space-y-3">
+          <p class="text-[10px] text-slate-400 leading-relaxed">
+            Nhập thông tin tài khoản ngân hàng của bạn để tự động tạo mã QR VietQR gắn vào ảnh kê chi tiết khi tải xuống.
+          </p>
+          
+          <div class="space-y-2.5">
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 mb-1">Ngân hàng:</label>
+              <select id="qrBankSelect" class="w-full bg-slate-900 border border-slate-750 focus:border-indigo-500 text-slate-200 rounded-lg py-1.5 px-3 text-xs focus:outline-none transition-all">
+                <option value="">-- Chọn ngân hàng --</option>
+                <option value="icb">VietinBank (ICB)</option>
+                <option value="vcb">Vietcombank (VCB)</option>
+                <option value="bidv">BIDV</option>
+                <option value="vba">Agribank</option>
+                <option value="tcb">Techcombank</option>
+                <option value="acb">ACB</option>
+                <option value="mb">MBBank</option>
+                <option value="tpb">TPBank</option>
+                <option value="vpB">VPBank</option>
+                <option value="shb">SHB</option>
+                <option value="hdb">HDBank</option>
+                <option value="scb">SCB</option>
+                <option value="sacombank">Sacombank</option>
+                <option value="vib">VIB</option>
+                <option value="msb">MSB</option>
+              </select>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[10px] font-bold text-slate-400 mb-1">Số tài khoản:</label>
+                <input type="text" id="qrBankAccount" placeholder="Nhập số tài khoản..." 
+                  class="w-full bg-slate-900 border border-slate-750 focus:border-indigo-500 text-slate-200 placeholder-slate-650 rounded-lg py-1.5 px-3 text-xs focus:outline-none transition-all">
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold text-slate-400 mb-1">Tên chủ tài khoản:</label>
+                <input type="text" id="qrBankAccountName" placeholder="Ví dụ: NGUYEN VAN A..." 
+                  class="w-full bg-slate-900 border border-slate-750 focus:border-indigo-500 text-slate-200 placeholder-slate-650 rounded-lg py-1.5 px-3 text-xs focus:outline-none transition-all">
+              </div>
+            </div>
+            
+            <button onclick="saveBankConfig()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs py-2 rounded-lg active:scale-95 transition-all">
+              Lưu cấu hình ngân hàng
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- DÂN CHƠI LỊCH SỬ (HISTORY LOG) -->
     <section id="historySection" class="px-4 flex-grow flex flex-col">
       <!-- PREMIUM FINTECH FILTER WIDGET (Di chuyển lên trên tiêu đề lịch sử) -->
@@ -568,6 +627,8 @@
         activeFilter: null,
         currentMealType: null,
 
+        bankConfig: null,
+
         load() {
           try {
             const savedGuests = localStorage.getItem('ste_guests');
@@ -575,6 +636,14 @@
           } catch(e) {
             console.error("Lỗi load danh sách khách:", e);
             this.guests = [];
+          }
+
+          try {
+            const savedBank = localStorage.getItem('ste_bank_config');
+            this.bankConfig = savedBank ? JSON.parse(savedBank) : null;
+          } catch(e) {
+            console.error("Lỗi load cấu hình ngân hàng:", e);
+            this.bankConfig = null;
           }
 
           const rawTx = localStorage.getItem('ste_transactions');
@@ -592,6 +661,15 @@
             }
           } catch(e) {
             console.error("Lỗi lưu vào LocalStorage:", e);
+          }
+        },
+
+        saveBankConfig(config) {
+          this.bankConfig = config;
+          if (config) {
+            localStorage.setItem('ste_bank_config', JSON.stringify(config));
+          } else {
+            localStorage.removeItem('ste_bank_config');
           }
         },
 
@@ -1389,9 +1467,40 @@
         dismissUndoToast();
       };
 
+      window.toggleBankManager = function() {
+        const content = document.getElementById('bankManagerContent');
+        const arrow = document.getElementById('bankToggleArrow');
+        if (content.classList.contains('hidden')) {
+          content.classList.remove('hidden');
+          arrow.style.transform = 'rotate(180deg)';
+        } else {
+          content.classList.add('hidden');
+          arrow.style.transform = 'rotate(0deg)';
+        }
+      };
+
+      window.saveBankConfig = function() {
+        const bank = document.getElementById('qrBankSelect').value;
+        const account = document.getElementById('qrBankAccount').value.trim();
+        const accountName = document.getElementById('qrBankAccountName').value.trim();
+        
+        if (!bank || !account) {
+          AppStore.saveBankConfig(null);
+          alert('Đã xóa cấu hình ngân hàng.');
+          return;
+        }
+
+        const config = { bank, account, accountName };
+        AppStore.saveBankConfig(config);
+        alert('Đã lưu cấu hình ngân hàng thành công!');
+      };
+
       window.captureHistoryImage = function() {
-        const target = document.getElementById('historySection');
-        if (!target) return;
+        const memberName = AppStore.activeFilter;
+        if (!memberName) {
+          alert('Vui lòng chọn 1 thành viên ở bộ lọc bên dưới để tải ảnh bảng kê!');
+          return;
+        }
 
         // Tránh nhấn đúp liên tục khi đang xử lý
         if (window.isCapturingImage) return;
@@ -1401,50 +1510,122 @@
         const originalText = capBtn.innerHTML;
         capBtn.innerHTML = '⏳ Đang tạo ảnh...';
 
-        // Ẩn tạm thời các nút để ảnh chụp sạch đẹp
-        const buttonsToHide = [
-          document.getElementById('btnClearFilter'),
-          document.getElementById('btnCaptureHistory'),
-          document.getElementById('btnCopyDebt'),
-          document.getElementById('btnPayAll')
-        ];
+        // Tính tổng tiền nợ
+        const balances = AppStore.getBalances();
+        const totalDebt = balances[memberName] || 0;
 
-        buttonsToHide.forEach(btn => {
-          if (btn) btn.style.visibility = 'hidden';
+        // Lấy danh sách giao dịch của thành viên này
+        let list = AppStore.transactions.filter(tx => tx.shares[memberName] !== undefined && tx.shares[memberName] > 0);
+
+        // Tạo container hóa đơn tạm thời dạng SÁNG, ĐƠN GIẢN, TINH TẾ
+        const tempContainer = document.createElement('div');
+        tempContainer.style.position = 'absolute';
+        tempContainer.style.left = '-9999px';
+        tempContainer.style.top = '0';
+        tempContainer.style.width = '400px'; // Chiều rộng chuẩn hóa đơn
+        tempContainer.style.backgroundColor = '#ffffff';
+        tempContainer.style.color = '#1e293b'; // slate-800
+        tempContainer.style.fontFamily = 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        tempContainer.style.padding = '24px';
+        tempContainer.style.borderRadius = '16px';
+        tempContainer.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)';
+        
+        // Header Hóa đơn (Giao diện sáng tinh tế)
+        let headerHtml = `
+          <div style="text-align: center; border-bottom: 2px dashed #e2e8f0; padding-bottom: 16px; margin-bottom: 16px;">
+            <div style="font-size: 10px; font-weight: 800; color: #94a3b8; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px;">SỔ THEO DÕI TIỀN ĂN</div>
+            <div style="font-size: 20px; font-weight: 900; color: #4f46e5; margin-bottom: 8px;">PHIẾU CHI TIẾT</div>
+            <div style="font-size: 13px; color: #475569; margin-top: 4px;">
+              Thành viên: <span style="font-weight: 750; color: #0f172a;">${memberName}</span>
+            </div>
+            <div style="font-size: 10px; color: #94a3b8; margin-top: 4px;">Ngày tạo: ${new Date().toLocaleDateString('vi-VN')}</div>
+          </div>
+        `;
+
+        // Danh sách giao dịch dạng tinh gọn
+        let itemsHtml = '<div style="margin-bottom: 20px;">';
+        list.forEach(tx => {
+          let dateStr = '';
+          try {
+            const parts = tx.date.split('-');
+            dateStr = `${parts[2]}/${parts[1]}`;
+          } catch(e) {
+            dateStr = tx.date;
+          }
+          
+          itemsHtml += `
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid #f1f5f9; font-size: 12px;">
+              <div style="flex-grow: 1; padding-right: 12px; text-align: left;">
+                <span style="font-weight: 700; color: #64748b; margin-right: 6px;">[${dateStr}]</span>
+                <span style="font-weight: 600; color: #1e293b;">${tx.mealType} ${tx.description ? ' - ' + tx.description : ''}</span>
+              </div>
+              <div style="font-weight: 700; color: #0f172a; white-space: nowrap;">${formatVND(tx.shares[memberName])}</div>
+            </div>
+          `;
         });
+        itemsHtml += '</div>';
 
-        // Đợi 150ms để DOM cập nhật trạng thái ẩn trước khi render canvas
+        // Tổng cộng
+        let totalHtml = `
+          <div style="display: flex; justify-content: space-between; align-items: center; background-color: #f8fafc; padding: 14px 16px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 16px;">
+            <span style="font-size: 12px; font-weight: 800; color: #475569;">TỔNG CỘNG:</span>
+            <span style="font-size: 18px; font-weight: 900; color: #e11d48;">${formatVND(totalDebt)}</span>
+          </div>
+        `;
+
+        // QR Code Ngân hàng (nếu cấu hình)
+        let qrHtml = '';
+        if (AppStore.bankConfig && AppStore.bankConfig.bank && AppStore.bankConfig.account) {
+          const cleanName = memberName.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D");
+          const addInfo = encodeURIComponent(`Tien an ${cleanName}`);
+          const accountName = encodeURIComponent(AppStore.bankConfig.accountName || '');
+          const qrUrl = `https://img.vietqr.io/image/${AppStore.bankConfig.bank}-${AppStore.bankConfig.account}-compact.png?amount=${totalDebt}&addInfo=${addInfo}&accountName=${accountName}`;
+          
+          qrHtml = `
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; border-top: 2px dashed #e2e8f0; padding-top: 16px; margin-top: 16px;">
+              <div style="font-size: 9px; font-weight: 800; color: #94a3b8; margin-bottom: 10px; letter-spacing: 0.05em; text-transform: uppercase;">QUÉT MÃ CHUYỂN KHOẢN</div>
+              <img src="${qrUrl}" alt="VietQR" style="width: 170px; height: 170px; border: 1px solid #e2e8f0; border-radius: 12px; padding: 6px; background-color: #fff; margin-bottom: 8px;">
+              <div style="font-size: 11px; color: #475569; text-align: center; line-height: 1.4;">
+                <span style="font-weight: 700; color: #0f172a;">${AppStore.bankConfig.accountName ? AppStore.bankConfig.accountName.toUpperCase() : ''}</span><br>
+                STK: <span style="font-weight: 750; color: #4f46e5; font-family: monospace;">${AppStore.bankConfig.account}</span> (${AppStore.bankConfig.bank.toUpperCase()})
+              </div>
+            </div>
+          `;
+        } else {
+          qrHtml = `
+            <div style="border-top: 1px solid #f1f5f9; padding-top: 12px; font-size: 9px; text-align: center; color: #94a3b8;">
+              Cảm ơn bạn đã thanh toán đúng hạn!
+            </div>
+          `;
+        }
+
+        tempContainer.innerHTML = headerHtml + itemsHtml + totalHtml + qrHtml;
+        document.body.appendChild(tempContainer);
+
+        // Đợi 350ms để các tài nguyên (VietQR) tải xong trước khi render canvas
         setTimeout(() => {
           if (typeof html2canvas === 'undefined') {
             console.error('html2canvas is not loaded');
             capBtn.innerHTML = originalText;
             window.isCapturingImage = false;
-            buttonsToHide.forEach(btn => {
-              if (btn) btn.style.visibility = 'visible';
-            });
+            tempContainer.remove();
             alert('Lỗi: Thư viện tạo ảnh chưa được tải xong, vui lòng thử lại sau.');
             return;
           }
 
-          html2canvas(target, {
-            backgroundColor: '#020617', // khớp bg-slate-950
+          html2canvas(tempContainer, {
+            backgroundColor: '#ffffff',
             scale: 2, // Tăng chất lượng ảnh HD 2x
             useCORS: true,
-            logging: false,
-            // Chụp toàn bộ chiều cao thực tế của danh sách
-            height: target.scrollHeight,
-            windowHeight: target.scrollHeight
+            logging: false
           }).then(canvas => {
-            // Hiện lại các nút ngay lập tức
-            buttonsToHide.forEach(btn => {
-              if (btn) btn.style.visibility = 'visible';
-            });
+            tempContainer.remove();
             capBtn.innerHTML = originalText;
             window.isCapturingImage = false;
 
-            const memberName = document.getElementById('filterMemberName')?.innerText?.trim() || 'Thanh_vien';
             const dateStr = new Date().toISOString().split('T')[0];
             const filename = `TienAn_${memberName}_${dateStr}.png`;
+            const shareText = `Số tiền: ${formatVND(totalDebt)}`;
 
             // Tối ưu cho iPhone: Dùng Web Share API để mở iOS Share Sheet
             if (navigator.share && navigator.canShare) {
@@ -1458,7 +1639,7 @@
                   navigator.share({
                     files: [file],
                     title: `Tiền ăn của ${memberName}`,
-                    text: `Bảng kê chi tiết tiền ăn của ${memberName}`
+                    text: shareText
                   }).catch(shareErr => {
                     console.log('Chia sẻ bị hủy hoặc lỗi:', shareErr);
                     triggerDirectDownload(canvas, filename);
@@ -1472,15 +1653,12 @@
             }
           }).catch(err => {
             console.error('Lỗi khi chụp ảnh:', err);
-            // Hiện lại các nút
-            buttonsToHide.forEach(btn => {
-              if (btn) btn.style.visibility = 'visible';
-            });
+            tempContainer.remove();
             capBtn.innerHTML = originalText;
             window.isCapturingImage = false;
             alert('Lỗi khi tạo ảnh giao dịch: ' + err.message);
           });
-        }, 150);
+        }, 350);
       };
 
       // Hàm phụ tải ảnh trực tiếp (download link) cho các trình duyệt desktop/android
@@ -1990,7 +2168,7 @@
         if (btn) btn.innerText = "Đang check...";
         if (headerBtn) headerBtn.innerText = "Checking...";
 
-        const currentVersion = "v2.5.14";
+        const currentVersion = "v2.5.15";
 
         // Tải file index.html trực tiếp từ server để bypass cache bằng timestamp
         fetch('./index.html?t=' + Date.now())
@@ -2204,6 +2382,13 @@
         syncGuestsToInput();
         renderBalanceBoxes();
         renderParticipantsSelector();
+        
+        // Điền lại cấu hình ngân hàng vào form
+        if (AppStore.bankConfig) {
+          document.getElementById('qrBankSelect').value = AppStore.bankConfig.bank || '';
+          document.getElementById('qrBankAccount').value = AppStore.bankConfig.account || '';
+          document.getElementById('qrBankAccountName').value = AppStore.bankConfig.accountName || '';
+        }
         
         // Thiết lập ngày mặc định cho ô chọn ngày chi
         const dateInput = document.getElementById('dateInput');
