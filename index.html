@@ -173,7 +173,7 @@
         <img src="icon-192.png" alt="Logo" class="h-8 w-8 rounded-lg object-contain border border-indigo-500/20 shadow-md shadow-indigo-500/10">
         <h1 class="text-sm font-black tracking-wider text-slate-200">SỔ THEO DÕI TIỀN ĂN</h1>
       </div>
-      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.13 PRO</button>
+      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.14 PRO</button>
     </header>
 
     <!-- Banner cảnh báo không đồng bộ đám mây -->
@@ -627,7 +627,7 @@
           if (isProxy) {
             // Mua hộ: Tổng tiền chia đều 100% CHỈ cho người tham gia chọn. Chủ hộ 0 đồng.
             const divisor = selectedParticipants.length;
-            const shareAmount = Math.round(totalAmount / divisor);
+            const shareAmount = Math.ceil((totalAmount / divisor) / 1000) * 1000;
             
             selectedParticipants.forEach(p => {
               shares[p] = shareAmount;
@@ -635,7 +635,7 @@
           } else {
             // Standard: Chia đều cho người tham gia cộng thêm CHỦ HỘ (Ngầm hiểu luôn có mặt)
             const divisor = selectedParticipants.length + 1; // +1 cho Tôi (Owner)
-            const shareAmount = Math.round(totalAmount / divisor);
+            const shareAmount = Math.ceil((totalAmount / divisor) / 1000) * 1000;
             
             selectedParticipants.forEach(p => {
               shares[p] = shareAmount;
@@ -971,7 +971,7 @@
 
         if (isProxy) {
           const div = checkedNames.length;
-          const share = Math.round(amount / div);
+          const share = Math.ceil((amount / div) / 1000) * 1000;
           previewDetail.innerHTML = `
             <div class="text-fuchsia-400 font-black">Chế độ Mua Hộ (Tôi không tính tiền)</div>
             <div>Chia cho <span class="font-bold text-slate-100">${div} người</span>: 
@@ -981,7 +981,7 @@
           `;
         } else {
           const div = checkedNames.length + 1; // +1 của Tôi
-          const share = Math.round(amount / div);
+          const share = Math.ceil((amount / div) / 1000) * 1000;
           previewDetail.innerHTML = `
             <div class="text-indigo-400 font-black">Chế độ Bữa Ăn Chung (Tính cả Tôi)</div>
             <div>Chia đều <span class="font-bold text-slate-100">${div} người</span> (Tôi + ${checkedNames.length} bạn): 
@@ -1990,7 +1990,7 @@
         if (btn) btn.innerText = "Đang check...";
         if (headerBtn) headerBtn.innerText = "Checking...";
 
-        const currentVersion = "v2.5.13";
+        const currentVersion = "v2.5.14";
 
         // Tải file index.html trực tiếp từ server để bypass cache bằng timestamp
         fetch('./index.html?t=' + Date.now())
