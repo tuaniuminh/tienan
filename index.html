@@ -173,7 +173,7 @@
         <img src="icon-192.png" alt="Logo" class="h-8 w-8 rounded-lg object-contain border border-indigo-500/20 shadow-md shadow-indigo-500/10">
         <h1 class="text-sm font-black tracking-wider text-slate-200">SỔ THEO DÕI TIỀN ĂN</h1>
       </div>
-      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.16 PRO</button>
+      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.17 PRO</button>
     </header>
 
     <!-- Banner cảnh báo không đồng bộ đám mây -->
@@ -807,7 +807,7 @@
         if (hour >= 4 && hour < 10) {
           return 'Sáng';
         } else if (hour >= 10 && hour < 16) {
-          return null; // Không tự động chọn bữa trưa
+          return 'Trưa';
         } else {
           return 'Tối';
         }
@@ -2172,7 +2172,7 @@
         if (btn) btn.innerText = "Đang check...";
         if (headerBtn) headerBtn.innerText = "Checking...";
 
-        const currentVersion = "v2.5.16";
+        const currentVersion = "v2.5.17";
 
         // Tải file index.html trực tiếp từ server để bypass cache bằng timestamp
         fetch('./index.html?t=' + Date.now())
