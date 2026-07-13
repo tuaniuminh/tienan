@@ -1,4 +1,4 @@
-# Tài liệu Bàn giao Mã nguồn (AI Handoff Documentation)
+# Tóm tắt dự án & Tài liệu Bàn giao (Project Summary & Handoff Notes)
 
 Tài liệu này lưu trữ các điểm mấu chốt về mặt kiến trúc, các lỗi logic quan trọng đã được khắc phục, và các lưu ý đặc biệt khi phát triển tiếp mã nguồn của ứng dụng **Sổ Theo Dõi Tiền Ăn**.
 
