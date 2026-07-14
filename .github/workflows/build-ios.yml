@@ -16,8 +16,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
-
+          
       - name: Install npm dependencies
         run: npm install
 
@@ -28,14 +27,6 @@ jobs:
         run: |
           npx cap add ios
           npx cap sync ios
-
-      - name: Setup CocoaPods Cache
-        uses: actions/cache@v4
-        with:
-          path: ios/App/Pods
-          key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-pods-
 
       - name: Install CocoaPods
         run: |
