@@ -45,6 +45,14 @@ jobs:
             CODE_SIGN_ENTITLEMENTS=ios-build-entitlements.plist \
             clean build
 
+      - name: Sign App with Production Entitlements
+        run: |
+          codesign --force --sign - --deep --entitlements ios-build-entitlements.plist build/Build/Products/Release-iphoneos/App.app
+
+      - name: Verify App Entitlements
+        run: |
+          codesign -d --entitlements :- build/Build/Products/Release-iphoneos/App.app
+
       - name: Package IPA
         run: |
           mkdir -p build/Payload
