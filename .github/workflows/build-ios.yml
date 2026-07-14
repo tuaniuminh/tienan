@@ -35,6 +35,23 @@ jobs:
           cp icon-512.png assets/icon.png
           npx capacitor-assets generate --ios
 
+      - name: Sync App Version to iOS Project
+        run: |
+          python3 -c "
+          import os, re
+          with open('package.json', 'r') as f:
+              version = re.search(r'\"version\":\s*\"([^\"]+)\"', f.read()).group(1)
+          pbxproj_path = 'ios/App/App.xcodeproj/project.pbxproj'
+          if os.path.exists(pbxproj_path):
+              with open(pbxproj_path, 'r') as f:
+                  content = f.read()
+              content = re.sub(r'MARKETING_VERSION\s*=\s*[^;]+;', 'MARKETING_VERSION = ' + version + ';', content)
+              content = re.sub(r'CURRENT_PROJECT_VERSION\s*=\s*[^;]+;', 'CURRENT_PROJECT_VERSION = ' + version + ';', content)
+              with open(pbxproj_path, 'w') as f:
+                  f.write(content)
+              print('Sync completed! Xcode version set to ' + version)
+          "
+
       - name: Install CocoaPods
         run: |
           cd ios/App
