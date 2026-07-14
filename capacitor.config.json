@@ -1,0 +1,6 @@
+{
+  "appId": "com.tienan.app",
+  "appName": "Sổ Tiền Ăn",
+  "webDir": "www",
+  "bundledWebRuntime": false
+}

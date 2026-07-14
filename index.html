@@ -2323,7 +2323,13 @@
 
         // Hàm kích hoạt phản hồi rung
         function triggerHaptic() {
-          if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+          if (typeof window !== 'undefined' && window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Haptics) {
+            try {
+              window.Capacitor.Plugins.Haptics.impact({ style: 'LIGHT' });
+            } catch(err) {
+              console.error("Capacitor Haptics error:", err);
+            }
+          } else if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
             navigator.vibrate(15);
           } else if (isIOS) {
             const label = document.getElementById('ios-haptic-trigger-label');

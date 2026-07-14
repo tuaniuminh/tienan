@@ -1,0 +1,19 @@
+{
+  "name": "tien-an-pwa",
+  "version": "2.5.20",
+  "description": "Sổ Theo Dõi Tiền Ăn Native App",
+  "main": "index.html",
+  "scripts": {
+    "build": "node build-assets.js",
+    "cap-copy": "npm run build && npx cap copy",
+    "cap-sync": "npm run build && npx cap sync"
+  },
+  "dependencies": {
+    "@capacitor/core": "^6.0.0",
+    "@capacitor/haptics": "^6.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.0.0",
+    "@capacitor/ios": "^6.0.0"
+  }
+}
