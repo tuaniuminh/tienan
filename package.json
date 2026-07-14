@@ -1,6 +1,6 @@
 {
   "name": "tien-an-pwa",
-  "version": "2.5.20",
+  "version": "2.5.21",
   "description": "Sổ Theo Dõi Tiền Ăn Native App",
   "main": "index.html",
   "scripts": {
@@ -13,6 +13,7 @@
     "@capacitor/haptics": "^6.0.0"
   },
   "devDependencies": {
+    "@capacitor/assets": "^3.0.0",
     "@capacitor/cli": "^6.0.0",
     "@capacitor/ios": "^6.0.0"
   }
