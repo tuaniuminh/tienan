@@ -173,7 +173,7 @@
         <img src="icon-192.png" alt="Logo" class="h-8 w-8 rounded-lg object-contain border border-indigo-500/20 shadow-md shadow-indigo-500/10">
         <h1 class="text-sm font-black tracking-wider text-slate-200">SỔ THEO DÕI TIỀN ĂN</h1>
       </div>
-      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.19 PRO</button>
+      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.20 PRO</button>
     </header>
 
     <!-- Banner cảnh báo không đồng bộ đám mây -->
@@ -2172,7 +2172,7 @@
         if (btn) btn.innerText = "Đang check...";
         if (headerBtn) headerBtn.innerText = "Checking...";
 
-        const currentVersion = "v2.5.19";
+        const currentVersion = "v2.5.20";
 
         // Tải file index.html trực tiếp từ server để bypass cache bằng timestamp
         fetch('./index.html?t=' + Date.now())
@@ -2285,6 +2285,79 @@
             }, 4000);
           });
       };
+
+      // ==========================================
+      // KHỞI TẠO PHẢN HỒI RUNG (HAPTIC FEEDBACK)
+      // ==========================================
+      function initHapticFeedback() {
+        const isIOS = typeof navigator !== 'undefined' && (
+          /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+          (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+        );
+
+        // Tạo phần tử ẩn switch cho iOS haptic feedback nếu chưa tồn tại
+        if (isIOS && !document.getElementById('ios-haptic-trigger-label')) {
+          const hapticContainer = document.createElement('label');
+          hapticContainer.id = 'ios-haptic-trigger-label';
+          
+          Object.assign(hapticContainer.style, {
+            position: 'absolute',
+            left: '-9999px',
+            top: '-9999px',
+            width: '1px',
+            height: '1px',
+            opacity: '0',
+            pointerEvents: 'none'
+          });
+
+          const switchInput = document.createElement('input');
+          switchInput.type = 'checkbox';
+          switchInput.setAttribute('switch', '');
+          switchInput.id = 'ios-haptic-trigger-checkbox';
+          switchInput.tabIndex = -1;
+          switchInput.style.pointerEvents = 'none';
+          
+          hapticContainer.appendChild(switchInput);
+          document.body.appendChild(hapticContainer);
+        }
+
+        // Hàm kích hoạt phản hồi rung
+        function triggerHaptic() {
+          if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+            navigator.vibrate(15);
+          } else if (isIOS) {
+            const label = document.getElementById('ios-haptic-trigger-label');
+            if (label) {
+              label.click();
+            }
+          }
+        }
+
+        // Lắng nghe sự kiện click trên toàn bộ document để kích hoạt rung
+        document.addEventListener('click', function(e) {
+          const target = e.target;
+
+          // Tránh lặp vô hạn khi chính phần tử kích hoạt haptic được click
+          if (target.id === 'ios-haptic-trigger-label' || 
+              target.id === 'ios-haptic-trigger-checkbox' || 
+              target.closest('#ios-haptic-trigger-label')) {
+            return;
+          }
+
+          // Lọc ra các phần tử click tương tác để rung:
+          // 1. Toàn bộ thẻ <button>
+          // 2. Toàn bộ các phần tử có class chứa haptic-btn
+          // 3. Các thẻ chọn thành viên tham gia ăn uống (chứa checkbox ẩn .participant-cb)
+          const isInteractive = target.closest('button') || 
+                                target.closest('.haptic-btn') || 
+                                target.closest('.participant-cb') ||
+                                (target.closest('label') && target.closest('label').querySelector('.participant-cb'));
+
+          if (isInteractive) {
+            triggerHaptic();
+          }
+        }, { passive: true });
+      }
 
       // ==========================================
       // 12. INITIALIZATION ON DOM READY
@@ -2407,6 +2480,9 @@
         // Render lịch sử giao dịch mặc định
         renderHistoryLog();
         updateSplitPreview();
+        
+        // Kích hoạt tính năng phản hồi rung khi chạm nút
+        initHapticFeedback();
       });
 
     })();
