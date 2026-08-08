@@ -173,7 +173,7 @@
         <img src="icon-192.png" alt="Logo" class="h-8 w-8 rounded-lg object-contain border border-indigo-500/20 shadow-md shadow-indigo-500/10">
         <h1 class="text-sm font-black tracking-wider text-slate-200">SỔ THEO DÕI TIỀN ĂN</h1>
       </div>
-      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.24 PRO</button>
+      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.25 PRO</button>
     </header>
 
     <!-- Banner cảnh báo không đồng bộ đám mây -->
@@ -656,6 +656,7 @@
           try {
             localStorage.setItem('ste_transactions', JSON.stringify(this.transactions));
             localStorage.setItem('ste_guests', JSON.stringify(this.guests));
+            localStorage.setItem('ste_pending_sync', 'true');
             if (isFirebaseInitialized) {
               pushLocalToFirebase();
             }
@@ -1878,6 +1879,21 @@
         }
       };
 
+      function getTxTimestamp(tx) {
+        if (tx && tx.id && typeof tx.id === 'string' && tx.id.startsWith('tx_')) {
+          const parts = tx.id.split('_');
+          if (parts[1] && !isNaN(Number(parts[1]))) {
+            return Number(parts[1]);
+          }
+        }
+        if (tx && tx.date) {
+          const timeStr = tx.time || '00:00';
+          const parsed = Date.parse(`${tx.date}T${timeStr}`);
+          if (!isNaN(parsed)) return parsed;
+        }
+        return 0;
+      }
+
       function updateFirebaseStatusUI(status, message) {
         const dot = document.getElementById('fbStatusDot');
         const text = document.getElementById('fbStatusText');
@@ -1888,6 +1904,12 @@
           dot.className = "h-2 w-2 rounded-full bg-emerald-500 animate-pulse";
           text.innerText = message || "Đang online";
           text.className = "text-[10px] text-emerald-400 font-bold uppercase";
+          activeActions.classList.remove('hidden');
+          if (banner) banner.classList.add('hidden');
+        } else if (status === 'saving') {
+          dot.className = "h-2 w-2 rounded-full bg-amber-400 animate-ping";
+          text.innerText = message || "Đang lưu mây...";
+          text.className = "text-[10px] text-amber-300 font-bold uppercase";
           activeActions.classList.remove('hidden');
           if (banner) banner.classList.add('hidden');
         } else if (status === 'disconnected') {
@@ -1951,7 +1973,11 @@
           // Lắng nghe trạng thái mạng
           db.ref('.info/connected').on('value', snap => {
             if (snap.val() === true) {
-              updateFirebaseStatusUI('connected', 'Đang online');
+              if (localStorage.getItem('ste_pending_sync') === 'true') {
+                pushLocalToFirebase();
+              } else {
+                updateFirebaseStatusUI('connected', 'Đang online');
+              }
             } else {
               updateFirebaseStatusUI('disconnected', 'Mất mạng');
             }
@@ -1962,18 +1988,57 @@
           // Lắng nghe sự kiện đồng bộ từ đám mây về máy
           dbRef.on('value', snapshot => {
             const val = snapshot.val();
+            const isPendingSync = localStorage.getItem('ste_pending_sync') === 'true';
+            const lastSyncTime = Number(localStorage.getItem('ste_last_sync_time') || 0);
+
             if (val) {
               console.log('[Firebase] Đồng bộ dữ liệu tải xuống...');
-              AppStore.transactions = migrateLegacyData(JSON.stringify(val.transactions || []));
-              AppStore.guests = val.guests || [];
-              AppStore.cleanUpEmptyMeals();
+              const remoteTxs = migrateLegacyData(JSON.stringify(val.transactions || []));
+              const remoteGuests = val.guests || [];
 
-              // Lưu bộ nhớ đệm
-              localStorage.setItem('ste_transactions', JSON.stringify(AppStore.transactions));
-              localStorage.setItem('ste_guests', JSON.stringify(AppStore.guests));
+              if (isPendingSync) {
+                // Đang có thay đổi cục bộ chưa được xác nhận trên mây -> Tiến hành gộp dữ liệu thông minh
+                const localTxs = AppStore.transactions;
+                const localMap = new Map(localTxs.map(tx => [tx.id, tx]));
+                const mergedTxs = [...localTxs];
 
-              // Đánh dấu đã từng đồng bộ thành công
-              localStorage.setItem('firebase_synced_once', 'true');
+                // Thêm các giao dịch từ mây nếu nó được tạo trên thiết bị khác sau thời điểm đồng bộ gần nhất
+                remoteTxs.forEach(rtx => {
+                  if (!localMap.has(rtx.id)) {
+                    const rtxTime = getTxTimestamp(rtx);
+                    if (rtxTime > lastSyncTime) {
+                      mergedTxs.push(rtx);
+                    }
+                  }
+                });
+
+                // Sắp xếp lại theo ngày giờ giảm dần (mới nhất lên đầu)
+                mergedTxs.sort((a, b) => {
+                  const dateA = (a.date || '') + ' ' + (a.time || '');
+                  const dateB = (b.date || '') + ' ' + (b.time || '');
+                  return dateB.localeCompare(dateA);
+                });
+
+                AppStore.transactions = mergedTxs;
+                AppStore.guests = [...new Set([...AppStore.guests, ...remoteGuests])];
+                AppStore.cleanUpEmptyMeals();
+
+                localStorage.setItem('ste_transactions', JSON.stringify(AppStore.transactions));
+                localStorage.setItem('ste_guests', JSON.stringify(AppStore.guests));
+                localStorage.setItem('firebase_synced_once', 'true');
+
+                // Đẩy ngược dữ liệu đã gộp lên mây
+                pushLocalToFirebase();
+              } else {
+                // Mây là chuẩn mực khi máy không có thay đổi chờ đẩy
+                AppStore.transactions = remoteTxs;
+                AppStore.guests = remoteGuests;
+                AppStore.cleanUpEmptyMeals();
+
+                localStorage.setItem('ste_transactions', JSON.stringify(AppStore.transactions));
+                localStorage.setItem('ste_guests', JSON.stringify(AppStore.guests));
+                localStorage.setItem('firebase_synced_once', 'true');
+              }
 
               // Vẽ lại UI
               renderBalanceBoxes();
@@ -1982,12 +2047,11 @@
               updateSplitPreview();
             } else {
               // Nếu đám mây trống
-              if (!localStorage.getItem('firebase_synced_once') && AppStore.transactions.length > 0) {
-                // Chỉ đẩy lên nếu là lần đầu tiên kết nối và có dữ liệu cũ ở máy
+              if (isPendingSync || (!localStorage.getItem('firebase_synced_once') && AppStore.transactions.length > 0)) {
                 pushLocalToFirebase();
                 localStorage.setItem('firebase_synced_once', 'true');
               } else {
-                // Nếu đã từng đồng bộ mà đám mây trống -> Có người vừa xóa sạch dữ liệu -> Xóa sạch máy
+                // Nếu đã từng đồng bộ mà đám mây trống và không có thay đổi chờ -> Xóa sạch máy
                 AppStore.transactions = [];
                 AppStore.guests = [];
                 
@@ -2014,13 +2078,17 @@
       window.pushLocalToFirebase = function() {
         if (!isFirebaseInitialized || !dbRef) return;
         
+        updateFirebaseStatusUI('saving', 'Đang lưu mây...');
+        
         if (AppStore.guests.length === 0 && AppStore.transactions.length === 0) {
           dbRef.set(null).then(() => {
             console.log('[Firebase] Xóa sạch dữ liệu thành công!');
+            localStorage.setItem('ste_pending_sync', 'false');
+            localStorage.setItem('ste_last_sync_time', Date.now().toString());
+            updateFirebaseStatusUI('connected', 'Đang online');
           }).catch(err => {
-            alert('LỖI KHI XÓA SẠCH GIAO DỊCH TRÊN MÂY:\n' + err.message);
             console.error('[Firebase] Xóa sạch dữ liệu thất bại:', err);
-            updateFirebaseStatusUI('error', 'Lưu mây lỗi');
+            updateFirebaseStatusUI('error', 'Chưa lưu mây');
           });
           return;
         }
@@ -2030,10 +2098,12 @@
           transactions: AppStore.transactions
         }).then(() => {
           console.log('[Firebase] Đồng bộ lên mây thành công!');
+          localStorage.setItem('ste_pending_sync', 'false');
+          localStorage.setItem('ste_last_sync_time', Date.now().toString());
+          updateFirebaseStatusUI('connected', 'Đang online');
         }).catch(err => {
-          alert('LỖI ĐỒNG BỘ LÊN MÂY:\n' + err.message);
           console.error('[Firebase] Đồng bộ lên mây thất bại:', err);
-          updateFirebaseStatusUI('error', 'Lưu mây lỗi');
+          updateFirebaseStatusUI('error', 'Chưa lưu mây');
         });
       };
 
@@ -2172,7 +2242,7 @@
         if (btn) btn.innerText = "Đang check...";
         if (headerBtn) headerBtn.innerText = "Checking...";
 
-        const currentVersion = "v2.5.24";
+        const currentVersion = "v2.5.25";
 
         // Tải file index.html trực tiếp từ server để bypass cache bằng timestamp
         fetch('./index.html?t=' + Date.now())
