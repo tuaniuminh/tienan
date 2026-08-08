@@ -165,7 +165,7 @@
 <body class="bg-slate-950 text-slate-100 h-full overflow-hidden flex justify-center fixed inset-0">
 
   <!-- Mobile Wrapper chính -->
-  <main class="w-full max-w-md bg-slate-950 h-full overflow-y-scroll flex flex-col relative shadow-2xl pb-16 border-x border-slate-800" style="-webkit-overflow-scrolling: touch;">
+  <main class="w-full max-w-md bg-slate-950 h-full overflow-y-scroll flex flex-col relative shadow-2xl border-x border-slate-800" style="-webkit-overflow-scrolling: touch; padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));">
     
     <!-- TOP HEADER -->
     <header class="bg-slate-950/90 backdrop-blur-md border-b border-slate-800/80 z-40 px-4 py-3.5 flex items-center justify-between" style="padding-top: calc(0.875rem + env(safe-area-inset-top, 0px));">
@@ -173,7 +173,7 @@
         <img src="icon-192.png" alt="Logo" class="h-8 w-8 rounded-lg object-contain border border-indigo-500/20 shadow-md shadow-indigo-500/10">
         <h1 class="text-sm font-black tracking-wider text-slate-200">SỔ THEO DÕI TIỀN ĂN</h1>
       </div>
-      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.26 PRO</button>
+      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.27 PRO</button>
     </header>
 
     <!-- Banner cảnh báo không đồng bộ đám mây -->
@@ -428,11 +428,11 @@
                 <option value="acb">ACB</option>
                 <option value="mb">MBBank</option>
                 <option value="tpb">TPBank</option>
-                <option value="vpB">VPBank</option>
+                <option value="vpb">VPBank</option>
                 <option value="shb">SHB</option>
                 <option value="hdb">HDBank</option>
                 <option value="scb">SCB</option>
-                <option value="sacombank">Sacombank</option>
+                <option value="stb">Sacombank</option>
                 <option value="vib">VIB</option>
                 <option value="msb">MSB</option>
               </select>
@@ -554,6 +554,17 @@
   <script>
     (function() {
       'use strict';
+
+      // Hàm mã hóa chuỗi tránh lỗ hổng XSS & vỡ khung HTML khi chứa ký tự đặc biệt
+      function escapeHTML(str) {
+        if (str === null || str === undefined) return '';
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
 
       // Tự động sửa lỗi thiếu dấu gạch chéo cuối URL (trailing slash) trên GitHub Pages để PWA hoạt động chính xác
       if (window.location.hostname.includes('github.io') && 
@@ -931,7 +942,7 @@
             
           box.innerHTML = `
             ${glowDot}
-            <span class="text-[11px] font-bold text-slate-400 tracking-wide truncate max-w-[85%]">${name}</span>
+            <span class="text-[11px] font-bold text-slate-400 tracking-wide truncate max-w-[85%]">${escapeHTML(name)}</span>
             <span class="text-lg font-black tracking-tight text-slate-100 mt-1 truncate">${formatVND(amt)}</span>
           `;
           
@@ -960,7 +971,7 @@
           
           // Tạo nhãn nút bấm
           const label = document.createElement('label');
-          label.id = `label_cb_${m}`;
+          label.id = `label_cb_${escapeHTML(m)}`;
           
           // Áp dụng chủ đề Fuchsia cho Mua hộ, Indigo cho Standard
           const activeClass = isProxy 
@@ -974,9 +985,9 @@
           }`;
 
           label.innerHTML = `
-            <input type="checkbox" value="${m}" ${isChecked ? 'checked' : ''} 
+            <input type="checkbox" value="${escapeHTML(m)}" ${isChecked ? 'checked' : ''} 
               class="participant-cb hidden" onchange="handleParticipantChange(this)">
-            <span class="truncate w-full">${m}</span>
+            <span class="truncate w-full">${escapeHTML(m)}</span>
           `;
 
           selector.appendChild(label);
@@ -1083,6 +1094,8 @@
           return;
         }
 
+        const safeCheckedNames = checkedNames.map(escapeHTML).join(', ');
+
         if (isProxy) {
           const div = checkedNames.length;
           const share = Math.ceil((amount / div) / 1000) * 1000;
@@ -1091,7 +1104,7 @@
             <div>Chia cho <span class="font-bold text-slate-100">${div} người</span>: 
               <span class="font-bold text-fuchsia-300">${formatVND(share)}</span> / người.
             </div>
-            <div class="text-[10px] text-slate-400 mt-0.5">Thành viên nợ: ${checkedNames.join(', ')}</div>
+            <div class="text-[10px] text-slate-400 mt-0.5">Thành viên nợ: ${safeCheckedNames}</div>
           `;
         } else {
           const div = checkedNames.length + 1; // +1 của Tôi
@@ -1101,7 +1114,7 @@
             <div>Chia đều <span class="font-bold text-slate-100">${div} người</span> (Tôi + ${checkedNames.length} bạn): 
               <span class="font-bold text-indigo-300">${formatVND(share)}</span> / người.
             </div>
-            <div class="text-[10px] text-slate-400 mt-0.5">Tôi chịu: ${formatVND(share)} • Nợ từ bạn bè: ${checkedNames.join(', ')}</div>
+            <div class="text-[10px] text-slate-400 mt-0.5">Tôi chịu: ${formatVND(share)} • Nợ từ bạn bè: ${safeCheckedNames}</div>
           `;
         }
       };
@@ -1240,7 +1253,7 @@
             updateSplitPreview();
 
             // Hiển thị Toast hoàn tác
-            showUndoToast(`Đã xóa toàn bộ nợ của ${member}`);
+            showUndoToast(`Đã xóa toàn bộ nợ của ${escapeHTML(member)}`);
           }
         };
       }
@@ -1331,7 +1344,7 @@
 
             const descMarkup = tx.description 
               ? `<div class="pl-[74px] mt-1.5 flex flex-col">
-                   <span class="text-xs font-bold text-slate-200 truncate select-text">${tx.description}</span>
+                   <span class="text-xs font-bold text-slate-200 truncate select-text">${escapeHTML(tx.description)}</span>
                  </div>` 
               : '';
 
@@ -1340,11 +1353,11 @@
                 <div class="flex items-center space-x-2.5 overflow-hidden flex-grow mr-2 min-w-0">
                   <!-- Thẻ loại bữa ăn CỐ ĐỊNH CHIỀU RỘNG w-16 -->
                   <span class="inline-block w-16 text-center text-[10px] font-extrabold py-1 px-1.5 rounded-lg border shrink-0 ${tagColorClass}">
-                    ${tx.mealType}
+                    ${escapeHTML(tx.mealType)}
                   </span>
                   
                   <div class="flex items-center space-x-2.5 min-w-0">
-                    <span class="text-[10px] text-slate-500 font-mono shrink-0">${displayDateTime}</span>
+                    <span class="text-[10px] text-slate-500 font-mono shrink-0">${escapeHTML(displayDateTime)}</span>
                     ${amountTag}
                   </div>
                 </div>
@@ -1370,20 +1383,20 @@
               const shareEntries = Object.entries(tx.shares).filter(([_, v]) => v > 0);
               sharesMarkup = shareEntries.map(([name, amt]) => `
                 <span class="inline-block bg-fuchsia-950/20 text-fuchsia-400 border border-fuchsia-800/20 rounded px-1.5 py-0.5 text-[10px] font-semibold mr-1 mb-1">
-                  ${name}: ${formatVND(amt)}
+                  ${escapeHTML(name)}: ${formatVND(amt)}
                 </span>
               `).join('');
             } else {
               const shareEntries = Object.entries(tx.shares).filter(([_, v]) => v > 0);
               sharesMarkup = shareEntries.map(([name, amt]) => `
                 <span class="inline-block bg-slate-900 text-slate-300 border border-slate-850 rounded px-1.5 py-0.5 text-[10px] font-semibold mr-1 mb-1">
-                  ${name}: ${formatVND(amt)}
+                  ${escapeHTML(name)}: ${formatVND(amt)}
                 </span>
               `).join('');
             }
 
             const descMarkup = tx.description 
-              ? `<span class="text-xs font-bold text-slate-200 mt-0.5 truncate select-text">${tx.description}</span>` 
+              ? `<span class="text-xs font-bold text-slate-200 mt-0.5 truncate select-text">${escapeHTML(tx.description)}</span>` 
               : '';
 
             item.innerHTML = `
@@ -1391,12 +1404,12 @@
                 <div class="flex items-start space-x-2.5 overflow-hidden flex-grow mr-2">
                   <!-- Thẻ loại bữa ăn CỐ ĐỊNH CHIỀU RỘNG w-16 -->
                   <span class="inline-block w-16 text-center text-[10px] font-extrabold py-1 px-1.5 rounded-lg border shrink-0 ${tagColorClass}">
-                    ${tx.mealType}
+                    ${escapeHTML(tx.mealType)}
                   </span>
                   
                   <div class="flex flex-col overflow-hidden min-w-0">
                     <div class="flex items-center space-x-2 text-[10px] text-slate-500 font-mono">
-                      <span>${displayDateTime}</span>
+                      <span>${escapeHTML(displayDateTime)}</span>
                     </div>
                     ${descMarkup}
                   </div>
@@ -2411,7 +2424,7 @@
         if (btn) btn.innerText = "Đang check...";
         if (headerBtn) headerBtn.innerText = "Checking...";
 
-        const currentVersion = "v2.5.26";
+        const currentVersion = "v2.5.27";
 
         // Tải file index.html trực tiếp từ server để bypass cache bằng timestamp
         fetch('./index.html?t=' + Date.now())
@@ -2562,13 +2575,16 @@
 
         // Hàm kích hoạt phản hồi rung
         function triggerHaptic() {
-          if (typeof window !== 'undefined' && window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Haptics) {
+          const cap = (typeof window !== 'undefined' && window.Capacitor) ? window.Capacitor : (typeof window !== 'undefined' && window.parent ? window.parent.Capacitor : null);
+          if (cap && cap.Plugins && cap.Plugins.Haptics) {
             try {
-              window.Capacitor.Plugins.Haptics.impact({ style: 'LIGHT' });
+              cap.Plugins.Haptics.impact({ style: 'LIGHT' });
+              return;
             } catch(err) {
               console.error("Capacitor Haptics error:", err);
             }
-          } else if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+          }
+          if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
             navigator.vibrate(15);
           } else if (isIOS) {
             const label = document.getElementById('ios-haptic-trigger-label');
