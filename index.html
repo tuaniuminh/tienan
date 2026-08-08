@@ -173,7 +173,7 @@
         <img src="icon-192.png" alt="Logo" class="h-8 w-8 rounded-lg object-contain border border-indigo-500/20 shadow-md shadow-indigo-500/10">
         <h1 class="text-sm font-black tracking-wider text-slate-200">SỔ THEO DÕI TIỀN ĂN</h1>
       </div>
-      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.27 PRO</button>
+      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.28 PRO</button>
     </header>
 
     <!-- Banner cảnh báo không đồng bộ đám mây -->
@@ -1571,7 +1571,7 @@
           const fbConfig = fbConfigRaw ? JSON.parse(fbConfigRaw) : null;
 
           const backupObject = {
-            version: '2.5.26',
+            version: '2.5.28',
             exportedAt: new Date().toISOString(),
             guests: AppStore.guests || [],
             transactions: AppStore.transactions || [],
@@ -1579,28 +1579,63 @@
             firebaseConfig: fbConfig || null
           };
 
-          const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupObject, null, 2));
           const dateStr = new Date().toISOString().split('T')[0];
           const filename = `sotienan_backup_${dateStr}.json`;
-
-          const downloadAnchor = document.createElement('a');
-          downloadAnchor.setAttribute("href", dataStr);
-          downloadAnchor.setAttribute("download", filename);
-          document.body.appendChild(downloadAnchor);
-          downloadAnchor.click();
-          downloadAnchor.remove();
+          const jsonText = JSON.stringify(backupObject, null, 2);
 
           const feedback = document.getElementById('backupStatusFeedback');
-          if (feedback) {
-            feedback.innerText = "✓ Đã tải tệp sao lưu thành công!";
-            feedback.classList.remove('hidden');
-            setTimeout(() => feedback.classList.add('hidden'), 4000);
+
+          // Tối ưu cho iOS Native App (.ipa): Sử dụng Web Share API để mở Bảng chia sẻ iOS (iOS Share Sheet)
+          if (navigator.share && typeof File !== 'undefined') {
+            try {
+              const file = new File([jsonText], filename, { type: 'application/json' });
+              if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                navigator.share({
+                  files: [file],
+                  title: 'Bản sao lưu Sổ Tiền Ăn',
+                  text: `File sao lưu dữ liệu Sổ Tiền Ăn ngày ${dateStr}`
+                }).then(() => {
+                  if (feedback) {
+                    feedback.innerText = "✓ Đã mở bảng chia sẻ / lưu tệp iOS!";
+                    feedback.classList.remove('hidden');
+                    setTimeout(() => feedback.classList.add('hidden'), 4000);
+                  }
+                }).catch(shareErr => {
+                  console.log('Chia sẻ bị hủy hoặc không chọn vị trí:', shareErr);
+                  triggerJSONAnchorDownload(jsonText, filename);
+                });
+                return;
+              }
+            } catch(shareEx) {
+              console.warn('Lỗi Web Share File:', shareEx);
+            }
           }
+
+          // Fallback tải tệp mặc định cho Desktop / Android
+          triggerJSONAnchorDownload(jsonText, filename);
+
         } catch (e) {
           console.error("Lỗi xuất dữ liệu:", e);
           alert("Không thể xuất dữ liệu sao lưu: " + e.message);
         }
       };
+
+      function triggerJSONAnchorDownload(jsonText, filename) {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(jsonText);
+        const downloadAnchor = document.createElement('a');
+        downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", filename);
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
+
+        const feedback = document.getElementById('backupStatusFeedback');
+        if (feedback) {
+          feedback.innerText = "✓ Đã tải tệp sao lưu thành công!";
+          feedback.classList.remove('hidden');
+          setTimeout(() => feedback.classList.add('hidden'), 4000);
+        }
+      }
 
       window.triggerImportJSON = function() {
         const fileInput = document.getElementById('importJsonFileInput');
@@ -2424,7 +2459,7 @@
         if (btn) btn.innerText = "Đang check...";
         if (headerBtn) headerBtn.innerText = "Checking...";
 
-        const currentVersion = "v2.5.27";
+        const currentVersion = "v2.5.28";
 
         // Tải file index.html trực tiếp từ server để bypass cache bằng timestamp
         fetch('./index.html?t=' + Date.now())
