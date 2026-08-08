@@ -173,7 +173,7 @@
         <img src="icon-192.png" alt="Logo" class="h-8 w-8 rounded-lg object-contain border border-indigo-500/20 shadow-md shadow-indigo-500/10">
         <h1 class="text-sm font-black tracking-wider text-slate-200">SỔ THEO DÕI TIỀN ĂN</h1>
       </div>
-      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.25 PRO</button>
+      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.26 PRO</button>
     </header>
 
     <!-- Banner cảnh báo không đồng bộ đám mây -->
@@ -455,6 +455,41 @@
               Lưu cấu hình ngân hàng
             </button>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SAO LƯU & KHÔI PHỤC DỮ LIỆU (JSON BACKUP & RESTORE) -->
+    <section class="px-4 mb-4">
+      <div class="bg-slate-850/60 border border-slate-700/30 rounded-2xl overflow-hidden transition-all duration-300">
+        <button onclick="toggleBackupManager()" class="w-full px-4 py-3 flex justify-between items-center text-left hover:bg-slate-800/40">
+          <span class="text-xs font-bold text-slate-400 tracking-wider flex items-center">
+            <span class="mr-1.5">💾</span> Sao lưu & Khôi phục dữ liệu
+          </span>
+          <span id="backupToggleArrow" class="text-xs text-slate-500 transition-transform duration-200">▼</span>
+        </button>
+        
+        <div id="backupManagerContent" class="hidden p-4 border-t border-slate-800/50 bg-slate-900/40 space-y-3">
+          <p class="text-[10px] text-slate-400 leading-relaxed">
+            Tạo tệp dự phòng toàn bộ lịch sử chi tiêu, danh sách thành viên và cấu hình lưu trữ vào thiết bị của bạn.
+          </p>
+          
+          <div class="grid grid-cols-2 gap-2">
+            <!-- Nút Xuất File JSON -->
+            <button onclick="exportDataJSON()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs py-2.5 px-2 rounded-xl flex items-center justify-center space-x-1 active:scale-95 transition-all shadow-md">
+              <span>📥</span>
+              <span class="truncate">Tải bản sao lưu (JSON)</span>
+            </button>
+            
+            <!-- Nút Nhập File JSON -->
+            <button onclick="triggerImportJSON()" class="bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-200 font-bold text-xs py-2.5 px-2 rounded-xl flex items-center justify-center space-x-1 active:scale-95 transition-all">
+              <span>📤</span>
+              <span class="truncate">Khôi phục từ tệp</span>
+            </button>
+            <input type="file" id="importJsonFileInput" accept=".json" class="hidden" onchange="importDataJSON(event)">
+          </div>
+          
+          <div id="backupStatusFeedback" class="text-[10px] text-emerald-400 text-center font-semibold hidden"></div>
         </div>
       </div>
     </section>
@@ -1500,6 +1535,140 @@
         alert('Đã lưu cấu hình ngân hàng thành công!');
       };
 
+      // ==========================================
+      // SAO LƯU & KHÔI PHỤC DỮ LIỆU (JSON ENGINE)
+      // ==========================================
+      let isBackupExpanded = false;
+      window.toggleBackupManager = function() {
+        isBackupExpanded = !isBackupExpanded;
+        const panel = document.getElementById('backupManagerContent');
+        const arrow = document.getElementById('backupToggleArrow');
+        if (isBackupExpanded) {
+          panel.classList.remove('hidden');
+          arrow.className = "text-xs text-slate-500 rotate-180 transition-transform duration-200";
+        } else {
+          panel.classList.add('hidden');
+          arrow.className = "text-xs text-slate-500 transition-transform duration-200";
+        }
+      };
+
+      window.exportDataJSON = function() {
+        try {
+          const fbConfigRaw = localStorage.getItem('ste_firebase_config');
+          const fbConfig = fbConfigRaw ? JSON.parse(fbConfigRaw) : null;
+
+          const backupObject = {
+            version: '2.5.26',
+            exportedAt: new Date().toISOString(),
+            guests: AppStore.guests || [],
+            transactions: AppStore.transactions || [],
+            bankConfig: AppStore.bankConfig || null,
+            firebaseConfig: fbConfig || null
+          };
+
+          const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupObject, null, 2));
+          const dateStr = new Date().toISOString().split('T')[0];
+          const filename = `sotienan_backup_${dateStr}.json`;
+
+          const downloadAnchor = document.createElement('a');
+          downloadAnchor.setAttribute("href", dataStr);
+          downloadAnchor.setAttribute("download", filename);
+          document.body.appendChild(downloadAnchor);
+          downloadAnchor.click();
+          downloadAnchor.remove();
+
+          const feedback = document.getElementById('backupStatusFeedback');
+          if (feedback) {
+            feedback.innerText = "✓ Đã tải tệp sao lưu thành công!";
+            feedback.classList.remove('hidden');
+            setTimeout(() => feedback.classList.add('hidden'), 4000);
+          }
+        } catch (e) {
+          console.error("Lỗi xuất dữ liệu:", e);
+          alert("Không thể xuất dữ liệu sao lưu: " + e.message);
+        }
+      };
+
+      window.triggerImportJSON = function() {
+        const fileInput = document.getElementById('importJsonFileInput');
+        if (fileInput) {
+          fileInput.value = '';
+          fileInput.click();
+        }
+      };
+
+      window.importDataJSON = function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          try {
+            const content = e.target.result;
+            const parsed = JSON.parse(content);
+
+            if (!parsed || (typeof parsed !== 'object')) {
+              alert("Lỗi: Tệp sao lưu không đúng định dạng!");
+              return;
+            }
+
+            let txs = [];
+            let guests = [];
+            let bankConfig = null;
+            let firebaseConfig = null;
+
+            if (Array.isArray(parsed)) {
+              txs = migrateLegacyData(JSON.stringify(parsed));
+            } else {
+              txs = migrateLegacyData(JSON.stringify(parsed.transactions || []));
+              guests = Array.isArray(parsed.guests) ? parsed.guests : [];
+              bankConfig = parsed.bankConfig || null;
+              firebaseConfig = parsed.firebaseConfig || null;
+            }
+
+            const confirmMsg = `Bạn có chắc chắn muốn khôi phục dữ liệu từ tệp này?\n\n• ${txs.length} khoản chi\n• ${guests.length} khách khác\n\nDữ liệu hiện tại trên máy sẽ được cập nhật/thay thế.`;
+            if (!confirm(confirmMsg)) return;
+
+            AppStore.transactions = txs;
+            AppStore.guests = guests;
+            if (bankConfig) {
+              AppStore.saveBankConfig(bankConfig);
+            }
+            if (firebaseConfig) {
+              localStorage.setItem('ste_firebase_config', JSON.stringify(firebaseConfig));
+            }
+
+            AppStore.cleanUpEmptyMeals();
+            AppStore.save();
+
+            syncGuestsToInput();
+            renderBalanceBoxes();
+            renderParticipantsSelector();
+            renderHistoryLog();
+            updateSplitPreview();
+
+            if (AppStore.bankConfig) {
+              document.getElementById('qrBankSelect').value = AppStore.bankConfig.bank || '';
+              document.getElementById('qrBankAccount').value = AppStore.bankConfig.account || '';
+              document.getElementById('qrBankAccountName').value = AppStore.bankConfig.accountName || '';
+            }
+
+            const feedback = document.getElementById('backupStatusFeedback');
+            if (feedback) {
+              feedback.innerText = "✓ Khôi phục dữ liệu thành công!";
+              feedback.classList.remove('hidden');
+              setTimeout(() => feedback.classList.add('hidden'), 4000);
+            }
+
+            alert("Khôi phục dữ liệu thành công!");
+          } catch (err) {
+            console.error("Lỗi đọc tệp sao lưu:", err);
+            alert("Không thể đọc tệp sao lưu. Vui lòng kiểm tra lại tệp JSON đã chọn!");
+          }
+        };
+        reader.readAsText(file);
+      };
+
       window.captureHistoryImage = function() {
         const memberName = AppStore.activeFilter;
         if (!memberName) {
@@ -2242,7 +2411,7 @@
         if (btn) btn.innerText = "Đang check...";
         if (headerBtn) headerBtn.innerText = "Checking...";
 
-        const currentVersion = "v2.5.25";
+        const currentVersion = "v2.5.26";
 
         // Tải file index.html trực tiếp từ server để bypass cache bằng timestamp
         fetch('./index.html?t=' + Date.now())
