@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tien-an-v2.5.28';
+const CACHE_NAME = 'tien-an-v2.5.29';
 const ASSETS = [
   './',
   './index.html',
@@ -6,9 +6,6 @@ const ASSETS = [
   './icon-192.png',
   './icon-512.png',
   'https://cdn.tailwindcss.com',
-  'https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js',
-  'https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js',
-  'https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js',
   'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'
 ];
 

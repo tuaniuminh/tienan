@@ -11,10 +11,6 @@
   <meta name="theme-color" content="#020617">
   <link rel="apple-touch-icon" href="icon-192.png">
 
-  <!-- Firebase SDK (Compat Version) -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
   <!-- html2canvas Library for Capturing Screenshots -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <!-- Tailwind CSS CDN -->
@@ -173,15 +169,8 @@
         <img src="icon-192.png" alt="Logo" class="h-8 w-8 rounded-lg object-contain border border-indigo-500/20 shadow-md shadow-indigo-500/10">
         <h1 class="text-sm font-black tracking-wider text-slate-200">SỔ THEO DÕI TIỀN ĂN</h1>
       </div>
-      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.28 PRO</button>
+      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.29 PRO</button>
     </header>
-
-    <!-- Banner cảnh báo không đồng bộ đám mây -->
-    <div id="cloudSyncWarningBanner" class="bg-amber-950/45 border-b border-amber-500/20 px-4 py-2.5 text-[11px] text-amber-300 font-medium flex items-center space-x-2 hidden">
-      <span class="animate-pulse">⚠️</span>
-      <span class="flex-grow">Dữ liệu chưa được đồng bộ đám mây (Ngoại tuyến).</span>
-      <button onclick="toggleFirebaseManager(); document.getElementById('firebaseManagerContent').scrollIntoView({ behavior: 'smooth' });" class="text-[10px] text-amber-400 font-bold underline hover:text-amber-350 active:scale-95 transition-all">Cấu hình</button>
-    </div>
 
     <!-- KHOẢN PHẢI THU (BALANCE CARD GRID) -->
     <section class="p-4 bg-slate-950/40 border-b border-slate-800/50">
@@ -310,90 +299,6 @@
               class="flex-grow bg-slate-900 border border-slate-700 focus:border-indigo-500 text-slate-100 placeholder-slate-650 rounded-xl py-2 px-3 text-xs focus:outline-none transition-all">
             <button id="btnSaveGuests" onclick="saveGuests()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-4 py-2 rounded-xl active:scale-95 transition-all">
               Lưu
-            </button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- CLOUD SYNC (FIREBASE REALTIME DATABASE) -->
-    <section class="px-4 mb-4">
-      <div class="bg-slate-850/60 border border-slate-700/30 rounded-2xl overflow-hidden transition-all duration-300">
-        <button onclick="toggleFirebaseManager()" class="w-full px-4 py-3 flex justify-between items-center text-left hover:bg-slate-800/40">
-          <span class="text-xs font-bold text-slate-400 tracking-wider flex items-center">
-            <span class="mr-1.5">☁️</span> Đồng bộ đám mây (Firebase)
-          </span>
-          <div class="flex items-center space-x-2">
-            <!-- Đèn báo trạng thái kết nối -->
-            <span id="fbStatusDot" class="h-2 w-2 rounded-full bg-slate-500"></span>
-            <span id="fbStatusText" class="text-[10px] text-slate-400 font-semibold uppercase">Ngoại tuyến</span>
-            <span id="fbToggleArrow" class="text-xs text-slate-500 transition-transform duration-200">▼</span>
-          </div>
-        </button>
-        
-        <div id="firebaseManagerContent" class="hidden p-4 border-t border-slate-800/50 bg-slate-900/40 space-y-3">
-          <p class="text-[10px] text-slate-400 leading-relaxed">
-            Nhập cấu hình Firebase Realtime Database của bạn để đồng bộ thời gian thực giữa các thiết bị. Tạo tài khoản Firebase miễn phí và lấy thông tin cấu hình của dự án.
-          </p>
-          
-          <!-- Nhập nhanh bằng Link chia sẻ -->
-          <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 space-y-1.5 mb-2">
-            <label class="block text-[9px] font-bold text-slate-400 uppercase">⚡ Nạp nhanh bằng Link chia sẻ:</label>
-            <div class="flex space-x-2">
-              <input type="text" id="fbSharePasteInput" placeholder="Dán liên kết chia sẻ tại đây..." 
-                class="flex-grow bg-slate-950 border border-slate-750 focus:border-indigo-500 text-slate-200 placeholder-slate-650 rounded-lg py-1.5 px-2.5 text-[10px] focus:outline-none transition-all">
-              <button type="button" onclick="importShareConfig()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[10px] px-3 py-1.5 rounded-lg active:scale-95 transition-all shrink-0">
-                Nạp Cấu Hình
-              </button>
-            </div>
-          </div>
-          
-          <div class="text-center text-[9px] text-slate-500 font-bold uppercase py-1 border-t border-slate-800/50">Hoặc nhập thủ công</div>
-
-          <form id="fbConfigForm" onsubmit="saveFirebaseConfig(event)" class="space-y-2.5">
-            <div>
-              <label class="block text-[10px] font-bold text-slate-400 mb-1">API Key:</label>
-              <input type="text" id="fbApiKey" required placeholder="AIzaSy..." 
-                class="w-full bg-slate-900 border border-slate-750 focus:border-indigo-500 text-slate-200 placeholder-slate-650 rounded-lg py-1.5 px-3 text-xs focus:outline-none transition-all">
-            </div>
-            
-            <div class="grid grid-cols-2 gap-2">
-              <div>
-                <label class="block text-[10px] font-bold text-slate-400 mb-1">Database URL:</label>
-                <input type="text" id="fbDbUrl" required placeholder="https://dự-án.firebaseio.com" 
-                  class="w-full bg-slate-900 border border-slate-750 focus:border-indigo-500 text-slate-200 placeholder-slate-650 rounded-lg py-1.5 px-3 text-xs focus:outline-none transition-all">
-              </div>
-              <div>
-                <label class="block text-[10px] font-bold text-slate-400 mb-1">Project ID:</label>
-                <input type="text" id="fbProjectId" required placeholder="tienan-12345" 
-                  class="w-full bg-slate-900 border border-slate-750 focus:border-indigo-500 text-slate-200 placeholder-slate-650 rounded-lg py-1.5 px-3 text-xs focus:outline-none transition-all">
-              </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-2">
-              <div>
-                <label class="block text-[10px] font-bold text-slate-400 mb-1">Tên phòng (Room Name):</label>
-                <input type="text" id="fbRoomName" required placeholder="default_room" 
-                  class="w-full bg-slate-900 border border-slate-750 focus:border-indigo-500 text-slate-200 placeholder-slate-650 rounded-lg py-1.5 px-3 text-xs focus:outline-none transition-all">
-              </div>
-              <div class="flex items-end">
-                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs py-2 rounded-lg active:scale-95 transition-all">
-                  Lưu & Kết Nối
-                </button>
-              </div>
-            </div>
-          </form>
-
-          <div id="fbActiveActions" class="hidden border-t border-slate-800/80 pt-3 space-y-2">
-            <!-- Nút copy link chia sẻ -->
-            <button onclick="copyShareLink()" class="w-full bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-200 text-xs py-2 rounded-lg font-bold flex items-center justify-center space-x-1.5 active:scale-95 transition-all">
-              <span>🔗</span>
-              <span id="shareLinkBtnText">Copy Link Chia Sẻ Cấu Hình</span>
-            </button>
-            <div id="shareLinkFeedback" class="text-[10px] text-emerald-400 text-center mt-1 hidden font-semibold">Đã sao chép liên kết cấu hình!</div>
-            
-            <button onclick="disconnectFirebase()" class="w-full bg-rose-950/40 hover:bg-rose-900/30 border border-rose-800/30 text-rose-400 text-xs py-2 rounded-lg font-bold active:scale-95 transition-all">
-              Ngắt Kết Nối Đám Mây
             </button>
           </div>
         </div>
@@ -702,12 +607,11 @@
           try {
             localStorage.setItem('ste_transactions', JSON.stringify(this.transactions));
             localStorage.setItem('ste_guests', JSON.stringify(this.guests));
-            localStorage.setItem('ste_pending_sync', 'true');
-            if (isFirebaseInitialized) {
-              pushLocalToFirebase();
-            }
           } catch(e) {
             console.error("Lỗi lưu vào LocalStorage:", e);
+            if (e.name === 'QuotaExceededError' || e.code === 22) {
+              alert("⚠️ Cảnh báo: Bộ nhớ thiết bị đã đầy! Vui lòng tải bản sao lưu (JSON) và dọn dẹp dung lượng máy.");
+            }
           }
         },
 
@@ -2111,308 +2015,8 @@
         return 0;
       }
 
-      function updateFirebaseStatusUI(status, message) {
-        const dot = document.getElementById('fbStatusDot');
-        const text = document.getElementById('fbStatusText');
-        const activeActions = document.getElementById('fbActiveActions');
-        const banner = document.getElementById('cloudSyncWarningBanner');
-        
-        if (status === 'connected') {
-          dot.className = "h-2 w-2 rounded-full bg-emerald-500 animate-pulse";
-          text.innerText = message || "Đang online";
-          text.className = "text-[10px] text-emerald-400 font-bold uppercase";
-          activeActions.classList.remove('hidden');
-          if (banner) banner.classList.add('hidden');
-        } else if (status === 'saving') {
-          dot.className = "h-2 w-2 rounded-full bg-amber-400 animate-ping";
-          text.innerText = message || "Đang lưu mây...";
-          text.className = "text-[10px] text-amber-300 font-bold uppercase";
-          activeActions.classList.remove('hidden');
-          if (banner) banner.classList.add('hidden');
-        } else if (status === 'disconnected') {
-          dot.className = "h-2 w-2 rounded-full bg-amber-500 animate-pulse";
-          text.innerText = message || "Đang kết nối...";
-          text.className = "text-[10px] text-amber-400 font-bold uppercase";
-          activeActions.classList.remove('hidden');
-          if (banner) {
-            banner.classList.remove('hidden');
-            banner.querySelector('span:not(.animate-pulse)').innerText = "Đang kết nối đồng bộ đám mây...";
-          }
-        } else if (status === 'error') {
-          dot.className = "h-2 w-2 rounded-full bg-rose-500";
-          text.innerText = message || "Lỗi cấu hình";
-          text.className = "text-[10px] text-rose-400 font-bold uppercase";
-          activeActions.classList.add('hidden');
-          if (banner) {
-            banner.classList.remove('hidden');
-            banner.querySelector('span:not(.animate-pulse)').innerText = "Lỗi kết nối đồng bộ đám mây (Kiểm tra cấu hình).";
-          }
-        } else {
-          dot.className = "h-2 w-2 rounded-full bg-slate-500";
-          text.innerText = message || "Ngoại tuyến";
-          text.className = "text-[10px] text-slate-400 font-semibold uppercase";
-          activeActions.classList.add('hidden');
-          if (banner) {
-            banner.classList.remove('hidden');
-            banner.querySelector('span:not(.animate-pulse)').innerText = "Dữ liệu chưa được đồng bộ đám mây (Ngoại tuyến).";
-          }
-        }
-      }
-
-      window.initFirebase = function(config) {
-        if (!config || !config.apiKey || !config.databaseURL || !config.projectId) {
-          updateFirebaseStatusUI('offline');
-          return;
-        }
-
-        // Điền lại thông số cấu hình cũ vào Form
-        document.getElementById('fbApiKey').value = config.apiKey || '';
-        document.getElementById('fbDbUrl').value = config.databaseURL || '';
-        document.getElementById('fbProjectId').value = config.projectId || '';
-        document.getElementById('fbRoomName').value = config.roomName || 'default_room';
-
-        try {
-          if (window.firebase && firebase.apps.length === 0) {
-            firebase.initializeApp(config);
-          }
-          
-          isFirebaseInitialized = true;
-          fbConfig = config;
-          
-          // Thực hiện đăng nhập ẩn danh chạy ngầm để qua cửa bảo mật
-          firebase.auth().signInAnonymously().catch(err => {
-            console.error('[Firebase] Đăng nhập ẩn danh thất bại:', err);
-          });
-          
-          const db = firebase.database();
-          const room = config.roomName || 'default_room';
-          
-          // Lắng nghe trạng thái mạng
-          db.ref('.info/connected').on('value', snap => {
-            if (snap.val() === true) {
-              if (localStorage.getItem('ste_pending_sync') === 'true') {
-                pushLocalToFirebase();
-              } else {
-                updateFirebaseStatusUI('connected', 'Đang online');
-              }
-            } else {
-              updateFirebaseStatusUI('disconnected', 'Mất mạng');
-            }
-          });
-
-          dbRef = db.ref('rooms/' + room);
-
-          // Lắng nghe sự kiện đồng bộ từ đám mây về máy
-          dbRef.on('value', snapshot => {
-            const val = snapshot.val();
-            const isPendingSync = localStorage.getItem('ste_pending_sync') === 'true';
-            const lastSyncTime = Number(localStorage.getItem('ste_last_sync_time') || 0);
-
-            if (val) {
-              console.log('[Firebase] Đồng bộ dữ liệu tải xuống...');
-              const remoteTxs = migrateLegacyData(JSON.stringify(val.transactions || []));
-              const remoteGuests = val.guests || [];
-
-              if (isPendingSync) {
-                // Đang có thay đổi cục bộ chưa được xác nhận trên mây -> Tiến hành gộp dữ liệu thông minh
-                const localTxs = AppStore.transactions;
-                const localMap = new Map(localTxs.map(tx => [tx.id, tx]));
-                const mergedTxs = [...localTxs];
-
-                // Thêm các giao dịch từ mây nếu nó được tạo trên thiết bị khác sau thời điểm đồng bộ gần nhất
-                remoteTxs.forEach(rtx => {
-                  if (!localMap.has(rtx.id)) {
-                    const rtxTime = getTxTimestamp(rtx);
-                    if (rtxTime > lastSyncTime) {
-                      mergedTxs.push(rtx);
-                    }
-                  }
-                });
-
-                // Sắp xếp lại theo ngày giờ giảm dần (mới nhất lên đầu)
-                mergedTxs.sort((a, b) => {
-                  const dateA = (a.date || '') + ' ' + (a.time || '');
-                  const dateB = (b.date || '') + ' ' + (b.time || '');
-                  return dateB.localeCompare(dateA);
-                });
-
-                AppStore.transactions = mergedTxs;
-                AppStore.guests = [...new Set([...AppStore.guests, ...remoteGuests])];
-                AppStore.cleanUpEmptyMeals();
-
-                localStorage.setItem('ste_transactions', JSON.stringify(AppStore.transactions));
-                localStorage.setItem('ste_guests', JSON.stringify(AppStore.guests));
-                localStorage.setItem('firebase_synced_once', 'true');
-
-                // Đẩy ngược dữ liệu đã gộp lên mây
-                pushLocalToFirebase();
-              } else {
-                // Mây là chuẩn mực khi máy không có thay đổi chờ đẩy
-                AppStore.transactions = remoteTxs;
-                AppStore.guests = remoteGuests;
-                AppStore.cleanUpEmptyMeals();
-
-                localStorage.setItem('ste_transactions', JSON.stringify(AppStore.transactions));
-                localStorage.setItem('ste_guests', JSON.stringify(AppStore.guests));
-                localStorage.setItem('firebase_synced_once', 'true');
-              }
-
-              // Vẽ lại UI
-              renderBalanceBoxes();
-              renderParticipantsSelector();
-              renderHistoryLog();
-              updateSplitPreview();
-            } else {
-              // Nếu đám mây trống
-              if (isPendingSync || (!localStorage.getItem('firebase_synced_once') && AppStore.transactions.length > 0)) {
-                pushLocalToFirebase();
-                localStorage.setItem('firebase_synced_once', 'true');
-              } else {
-                // Nếu đã từng đồng bộ mà đám mây trống và không có thay đổi chờ -> Xóa sạch máy
-                AppStore.transactions = [];
-                AppStore.guests = [];
-                
-                localStorage.setItem('ste_transactions', JSON.stringify([]));
-                localStorage.setItem('ste_guests', JSON.stringify([]));
-                
-                renderBalanceBoxes();
-                renderParticipantsSelector();
-                renderHistoryLog();
-                updateSplitPreview();
-              }
-            }
-          }, err => {
-            console.error('[Firebase] Lỗi đọc dữ liệu:', err);
-            updateFirebaseStatusUI('error', 'Quyền bảo mật lỗi');
-          });
-
-        } catch (e) {
-          console.error('[Firebase] Khởi tạo lỗi:', e);
-          updateFirebaseStatusUI('error', 'Lỗi khởi chạy');
-        }
-      };
-
-      window.pushLocalToFirebase = function() {
-        if (!isFirebaseInitialized || !dbRef) return;
-        
-        updateFirebaseStatusUI('saving', 'Đang lưu mây...');
-        
-        if (AppStore.guests.length === 0 && AppStore.transactions.length === 0) {
-          dbRef.set(null).then(() => {
-            console.log('[Firebase] Xóa sạch dữ liệu thành công!');
-            localStorage.setItem('ste_pending_sync', 'false');
-            localStorage.setItem('ste_last_sync_time', Date.now().toString());
-            updateFirebaseStatusUI('connected', 'Đang online');
-          }).catch(err => {
-            console.error('[Firebase] Xóa sạch dữ liệu thất bại:', err);
-            updateFirebaseStatusUI('error', 'Chưa lưu mây');
-          });
-          return;
-        }
-
-        dbRef.set({
-          guests: AppStore.guests,
-          transactions: AppStore.transactions
-        }).then(() => {
-          console.log('[Firebase] Đồng bộ lên mây thành công!');
-          localStorage.setItem('ste_pending_sync', 'false');
-          localStorage.setItem('ste_last_sync_time', Date.now().toString());
-          updateFirebaseStatusUI('connected', 'Đang online');
-        }).catch(err => {
-          console.error('[Firebase] Đồng bộ lên mây thất bại:', err);
-          updateFirebaseStatusUI('error', 'Chưa lưu mây');
-        });
-      };
-
-      window.saveFirebaseConfig = function(event) {
-        if (event) event.preventDefault();
-
-        const apiKey = document.getElementById('fbApiKey').value.trim();
-        const databaseURL = document.getElementById('fbDbUrl').value.trim();
-        const projectId = document.getElementById('fbProjectId').value.trim();
-        const roomName = document.getElementById('fbRoomName').value.trim() || 'default_room';
-
-        const config = {
-          apiKey,
-          databaseURL,
-          projectId,
-          roomName
-        };
-
-        localStorage.setItem('ste_firebase_config', JSON.stringify(config));
-        alert("Đã lưu thông số. Ứng dụng sẽ kết nối và tải lại trang!");
-        window.location.reload();
-      };
-
-      window.disconnectFirebase = function() {
-        if (confirm("Bạn có chắc chắn muốn ngắt kết nối Cloud? Ứng dụng sẽ tự động chuyển sang lưu cục bộ (Offline).")) {
-          localStorage.removeItem('ste_firebase_config');
-          alert("Đã ngắt kết nối! Ứng dụng sẽ tải lại ở chế độ offline.");
-          window.location.reload();
-        }
-      };
-
-      window.importShareConfig = function() {
-        const input = document.getElementById('fbSharePasteInput');
-        let val = input.value.trim();
-        if (!val) {
-          alert("Vui lòng dán liên kết hoặc mã cấu hình chia sẻ!");
-          return;
-        }
-
-        // Nếu là liên kết đầy đủ chứa tham số ?fb=
-        if (val.includes('?fb=')) {
-          try {
-            const url = new URL(val);
-            val = url.searchParams.get('fb');
-          } catch(e) {
-            const parts = val.split('?fb=');
-            val = parts[1] ? parts[1].split('&')[0] : val;
-          }
-        }
-
-        try {
-          const decodedConfig = JSON.parse(decodeURIComponent(escape(atob(val))));
-          if (decodedConfig && decodedConfig.apiKey) {
-            localStorage.setItem('ste_firebase_config', JSON.stringify(decodedConfig));
-            alert("Nạp cấu hình đồng bộ Firebase thành công! Trang web sẽ tự nạp lại.");
-            window.location.reload();
-          } else {
-            alert("Mã cấu hình không đúng định dạng!");
-          }
-        } catch(e) {
-          console.error("Lỗi giải mã cấu hình dán vào:", e);
-          alert("Lỗi: Không thể nhận diện cấu hình này. Hãy kiểm tra xem bạn đã copy đúng link chưa!");
-        }
-      };
-
-      window.copyShareLink = function() {
-        if (!fbConfig) return;
-
-        try {
-          const configStr = btoa(unescape(encodeURIComponent(JSON.stringify(fbConfig))));
-          const shareUrl = window.location.origin + window.location.pathname + '?fb=' + configStr;
-          const feedback = document.getElementById('shareLinkFeedback');
-          const btnText = document.getElementById('shareLinkBtnText');
-
-          secureCopyToClipboard(shareUrl).then(() => {
-            btnText.innerText = "Đã copy liên kết!";
-            feedback.classList.remove('hidden');
-            setTimeout(() => {
-              btnText.innerText = "Copy Link Chia Sẻ Cấu Hình";
-              feedback.classList.add('hidden');
-            }, 4000);
-          }).catch(err => {
-            console.error("Lỗi copy link:", err);
-            alert("Sao chép liên kết chia sẻ của bạn:\n\n" + shareUrl);
-          });
-        } catch(e) {
-          console.error("Lỗi mã hóa:", e);
-        }
-      };
-
       // ==========================================
-      // 11.8. HỆ THỐNG KIỂM TRA & CẬP NHẬT PHIÊN BẢN PWA
+      // 11. HỆ THỐNG KIỂM TRA & CẬP NHẬT PHIÊN BẢN PWA
       // ==========================================
       function showUpdateBanner(reg) {
         if (document.getElementById('pwaUpdateBanner')) return;
@@ -2459,7 +2063,7 @@
         if (btn) btn.innerText = "Đang check...";
         if (headerBtn) headerBtn.innerText = "Checking...";
 
-        const currentVersion = "v2.5.28";
+        const currentVersion = "v2.5.29";
 
         // Tải file index.html trực tiếp từ server để bypass cache bằng timestamp
         fetch('./index.html?t=' + Date.now())
@@ -2688,68 +2292,18 @@
           navigator.serviceWorker.addEventListener('controllerchange', () => {
             if (!refreshing) {
               refreshing = true;
-              // Di cư cấu hình Firebase qua URL để tránh iOS PWA reset localStorage khi nâng cấp tự động
-              const savedConfig = localStorage.getItem('ste_firebase_config');
-              if (savedConfig) {
-                try {
-                  const configObj = JSON.parse(savedConfig);
-                  const configStr = btoa(unescape(encodeURIComponent(JSON.stringify(configObj))));
-                  window.location.href = window.location.origin + window.location.pathname + '?fb=' + configStr;
-                  return;
-                } catch(e) {
-                  console.error("Lỗi mã hóa cấu hình di cư:", e);
-                }
-              }
               window.location.reload();
             }
           });
         }
 
-        // Tự động giải mã nạp cấu hình Firebase chia sẻ qua link URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const fbParam = urlParams.get('fb');
-        if (fbParam) {
-          try {
-            const decodedConfig = JSON.parse(decodeURIComponent(escape(atob(fbParam))));
-            if (decodedConfig && decodedConfig.apiKey) {
-              const currentConfigRaw = localStorage.getItem('ste_firebase_config');
-              const currentConfig = currentConfigRaw ? JSON.parse(currentConfigRaw) : null;
-              
-              // So sánh xem có khác cấu hình hiện tại không để tránh alert phiền phức khi update bản mới
-              const isDifferent = !currentConfig || 
-                currentConfig.apiKey !== decodedConfig.apiKey || 
-                currentConfig.databaseURL !== decodedConfig.databaseURL || 
-                currentConfig.projectId !== decodedConfig.projectId ||
-                currentConfig.roomName !== decodedConfig.roomName;
-              
-              localStorage.setItem('ste_firebase_config', JSON.stringify(decodedConfig));
-              
-              if (isDifferent) {
-                alert("Đã nhận cấu hình đồng bộ Firebase được chia sẻ!");
-              }
-              // Dọn URL
-              window.history.replaceState({}, document.title, window.location.pathname);
-            }
-          } catch(e) {
-            console.error("Lỗi giải mã cấu hình chia sẻ:", e);
-          }
-        }
+        // Dọn dẹp cờ đồng bộ mây cũ khỏi bộ nhớ cục bộ
+        ['ste_firebase_config', 'ste_pending_sync', 'ste_last_sync_time', 'firebase_synced_once'].forEach(k => {
+          localStorage.removeItem(k);
+        });
 
         // Load cơ sở dữ liệu cục bộ
         AppStore.load();
-
-        // Khởi động đồng bộ đám mây nếu có cấu hình
-        try {
-          const savedConfig = localStorage.getItem('ste_firebase_config');
-          if (savedConfig) {
-            initFirebase(JSON.parse(savedConfig));
-          } else {
-            updateFirebaseStatusUI('offline');
-          }
-        } catch(e) {
-          console.error("Lỗi nạp cấu hình Firebase lưu trữ:", e);
-          updateFirebaseStatusUI('offline');
-        }
         
         // Đồng bộ dữ liệu hiển thị lên màn hình
         syncGuestsToInput();
