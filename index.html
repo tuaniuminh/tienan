@@ -179,7 +179,7 @@
         <img src="icon-192.png" alt="Logo" class="h-8 w-8 rounded-lg object-contain border border-indigo-500/20 shadow-md shadow-indigo-500/10">
         <h1 class="text-sm font-black tracking-wider text-slate-200">SỔ THEO DÕI TIỀN ĂN</h1>
       </div>
-      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.32 PRO</button>
+      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.33 PRO</button>
     </header>
 
     <!-- KHOẢN PHẢI THU (BALANCE CARD GRID) -->
@@ -638,7 +638,7 @@
         },
 
         getMembers() {
-          const core = ['Thắng', 'Phú'];
+          const core = ['Thắng', 'Phú', 'Trường NV'];
           // Hợp nhất khách và loại bỏ trùng lặp
           const merged = [...core, ...this.guests];
           return merged.filter((item, index) => merged.indexOf(item) === index);
@@ -845,8 +845,8 @@
         }
         
         Object.entries(balances).forEach(([name, amt]) => {
-          // Chỉ hiển thị 'Thắng', 'Phú' hoặc những khách có số dư nợ > 0
-          if (name !== 'Thắng' && name !== 'Phú' && amt === 0) {
+          // Chỉ hiển thị 'Thắng', 'Phú', 'Trường NV' hoặc những khách có số dư nợ > 0
+          if (name !== 'Thắng' && name !== 'Phú' && name !== 'Trường NV' && amt === 0) {
             return;
           }
           
@@ -2004,7 +2004,7 @@
         // Tách chuỗi theo dấu phẩy, dọn dẹp khoảng trắng dư thừa
         let parsedNames = rawText.split(',')
           .map(n => n.trim())
-          .filter(n => n !== "" && n !== "Tôi" && n !== "Thắng" && n !== "Phú");
+          .filter(n => n !== "" && n !== "Tôi" && n !== "Thắng" && n !== "Phú" && n !== "Trường NV");
         
         // Loại trùng lặp
         parsedNames = parsedNames.filter((item, index) => parsedNames.indexOf(item) === index);
@@ -2122,7 +2122,7 @@
         if (btn) btn.innerText = "Đang check...";
         if (headerBtn) headerBtn.innerText = "Checking...";
 
-        const currentVersion = "v2.5.32";
+        const currentVersion = "v2.5.33";
 
         // Tải file index.html trực tiếp từ server để bypass cache bằng timestamp
         fetch('./index.html?t=' + Date.now())
