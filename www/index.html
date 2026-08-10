@@ -179,7 +179,7 @@
         <img src="icon-192.png" alt="Logo" class="h-8 w-8 rounded-lg object-contain border border-indigo-500/20 shadow-md shadow-indigo-500/10">
         <h1 class="text-sm font-black tracking-wider text-slate-200">SỔ THEO DÕI TIỀN ĂN</h1>
       </div>
-      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.30 PRO</button>
+      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.31 PRO</button>
     </header>
 
     <!-- KHOẢN PHẢI THU (BALANCE CARD GRID) -->
@@ -1729,13 +1729,24 @@
             dateStr = tx.date;
           }
           
+          const isDeduction = (tx.mealType === 'Cấn trừ' || tx.shares[memberName] < 0);
+          const rowStyle = isDeduction 
+            ? 'display: flex; justify-content: space-between; align-items: flex-start; padding: 10px 12px; margin: 6px 0; border-radius: 10px; background-color: #fff1f2; font-size: 12px; border: 1px dashed #fecdd3;' 
+            : 'display: flex; justify-content: space-between; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid #f1f5f9; font-size: 12px;';
+          const amountStyle = isDeduction 
+            ? 'font-weight: 800; color: #e11d48; white-space: nowrap;' 
+            : 'font-weight: 700; color: #0f172a; white-space: nowrap;';
+          const textStyle = isDeduction 
+            ? 'font-weight: 700; color: #9f1239;' 
+            : 'font-weight: 600; color: #1e293b;';
+          
           itemsHtml += `
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid #f1f5f9; font-size: 12px;">
+            <div style="${rowStyle}">
               <div style="flex-grow: 1; padding-right: 12px; text-align: left;">
                 <span style="font-weight: 700; color: #64748b; margin-right: 6px;">[${dateStr}]</span>
-                <span style="font-weight: 600; color: #1e293b;">${tx.mealType} ${tx.description ? ' - ' + tx.description : ''}</span>
+                <span style="${textStyle}">${tx.mealType} ${tx.description ? ' - ' + tx.description : ''}</span>
               </div>
-              <div style="font-weight: 700; color: #0f172a; white-space: nowrap;">${formatVND(tx.shares[memberName])}</div>
+              <div style="${amountStyle}">${formatVND(tx.shares[memberName])}</div>
             </div>
           `;
         });
@@ -2113,7 +2124,7 @@
         if (btn) btn.innerText = "Đang check...";
         if (headerBtn) headerBtn.innerText = "Checking...";
 
-        const currentVersion = "v2.5.30";
+        const currentVersion = "v2.5.31";
 
         // Tải file index.html trực tiếp từ server để bypass cache bằng timestamp
         fetch('./index.html?t=' + Date.now())
