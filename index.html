@@ -184,7 +184,7 @@
           <span>⚡</span>
           <span>Tạo QR</span>
         </button>
-        <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.41 PRO</button>
+        <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.42 PRO</button>
       </div>
     </header>
 
@@ -287,23 +287,22 @@
             
             <!-- Ô bấm mở Lịch Tiếng Việt -->
             <div class="relative">
-              <button type="button" onclick="openViDatePicker()" class="w-full bg-slate-900 border border-slate-700 hover:border-indigo-500 focus:border-indigo-500 text-slate-100 rounded-xl py-2 px-3 text-xs flex items-center justify-between transition-all active:scale-[0.99] text-left">
-                <span id="viDateButtonText" class="font-medium text-slate-200">22/08/2026</span>
-                <span class="text-indigo-400 text-sm">📅</span>
+              <button type="button" id="btnDateTrigger" onclick="openViDatePicker()" class="w-full bg-slate-900 border border-slate-700 hover:border-indigo-500 focus:border-indigo-500 text-slate-100 rounded-xl py-2 px-3 text-xs flex items-center justify-between transition-all active:scale-[0.99] text-left cursor-pointer shadow-sm">
+                <div class="flex items-center space-x-2">
+                  <span class="text-indigo-400 text-sm">📅</span>
+                  <span id="viDateButtonText" class="font-bold text-slate-100 font-sans text-xs">22/08/2026</span>
+                </div>
+                <span class="text-[10px] text-indigo-400 font-bold bg-indigo-950/70 border border-indigo-500/30 px-2 py-0.5 rounded-lg">Đổi ngày ▼</span>
               </button>
               <!-- Input ẩn lưu giá trị YYYY-MM-DD để tương thích 100% với logic form -->
               <input type="hidden" id="dateInput" value="">
             </div>
 
-            <!-- Nút chọn ngày nhanh -->
-            <div class="grid grid-cols-4 gap-1.5 mt-1.5">
-              <button type="button" onclick="setQuickExpenseDate(0)" class="py-1 text-[10px] font-bold rounded-lg bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700/60 active:scale-95 transition-all text-center">Hôm nay</button>
-              <button type="button" onclick="setQuickExpenseDate(1)" class="py-1 text-[10px] font-bold rounded-lg bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700/60 active:scale-95 transition-all text-center">Hôm qua</button>
-              <button type="button" onclick="setQuickExpenseDate(2)" class="py-1 text-[10px] font-bold rounded-lg bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700/60 active:scale-95 transition-all text-center">Hôm kia</button>
-              <button type="button" onclick="openViDatePicker()" class="py-1 text-[10px] font-bold rounded-lg bg-indigo-950/70 hover:bg-indigo-900/80 text-indigo-300 border border-indigo-500/30 active:scale-95 transition-all text-center flex items-center justify-center space-x-0.5">
-                <span>📅</span>
-                <span>Chọn lịch</span>
-              </button>
+            <!-- 3 Nút chọn ngày nhanh -->
+            <div class="grid grid-cols-3 gap-1.5 mt-1.5">
+              <button type="button" onclick="setQuickExpenseDate(0)" class="py-1 text-[10px] font-bold rounded-lg bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700/60 active:scale-95 transition-all text-center cursor-pointer">Hôm nay</button>
+              <button type="button" onclick="setQuickExpenseDate(1)" class="py-1 text-[10px] font-bold rounded-lg bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700/60 active:scale-95 transition-all text-center cursor-pointer">Hôm qua</button>
+              <button type="button" onclick="setQuickExpenseDate(2)" class="py-1 text-[10px] font-bold rounded-lg bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700/60 active:scale-95 transition-all text-center cursor-pointer">Hôm kia</button>
             </div>
           </div>
 
@@ -719,24 +718,24 @@
     </div>
 
     <!-- MODAL BẢNG CHỌN NGÀY THUẦN TIẾNG VIỆT 100% -->
-    <div id="viDatePickerModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm transition-all duration-200">
-      <div class="bg-slate-900 border border-slate-750 w-full max-w-[320px] rounded-3xl p-4 shadow-2xl relative space-y-3 animate-fade-in text-slate-100">
+    <div id="viDatePickerModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm transition-all duration-200" style="display: none;" onclick="if(event.target === this) closeViDatePicker()">
+      <div class="bg-slate-900 border border-slate-750 w-full max-w-[320px] rounded-3xl p-4 shadow-2xl relative space-y-3 animate-fade-in text-slate-100" onclick="event.stopPropagation()">
         
         <!-- Header: Tháng / Năm Tiếng Việt -->
         <div class="flex items-center justify-between pb-2 border-b border-slate-800">
-          <button type="button" onclick="changeViPickerMonth(-1)" class="h-8 w-8 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-300 flex items-center justify-center text-xs font-bold active:scale-90 transition-all">
+          <button type="button" onclick="changeViPickerMonth(-1)" class="h-8 w-8 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-300 flex items-center justify-center text-xs font-bold active:scale-90 transition-all cursor-pointer">
             ◀
           </button>
-          <div id="viPickerMonthYear" class="text-xs font-black text-slate-100 tracking-wide uppercase font-sans">
+          <div id="viPickerMonthYear" class="text-xs font-black text-slate-100 tracking-wide uppercase font-sans select-none">
             Tháng 8 năm 2026
           </div>
-          <button type="button" onclick="changeViPickerMonth(1)" class="h-8 w-8 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-300 flex items-center justify-center text-xs font-bold active:scale-90 transition-all">
+          <button type="button" onclick="changeViPickerMonth(1)" class="h-8 w-8 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-300 flex items-center justify-center text-xs font-bold active:scale-90 transition-all cursor-pointer">
             ▶
           </button>
         </div>
 
         <!-- Thứ trong tuần (Tiếng Việt) -->
-        <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-slate-400">
+        <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-slate-400 select-none">
           <span>T2</span>
           <span>T3</span>
           <span>T4</span>
@@ -751,12 +750,12 @@
           <!-- JS render buttons here -->
         </div>
 
-        <!-- Nút Hôm nay & Xác nhận / Đóng -->
+        <!-- Nút Hôm nay & Đóng -->
         <div class="pt-2 border-t border-slate-800 flex items-center justify-between space-x-2">
-          <button type="button" onclick="selectViPickerToday()" class="flex-1 py-2 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 text-xs font-bold active:scale-95 transition-all">
+          <button type="button" onclick="selectViPickerToday()" class="flex-1 py-2 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 text-xs font-bold active:scale-95 transition-all cursor-pointer">
             Hôm nay
           </button>
-          <button type="button" onclick="closeViDatePicker()" class="flex-1 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold active:scale-95 transition-all shadow-md shadow-indigo-900/30">
+          <button type="button" onclick="closeViDatePicker()" class="flex-1 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold active:scale-95 transition-all shadow-md shadow-indigo-900/30 cursor-pointer">
             Đóng
           </button>
         </div>
@@ -2075,13 +2074,17 @@
 
         renderViPickerDays();
         modal.classList.remove('hidden');
+        modal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
         triggerHaptic();
       };
 
       window.closeViDatePicker = function() {
         const modal = document.getElementById('viDatePickerModal');
-        if (modal) modal.classList.add('hidden');
+        if (modal) {
+          modal.classList.add('hidden');
+          modal.style.display = 'none';
+        }
         document.body.style.overflow = '';
       };
 
@@ -3164,7 +3167,7 @@
         if (btn) btn.innerText = "Đang check...";
         if (headerBtn) headerBtn.innerText = "Checking...";
 
-        const currentVersion = "v2.5.41";
+        const currentVersion = "v2.5.42";
 
         // Tải file index.html trực tiếp từ server để bypass cache bằng timestamp
         fetch('./index.html?t=' + Date.now())
