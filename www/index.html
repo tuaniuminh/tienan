@@ -184,7 +184,7 @@
           <span>⚡</span>
           <span>Tạo QR</span>
         </button>
-        <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.40 PRO</button>
+        <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.41 PRO</button>
       </div>
     </header>
 
@@ -278,19 +278,32 @@
               class="w-full bg-slate-900 border border-slate-700 focus:border-indigo-500 text-slate-100 placeholder-slate-600 rounded-xl py-2 px-3 text-xs focus:outline-none transition-all">
           </div>
 
-          <!-- Chọn ngày chi (Tiếng Việt) -->
+          <!-- Chọn ngày chi (Thuần Tiếng Việt 100%) -->
           <div>
             <div class="flex items-center justify-between mb-1">
               <label class="text-xs font-medium text-slate-400">Ngày chi:</label>
               <span id="dateDisplayVietnamese" class="text-[11px] font-bold text-indigo-400 font-sans">Hôm nay</span>
             </div>
-            <input type="date" id="dateInput" style="color-scheme: dark;" lang="vi-VN"
-              class="w-full bg-slate-900 border border-slate-700 focus:border-indigo-500 text-slate-100 rounded-xl py-2 px-3 text-xs focus:outline-none transition-all">
+            
+            <!-- Ô bấm mở Lịch Tiếng Việt -->
+            <div class="relative">
+              <button type="button" onclick="openViDatePicker()" class="w-full bg-slate-900 border border-slate-700 hover:border-indigo-500 focus:border-indigo-500 text-slate-100 rounded-xl py-2 px-3 text-xs flex items-center justify-between transition-all active:scale-[0.99] text-left">
+                <span id="viDateButtonText" class="font-medium text-slate-200">22/08/2026</span>
+                <span class="text-indigo-400 text-sm">📅</span>
+              </button>
+              <!-- Input ẩn lưu giá trị YYYY-MM-DD để tương thích 100% với logic form -->
+              <input type="hidden" id="dateInput" value="">
+            </div>
+
             <!-- Nút chọn ngày nhanh -->
-            <div class="flex space-x-1.5 mt-1.5">
-              <button type="button" onclick="setQuickExpenseDate(0)" class="px-2.5 py-1 text-[10px] font-bold rounded-lg bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700/60 active:scale-95 transition-all">Hôm nay</button>
-              <button type="button" onclick="setQuickExpenseDate(1)" class="px-2.5 py-1 text-[10px] font-bold rounded-lg bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700/60 active:scale-95 transition-all">Hôm qua</button>
-              <button type="button" onclick="setQuickExpenseDate(2)" class="px-2.5 py-1 text-[10px] font-bold rounded-lg bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700/60 active:scale-95 transition-all">Hôm kia</button>
+            <div class="grid grid-cols-4 gap-1.5 mt-1.5">
+              <button type="button" onclick="setQuickExpenseDate(0)" class="py-1 text-[10px] font-bold rounded-lg bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700/60 active:scale-95 transition-all text-center">Hôm nay</button>
+              <button type="button" onclick="setQuickExpenseDate(1)" class="py-1 text-[10px] font-bold rounded-lg bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700/60 active:scale-95 transition-all text-center">Hôm qua</button>
+              <button type="button" onclick="setQuickExpenseDate(2)" class="py-1 text-[10px] font-bold rounded-lg bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700/60 active:scale-95 transition-all text-center">Hôm kia</button>
+              <button type="button" onclick="openViDatePicker()" class="py-1 text-[10px] font-bold rounded-lg bg-indigo-950/70 hover:bg-indigo-900/80 text-indigo-300 border border-indigo-500/30 active:scale-95 transition-all text-center flex items-center justify-center space-x-0.5">
+                <span>📅</span>
+                <span>Chọn lịch</span>
+              </button>
             </div>
           </div>
 
@@ -700,6 +713,51 @@
           <button onclick="triggerDownloadFromPreview()" class="bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700 font-bold text-xs py-2.5 rounded-xl active:scale-95 transition-all flex items-center justify-center space-x-1">
             <span>📥</span>
             <span>Tải file PNG</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL BẢNG CHỌN NGÀY THUẦN TIẾNG VIỆT 100% -->
+    <div id="viDatePickerModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm transition-all duration-200">
+      <div class="bg-slate-900 border border-slate-750 w-full max-w-[320px] rounded-3xl p-4 shadow-2xl relative space-y-3 animate-fade-in text-slate-100">
+        
+        <!-- Header: Tháng / Năm Tiếng Việt -->
+        <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+          <button type="button" onclick="changeViPickerMonth(-1)" class="h-8 w-8 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-300 flex items-center justify-center text-xs font-bold active:scale-90 transition-all">
+            ◀
+          </button>
+          <div id="viPickerMonthYear" class="text-xs font-black text-slate-100 tracking-wide uppercase font-sans">
+            Tháng 8 năm 2026
+          </div>
+          <button type="button" onclick="changeViPickerMonth(1)" class="h-8 w-8 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-300 flex items-center justify-center text-xs font-bold active:scale-90 transition-all">
+            ▶
+          </button>
+        </div>
+
+        <!-- Thứ trong tuần (Tiếng Việt) -->
+        <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-slate-400">
+          <span>T2</span>
+          <span>T3</span>
+          <span>T4</span>
+          <span>T5</span>
+          <span>T6</span>
+          <span class="text-indigo-400">T7</span>
+          <span class="text-rose-400">CN</span>
+        </div>
+
+        <!-- Lưới ngày 1 -> 31 -->
+        <div id="viPickerDaysGrid" class="grid grid-cols-7 gap-1 text-center text-xs min-h-[190px]">
+          <!-- JS render buttons here -->
+        </div>
+
+        <!-- Nút Hôm nay & Xác nhận / Đóng -->
+        <div class="pt-2 border-t border-slate-800 flex items-center justify-between space-x-2">
+          <button type="button" onclick="selectViPickerToday()" class="flex-1 py-2 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 text-xs font-bold active:scale-95 transition-all">
+            Hôm nay
+          </button>
+          <button type="button" onclick="closeViDatePicker()" class="flex-1 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold active:scale-95 transition-all shadow-md shadow-indigo-900/30">
+            Đóng
           </button>
         </div>
       </div>
@@ -1924,11 +1982,154 @@
         }
       }
 
+      // ==========================================
+      // BỘ LỊCH CHỌN NGÀY CHI THUẦN TIẾNG VIỆT 100%
+      // ==========================================
+      let viPickerCurrentYear = new Date().getFullYear();
+      let viPickerCurrentMonth = new Date().getMonth(); // 0-11
+
+      function renderViPickerDays() {
+        const titleEl = document.getElementById('viPickerMonthYear');
+        const gridEl = document.getElementById('viPickerDaysGrid');
+        if (!titleEl || !gridEl) return;
+
+        // Tiêu đề Tiếng Việt: Tháng X năm YYYY
+        titleEl.innerText = `Tháng ${viPickerCurrentMonth + 1} năm ${viPickerCurrentYear}`;
+
+        gridEl.innerHTML = '';
+
+        // Ngày đầu tiên của tháng
+        const firstDayOfMonth = new Date(viPickerCurrentYear, viPickerCurrentMonth, 1);
+        // Ngày cuối cùng của tháng
+        const lastDayOfMonth = new Date(viPickerCurrentYear, viPickerCurrentMonth + 1, 0);
+        const totalDays = lastDayOfMonth.getDate();
+
+        // Thứ của ngày đầu tiên (0: CN, 1: T2, ..., 6: T7)
+        // Chúng ta xếp: T2 = 0, T3 = 1, T4 = 2, T5 = 3, T6 = 4, T7 = 5, CN = 6
+        let startDayIndex = firstDayOfMonth.getDay() - 1;
+        if (startDayIndex === -1) startDayIndex = 6; // Chủ nhật đưa về cuối
+
+        // Ô trống đầu tháng
+        for (let i = 0; i < startDayIndex; i++) {
+          const emptyCell = document.createElement('div');
+          emptyCell.className = 'h-8 w-8';
+          gridEl.appendChild(emptyCell);
+        }
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const currentSelectedYMD = document.getElementById('dateInput') ? document.getElementById('dateInput').value : '';
+
+        // Render từng ngày trong tháng
+        for (let day = 1; day <= totalDays; day++) {
+          const cellDate = new Date(viPickerCurrentYear, viPickerCurrentMonth, day);
+          cellDate.setHours(0, 0, 0, 0);
+
+          const y = viPickerCurrentYear;
+          const m = String(viPickerCurrentMonth + 1).padStart(2, '0');
+          const d = String(day).padStart(2, '0');
+          const ymdStr = `${y}-${m}-${d}`;
+
+          const isSelected = (ymdStr === currentSelectedYMD);
+          const isToday = (cellDate.getTime() === today.getTime());
+
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.innerText = day;
+
+          let btnClasses = 'h-8 w-8 rounded-xl font-bold text-xs flex items-center justify-center transition-all active:scale-90 ';
+          if (isSelected) {
+            btnClasses += 'bg-indigo-600 text-white shadow-md shadow-indigo-600/40 ring-2 ring-indigo-400 ';
+          } else if (isToday) {
+            btnClasses += 'bg-slate-800 text-indigo-400 border border-indigo-500/40 hover:bg-slate-750 ';
+          } else {
+            btnClasses += 'text-slate-200 hover:bg-slate-800/80 ';
+          }
+
+          btn.className = btnClasses;
+          btn.onclick = () => {
+            selectViPickerDate(ymdStr);
+          };
+
+          gridEl.appendChild(btn);
+        }
+      }
+
+      window.openViDatePicker = function() {
+        const modal = document.getElementById('viDatePickerModal');
+        if (!modal) return;
+
+        const dateInput = document.getElementById('dateInput');
+        if (dateInput && dateInput.value) {
+          const parts = dateInput.value.split('-');
+          if (parts.length === 3) {
+            viPickerCurrentYear = Number(parts[0]);
+            viPickerCurrentMonth = Number(parts[1]) - 1;
+          }
+        } else {
+          const now = new Date();
+          viPickerCurrentYear = now.getFullYear();
+          viPickerCurrentMonth = now.getMonth();
+        }
+
+        renderViPickerDays();
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        triggerHaptic();
+      };
+
+      window.closeViDatePicker = function() {
+        const modal = document.getElementById('viDatePickerModal');
+        if (modal) modal.classList.add('hidden');
+        document.body.style.overflow = '';
+      };
+
+      window.changeViPickerMonth = function(delta) {
+        viPickerCurrentMonth += delta;
+        if (viPickerCurrentMonth < 0) {
+          viPickerCurrentMonth = 11;
+          viPickerCurrentYear -= 1;
+        } else if (viPickerCurrentMonth > 11) {
+          viPickerCurrentMonth = 0;
+          viPickerCurrentYear += 1;
+        }
+        renderViPickerDays();
+        triggerHaptic();
+      };
+
+      window.selectViPickerDate = function(ymdStr) {
+        const dateInput = document.getElementById('dateInput');
+        if (dateInput) {
+          dateInput.value = ymdStr;
+          updateExpenseDateDisplay();
+        }
+        closeViDatePicker();
+        triggerHaptic();
+      };
+
+      window.selectViPickerToday = function() {
+        setQuickExpenseDate(0);
+        closeViDatePicker();
+      };
+
       function updateExpenseDateDisplay() {
         const dateInput = document.getElementById('dateInput');
         const displayEl = document.getElementById('dateDisplayVietnamese');
-        if (dateInput && displayEl) {
-          displayEl.innerText = formatVietnameseDate(dateInput.value);
+        const btnText = document.getElementById('viDateButtonText');
+        if (!dateInput) return;
+
+        const val = dateInput.value;
+        if (displayEl) {
+          displayEl.innerText = formatVietnameseDate(val);
+        }
+        if (btnText && val) {
+          const parts = val.split('-');
+          if (parts.length === 3) {
+            btnText.innerText = `${parts[2]}/${parts[1]}/${parts[0]}`;
+          } else {
+            btnText.innerText = val;
+          }
         }
       }
 
@@ -1944,6 +2145,7 @@
           dateInput.value = dateStr;
           updateExpenseDateDisplay();
         }
+        triggerHaptic();
       };
 
       // ==========================================
@@ -2962,7 +3164,7 @@
         if (btn) btn.innerText = "Đang check...";
         if (headerBtn) headerBtn.innerText = "Checking...";
 
-        const currentVersion = "v2.5.40";
+        const currentVersion = "v2.5.41";
 
         // Tải file index.html trực tiếp từ server để bypass cache bằng timestamp
         fetch('./index.html?t=' + Date.now())
