@@ -179,7 +179,13 @@
         <img src="icon-192.png" alt="Logo" class="h-8 w-8 rounded-lg object-contain border border-indigo-500/20 shadow-md shadow-indigo-500/10">
         <h1 class="text-sm font-black tracking-wider text-slate-200">SỔ THEO DÕI TIỀN ĂN</h1>
       </div>
-      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.34 PRO</button>
+      <div class="flex items-center space-x-1.5">
+        <button onclick="openQuickQrModal()" class="text-[10px] bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold px-2.5 py-1 rounded border border-indigo-400/30 active:scale-95 transition-all flex items-center space-x-1 shadow-sm shadow-indigo-600/20">
+          <span>⚡</span>
+          <span>Tạo QR</span>
+        </button>
+        <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.35 PRO</button>
+      </div>
     </header>
 
     <!-- KHOẢN PHẢI THU (BALANCE CARD GRID) -->
@@ -465,6 +471,112 @@
         <!-- JS renders items here -->
       </div>
     </section>
+
+    <!-- QUICK VIETQR GENERATOR MODAL (Tạo mã QR nhận tiền nhanh - Độc lập) -->
+    <div id="quickQrModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+      <div class="bg-slate-900 border border-slate-750 rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl animate-fade-in flex flex-col max-h-[92vh]">
+        <!-- Modal Header -->
+        <div class="px-5 py-3.5 border-b border-slate-800 flex items-center justify-between bg-slate-900/95 sticky top-0 z-10">
+          <div class="flex items-center space-x-2">
+            <span class="text-base">⚡</span>
+            <div>
+              <h3 class="text-xs font-black text-slate-100 tracking-wide uppercase">Tạo QR Nhận Tiền Nhanh</h3>
+              <p class="text-[9px] text-slate-400">Quét thanh toán đúng số tiền tức thì</p>
+            </div>
+          </div>
+          <button onclick="closeQuickQrModal()" class="h-7 w-7 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center text-xs transition-colors">✕</button>
+        </div>
+
+        <!-- Modal Body (Scrollable) -->
+        <div class="p-4 overflow-y-auto space-y-3.5">
+          <!-- Thông báo nếu chưa cấu hình ngân hàng -->
+          <div id="quickQrNoBankAlert" class="hidden bg-amber-950/40 border border-amber-500/30 rounded-2xl p-3.5 text-xs text-amber-200">
+            <div class="font-bold flex items-center space-x-1.5 text-amber-300 mb-1">
+              <span>⚠️</span>
+              <span>Chưa cài đặt ngân hàng</span>
+            </div>
+            <p class="text-[11px] text-amber-200/80 leading-relaxed mb-2.5">Vui lòng nhập thông tin ngân hàng & số tài khoản để tạo mã QR chuẩn VietQR.</p>
+            <button onclick="closeQuickQrModal(); toggleBankManager(true);" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold text-[11px] py-1.5 rounded-xl transition-all active:scale-95">
+              Cài đặt ngân hàng ngay
+            </button>
+          </div>
+
+          <!-- Thông tin tài khoản nhận tiền tóm tắt -->
+          <div id="quickQrBankInfo" class="bg-slate-850/80 border border-slate-750/70 rounded-2xl p-3 flex items-center justify-between text-xs">
+            <div class="flex items-center space-x-2.5 min-w-0">
+              <div class="h-8 w-8 rounded-xl bg-indigo-950 border border-indigo-500/20 flex items-center justify-center text-indigo-400 text-sm font-bold shrink-0">🏦</div>
+              <div class="min-w-0">
+                <div id="quickQrAccountName" class="font-bold text-slate-200 text-xs truncate">TÊN CHỦ TK</div>
+                <div id="quickQrBankDetail" class="text-[11px] text-slate-400 font-mono truncate">STK: ...</div>
+              </div>
+            </div>
+            <button onclick="closeQuickQrModal(); toggleBankManager(true);" class="text-[10px] text-indigo-400 hover:text-indigo-300 font-semibold underline shrink-0 ml-2">Đổi STK</button>
+          </div>
+
+          <!-- Nhập số tiền -->
+          <div>
+            <label class="block text-[11px] font-bold text-slate-300 mb-1 flex items-center justify-between">
+              <span>Số tiền cần nhận (VND):</span>
+              <span id="quickAmountFormatted" class="text-indigo-400 font-mono font-bold">0đ</span>
+            </label>
+            <div class="relative">
+              <input type="text" id="quickQrAmountInput" inputmode="numeric" placeholder="Nhập số tiền (ví dụ: 50.000)..." 
+                class="w-full bg-slate-950 border border-slate-750 focus:border-indigo-500 text-slate-100 font-bold text-base rounded-2xl py-2 px-3.5 focus:outline-none transition-all placeholder:text-slate-600 placeholder:text-xs">
+              <button type="button" onclick="clearQuickQrAmount()" class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500 hover:text-slate-300">✕</button>
+            </div>
+            
+            <!-- Phím tắt nhanh số tiền -->
+            <div class="grid grid-cols-5 gap-1 mt-2">
+              <button type="button" onclick="setQuickQrAmount(20000)" class="bg-slate-800 hover:bg-slate-750 text-slate-300 text-[10px] font-bold py-1.5 rounded-xl active:scale-95 transition-all border border-slate-750">20k</button>
+              <button type="button" onclick="setQuickQrAmount(50000)" class="bg-slate-800 hover:bg-slate-750 text-slate-300 text-[10px] font-bold py-1.5 rounded-xl active:scale-95 transition-all border border-slate-750">50k</button>
+              <button type="button" onclick="setQuickQrAmount(100000)" class="bg-slate-800 hover:bg-slate-750 text-slate-300 text-[10px] font-bold py-1.5 rounded-xl active:scale-95 transition-all border border-slate-750">100k</button>
+              <button type="button" onclick="setQuickQrAmount(200000)" class="bg-slate-800 hover:bg-slate-750 text-slate-300 text-[10px] font-bold py-1.5 rounded-xl active:scale-95 transition-all border border-slate-750">200k</button>
+              <button type="button" onclick="setQuickQrAmount(500000)" class="bg-slate-800 hover:bg-slate-750 text-slate-300 text-[10px] font-bold py-1.5 rounded-xl active:scale-95 transition-all border border-slate-750">500k</button>
+            </div>
+          </div>
+
+          <!-- Nhập nội dung chuyển khoản -->
+          <div>
+            <label class="block text-[11px] font-bold text-slate-300 mb-1">Nội dung chuyển khoản (Tùy chọn):</label>
+            <input type="text" id="quickQrNoteInput" placeholder="Ví dụ: Tien cafe, Tra tien..." 
+              class="w-full bg-slate-950 border border-slate-750 focus:border-indigo-500 text-slate-200 text-xs rounded-xl py-2 px-3 focus:outline-none transition-all placeholder:text-slate-600">
+          </div>
+
+          <!-- Khung hiển thị Mã QR VietQR Kết quả -->
+          <div id="quickQrResultBox" class="space-y-2.5 pt-1">
+            <div class="bg-white rounded-2xl p-3.5 shadow-xl flex flex-col items-center justify-center text-slate-900 border border-slate-200">
+              <div class="text-[9px] font-black text-slate-500 uppercase tracking-wider mb-1.5">QUÉT MÃ ĐỂ CHUYỂN KHOẢN</div>
+              
+              <div class="relative flex items-center justify-center bg-white p-2 rounded-xl border border-slate-200 shadow-inner">
+                <img id="quickQrImage" src="" alt="VietQR" class="w-44 h-44 object-contain">
+                <div id="quickQrLoader" class="absolute inset-0 bg-white/90 flex flex-col items-center justify-center space-y-1.5">
+                  <span class="text-indigo-600 animate-spin text-xl">⏳</span>
+                  <span class="text-[10px] text-slate-500 font-semibold">Đang nạp mã QR...</span>
+                </div>
+              </div>
+
+              <div class="mt-2.5 text-center w-full">
+                <div id="quickQrDisplayAmount" class="text-lg font-black text-indigo-600 font-mono tracking-tight">0đ</div>
+                <div id="quickQrDisplayNote" class="text-[10px] text-slate-500 mt-0.5 truncate px-2 font-medium">Nội dung: Chuyen tien</div>
+              </div>
+            </div>
+
+            <!-- Các nút hành động -->
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" onclick="copyQuickQrAccount()" class="bg-slate-800 hover:bg-slate-750 text-slate-200 text-xs font-bold py-2.5 px-3 rounded-xl border border-slate-700 active:scale-95 transition-all flex items-center justify-center space-x-1.5">
+                <span>📋</span>
+                <span id="btnCopyAccountText">Sao chép STK</span>
+              </button>
+              <button type="button" onclick="downloadQuickQrImage()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-2.5 px-3 rounded-xl active:scale-95 transition-all flex items-center justify-center space-x-1.5 shadow-md shadow-indigo-900/30">
+                <span>📥</span>
+                <span id="btnDownloadQrText">Tải ảnh QR</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
 
   </main>
 
@@ -1494,12 +1606,14 @@
         dismissUndoToast();
       };
 
-      window.toggleBankManager = function() {
+      window.toggleBankManager = function(forceOpen) {
         const content = document.getElementById('bankManagerContent');
         const arrow = document.getElementById('bankToggleArrow');
-        if (content.classList.contains('hidden')) {
+        const shouldOpen = (forceOpen !== undefined) ? forceOpen : content.classList.contains('hidden');
+        if (shouldOpen) {
           content.classList.remove('hidden');
           arrow.style.transform = 'rotate(180deg)';
+          content.scrollIntoView({ behavior: 'smooth' });
         } else {
           content.classList.add('hidden');
           arrow.style.transform = 'rotate(0deg)';
@@ -1520,6 +1634,177 @@
         const config = { bank, account, accountName };
         AppStore.saveBankConfig(config);
         alert('Đã lưu cấu hình ngân hàng thành công!');
+      };
+
+      // ==========================================
+      // TẠO MÃ QR NHẬN TIỀN NHANH (QUICK VIETQR GENERATOR - ĐỘC LẬP)
+      // ==========================================
+      let quickQrDebounceTimer = null;
+
+      window.openQuickQrModal = function(defaultAmount = 0, defaultNote = '') {
+        const modal = document.getElementById('quickQrModal');
+        if (!modal) return;
+
+        const noBankAlert = document.getElementById('quickQrNoBankAlert');
+        const bankInfo = document.getElementById('quickQrBankInfo');
+        const resultBox = document.getElementById('quickQrResultBox');
+        const accountNameEl = document.getElementById('quickQrAccountName');
+        const bankDetailEl = document.getElementById('quickQrBankDetail');
+        const amountInput = document.getElementById('quickQrAmountInput');
+        const noteInput = document.getElementById('quickQrNoteInput');
+
+        if (!AppStore.bankConfig || !AppStore.bankConfig.bank || !AppStore.bankConfig.account) {
+          noBankAlert.classList.remove('hidden');
+          bankInfo.classList.add('hidden');
+          resultBox.classList.add('hidden');
+        } else {
+          noBankAlert.classList.add('hidden');
+          bankInfo.classList.remove('hidden');
+          resultBox.classList.remove('hidden');
+          accountNameEl.innerText = (AppStore.bankConfig.accountName || 'CHỦ TÀI KHOẢN').toUpperCase();
+          bankDetailEl.innerText = `STK: ${AppStore.bankConfig.account} (${AppStore.bankConfig.bank.toUpperCase()})`;
+        }
+
+        if (defaultAmount > 0) {
+          amountInput.value = Number(defaultAmount).toLocaleString('vi-VN');
+        } else if (!amountInput.value) {
+          amountInput.value = '';
+        }
+
+        if (defaultNote) {
+          noteInput.value = defaultNote;
+        }
+
+        updateQuickQrDisplay();
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+      };
+
+      window.closeQuickQrModal = function() {
+        const modal = document.getElementById('quickQrModal');
+        if (modal) {
+          modal.classList.add('hidden');
+        }
+        document.body.style.overflow = '';
+      };
+
+      window.clearQuickQrAmount = function() {
+        const amountInput = document.getElementById('quickQrAmountInput');
+        if (amountInput) {
+          amountInput.value = '';
+          updateQuickQrDisplay();
+          amountInput.focus();
+        }
+      };
+
+      window.setQuickQrAmount = function(amount) {
+        const amountInput = document.getElementById('quickQrAmountInput');
+        if (amountInput) {
+          amountInput.value = Number(amount).toLocaleString('vi-VN');
+          updateQuickQrDisplay();
+        }
+      };
+
+      function parseQuickQrAmount() {
+        const amountInput = document.getElementById('quickQrAmountInput');
+        if (!amountInput || !amountInput.value) return 0;
+        const raw = amountInput.value.replace(/\D/g, '');
+        return Number(raw) || 0;
+      }
+
+      function updateQuickQrDisplay() {
+        const amount = parseQuickQrAmount();
+        const noteInput = document.getElementById('quickQrNoteInput');
+        const rawNote = noteInput ? noteInput.value.trim() : '';
+        
+        // Cập nhật nhãn số tiền định dạng
+        const amountFormattedEl = document.getElementById('quickAmountFormatted');
+        if (amountFormattedEl) {
+          amountFormattedEl.innerText = formatVND(amount);
+        }
+
+        const displayAmountEl = document.getElementById('quickQrDisplayAmount');
+        if (displayAmountEl) {
+          displayAmountEl.innerText = formatVND(amount);
+        }
+
+        const displayNoteEl = document.getElementById('quickQrDisplayNote');
+        const cleanNote = rawNote.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D").trim();
+        if (displayNoteEl) {
+          displayNoteEl.innerText = cleanNote ? `Nội dung: ${cleanNote}` : 'Nội dung: Chuyen tien';
+        }
+
+        // Tạo URL VietQR
+        if (AppStore.bankConfig && AppStore.bankConfig.bank && AppStore.bankConfig.account) {
+          const qrImg = document.getElementById('quickQrImage');
+          const loader = document.getElementById('quickQrLoader');
+          const addInfo = encodeURIComponent(cleanNote || 'Chuyen tien');
+          const accountName = encodeURIComponent(AppStore.bankConfig.accountName || '');
+          const qrUrl = `https://img.vietqr.io/image/${AppStore.bankConfig.bank}-${AppStore.bankConfig.account}-compact2.png?amount=${amount}&addInfo=${addInfo}&accountName=${accountName}`;
+
+          if (qrImg) {
+            if (loader) loader.classList.remove('hidden');
+            qrImg.onload = () => {
+              if (loader) loader.classList.add('hidden');
+            };
+            qrImg.onerror = () => {
+              if (loader) loader.classList.add('hidden');
+            };
+            qrImg.src = qrUrl;
+          }
+        }
+      }
+
+      window.copyQuickQrAccount = function() {
+        if (!AppStore.bankConfig || !AppStore.bankConfig.account) {
+          alert("Chưa có thông tin số tài khoản!");
+          return;
+        }
+        const text = AppStore.bankConfig.account;
+        secureCopyToClipboard(text).then(() => {
+          const btnText = document.getElementById('btnCopyAccountText');
+          if (btnText) {
+            const old = btnText.innerText;
+            btnText.innerText = "✓ Đã chép!";
+            setTimeout(() => { btnText.innerText = old; }, 2000);
+          }
+        }).catch(() => {
+          alert(`STK: ${text}`);
+        });
+      };
+
+      window.downloadQuickQrImage = function() {
+        const qrImg = document.getElementById('quickQrImage');
+        if (!qrImg || !qrImg.src) {
+          alert('Chưa có mã QR để tải!');
+          return;
+        }
+        const btnText = document.getElementById('btnDownloadQrText');
+        const oldText = btnText ? btnText.innerText : '';
+        if (btnText) btnText.innerText = "⏳ Đang tải...";
+
+        fetch(qrImg.src)
+          .then(res => res.blob())
+          .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            const amount = parseQuickQrAmount();
+            a.download = `VietQR_${amount || 'NhanTien'}_${Date.now()}.png`;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => {
+              window.URL.revokeObjectURL(url);
+              a.remove();
+              if (btnText) btnText.innerText = oldText;
+            }, 500);
+          })
+          .catch(err => {
+            console.error('Lỗi tải ảnh QR:', err);
+            window.open(qrImg.src, '_blank');
+            if (btnText) btnText.innerText = oldText;
+          });
       };
 
       // ==========================================
@@ -2143,7 +2428,7 @@
         if (btn) btn.innerText = "Đang check...";
         if (headerBtn) headerBtn.innerText = "Checking...";
 
-        const currentVersion = "v2.5.34";
+        const currentVersion = "v2.5.35";
 
         // Tải file index.html trực tiếp từ server để bypass cache bằng timestamp
         fetch('./index.html?t=' + Date.now())
@@ -2413,6 +2698,30 @@
         
         // Kích hoạt tính năng phản hồi rung khi chạm nút
         initHapticFeedback();
+
+        // Lắng nghe sự kiện nhập liệu cho công cụ Tạo QR nhanh
+        const quickAmountInput = document.getElementById('quickQrAmountInput');
+        if (quickAmountInput) {
+          quickAmountInput.addEventListener('input', function() {
+            const raw = this.value.replace(/\D/g, '');
+            if (raw) {
+              const num = Number(raw);
+              this.value = num.toLocaleString('vi-VN');
+            } else {
+              this.value = '';
+            }
+            if (quickQrDebounceTimer) clearTimeout(quickQrDebounceTimer);
+            quickQrDebounceTimer = setTimeout(updateQuickQrDisplay, 250);
+          });
+        }
+
+        const quickNoteInput = document.getElementById('quickQrNoteInput');
+        if (quickNoteInput) {
+          quickNoteInput.addEventListener('input', function() {
+            if (quickQrDebounceTimer) clearTimeout(quickQrDebounceTimer);
+            quickQrDebounceTimer = setTimeout(updateQuickQrDisplay, 250);
+          });
+        }
       });
 
     })();
