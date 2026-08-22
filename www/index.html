@@ -184,7 +184,7 @@
           <span>⚡</span>
           <span>Tạo QR</span>
         </button>
-        <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.42 PRO</button>
+        <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.43 PRO</button>
       </div>
     </header>
 
@@ -285,18 +285,13 @@
               <span id="dateDisplayVietnamese" class="text-[11px] font-bold text-indigo-400 font-sans">Hôm nay</span>
             </div>
             
-            <!-- Ô bấm mở Lịch Tiếng Việt -->
-            <div class="relative">
-              <button type="button" id="btnDateTrigger" onclick="openViDatePicker()" class="w-full bg-slate-900 border border-slate-700 hover:border-indigo-500 focus:border-indigo-500 text-slate-100 rounded-xl py-2 px-3 text-xs flex items-center justify-between transition-all active:scale-[0.99] text-left cursor-pointer shadow-sm">
-                <div class="flex items-center space-x-2">
-                  <span class="text-indigo-400 text-sm">📅</span>
-                  <span id="viDateButtonText" class="font-bold text-slate-100 font-sans text-xs">22/08/2026</span>
-                </div>
-                <span class="text-[10px] text-indigo-400 font-bold bg-indigo-950/70 border border-indigo-500/30 px-2 py-0.5 rounded-lg">Đổi ngày ▼</span>
-              </button>
-              <!-- Input ẩn lưu giá trị YYYY-MM-DD để tương thích 100% với logic form -->
-              <input type="hidden" id="dateInput" value="">
-            </div>
+            <!-- Ô bấm mở Lịch Tiếng Việt (Không có nút đổi ngày, bấm trực tiếp vào ô) -->
+            <button type="button" id="btnDateTrigger" onclick="openViDatePicker()" class="w-full bg-slate-900 border border-slate-700 hover:border-indigo-500 focus:border-indigo-500 text-slate-100 rounded-xl py-2 px-3 text-xs flex items-center justify-between transition-all active:scale-[0.99] text-left cursor-pointer shadow-sm select-none">
+              <span id="viDateButtonText" class="font-medium text-slate-200 font-sans text-xs">22/08/2026</span>
+              <span class="text-slate-400 text-sm pointer-events-none">📅</span>
+            </button>
+            <!-- Input ẩn lưu giá trị YYYY-MM-DD để tương thích 100% với logic form -->
+            <input type="hidden" id="dateInput" value="">
 
             <!-- 3 Nút chọn ngày nhanh -->
             <div class="grid grid-cols-3 gap-1.5 mt-1.5">
@@ -718,7 +713,7 @@
     </div>
 
     <!-- MODAL BẢNG CHỌN NGÀY THUẦN TIẾNG VIỆT 100% -->
-    <div id="viDatePickerModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm transition-all duration-200" style="display: none;" onclick="if(event.target === this) closeViDatePicker()">
+    <div id="viDatePickerModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 transition-all duration-200" onclick="if(event.target === this) closeViDatePicker()">
       <div class="bg-slate-900 border border-slate-750 w-full max-w-[320px] rounded-3xl p-4 shadow-2xl relative space-y-3 animate-fade-in text-slate-100" onclick="event.stopPropagation()">
         
         <!-- Header: Tháng / Năm Tiếng Việt -->
@@ -3167,7 +3162,7 @@
         if (btn) btn.innerText = "Đang check...";
         if (headerBtn) headerBtn.innerText = "Checking...";
 
-        const currentVersion = "v2.5.42";
+        const currentVersion = "v2.5.43";
 
         // Tải file index.html trực tiếp từ server để bypass cache bằng timestamp
         fetch('./index.html?t=' + Date.now())
@@ -3424,6 +3419,15 @@
           updateExpenseDateDisplay();
           dateInput.addEventListener('input', updateExpenseDateDisplay);
           dateInput.addEventListener('change', updateExpenseDateDisplay);
+        }
+
+        const btnDateTrigger = document.getElementById('btnDateTrigger');
+        if (btnDateTrigger) {
+          btnDateTrigger.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            openViDatePicker();
+          });
         }
 
         // Tự động kích hoạt loại bữa ăn hiện tại
