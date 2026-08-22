@@ -761,6 +761,73 @@
       let selectedParticipants = new Set();
 
       // ==========================================
+      // 0. CONSTANTS & NOTIFICATION SYSTEM
+      // ==========================================
+
+      // Thành viên cốt lõi — chỉ định nghĩa 1 chỗ duy nhất, thay vì hardcode rải rác
+      const CORE_MEMBERS = ['Thắng', 'Phú'];
+
+      // Toast notification — thay thế toàn bộ alert()
+      function showToast(message, type, duration) {
+        type = type || 'info';
+        duration = (duration !== undefined) ? duration : 4000;
+        const existing = document.getElementById('appToast');
+        if (existing) {
+          existing.classList.remove('toast-enter');
+          existing.classList.add('toast-exit');
+          setTimeout(function() { if (existing.parentNode) existing.remove(); }, 200);
+        }
+
+        var palette = {
+          success: { bg: 'bg-emerald-950/95', border: 'border-emerald-700/40', icon: '✅', text: 'text-emerald-200' },
+          error:   { bg: 'bg-rose-950/95',    border: 'border-rose-700/40',    icon: '❌', text: 'text-rose-200'    },
+          warning: { bg: 'bg-amber-950/95',   border: 'border-amber-700/40',   icon: '⚠️', text: 'text-amber-200'  },
+          info:    { bg: 'bg-slate-900/95',   border: 'border-slate-700/40',   icon: 'ℹ️', text: 'text-slate-200'   },
+        };
+        var c = palette[type] || palette.info;
+
+        var toast = document.createElement('div');
+        toast.id = 'appToast';
+        toast.className = 'fixed top-5 left-1/2 -translate-x-1/2 z-[9999] w-[90%] max-w-sm rounded-2xl ' + c.bg + ' backdrop-blur-md border ' + c.border + ' shadow-2xl flex items-center space-x-3 px-4 py-3.5 toast-enter select-none';
+        toast.innerHTML = '<span class="text-base flex-shrink-0">' + c.icon + '</span>'
+          + '<span class="text-xs font-semibold ' + c.text + ' flex-grow leading-snug">' + message + '</span>'
+          + '<button onclick="var t=this.closest(\'#appToast\');if(t)t.remove();" class="text-slate-400 hover:text-white text-sm flex-shrink-0 active:scale-90 transition-all pl-1">✕</button>';
+        document.body.appendChild(toast);
+
+        if (duration > 0) {
+          setTimeout(function() {
+            if (toast.parentNode) {
+              toast.classList.remove('toast-enter');
+              toast.classList.add('toast-exit');
+              setTimeout(function() { if (toast.parentNode) toast.remove(); }, 300);
+            }
+          }, duration);
+        }
+      }
+
+      // Confirm modal — thay thế toàn bộ confirm()
+      function showConfirm(message, onConfirm, onCancel) {
+        var existing = document.getElementById('appConfirmModal');
+        if (existing) existing.remove();
+
+        var overlay = document.createElement('div');
+        overlay.id = 'appConfirmModal';
+        overlay.className = 'fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[9998] flex items-center justify-center p-4';
+        overlay.innerHTML = '<div class="bg-slate-900 border border-slate-700/50 rounded-2xl p-5 w-full max-w-xs shadow-2xl space-y-4" onclick="event.stopPropagation()">'
+          + '<p class="text-sm text-slate-200 font-medium leading-relaxed">' + message + '</p>'
+          + '<div class="flex space-x-2">'
+          + '<button id="confirmCancelBtn" class="flex-1 py-2.5 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700 active:scale-95 transition-all">Hủy</button>'
+          + '<button id="confirmOkBtn" class="flex-1 py-2.5 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white active:scale-95 transition-all shadow-md">Xác nhận</button>'
+          + '</div></div>';
+        document.body.appendChild(overlay);
+
+        function close(cb) { overlay.remove(); if (cb) cb(); }
+        document.getElementById('confirmOkBtn').onclick     = function() { close(onConfirm); };
+        document.getElementById('confirmCancelBtn').onclick = function() { close(onCancel); };
+        overlay.onclick = function() { close(onCancel); };
+      }
+
+      // ==========================================
       // 1. ANTI-ZOOM DI ĐỘNG & TRÌNH DUYỆT TRONG APP
       // ==========================================
       
@@ -803,10 +870,10 @@
             const shares = tx.shares || {};
             
             if (tx.aShare !== undefined) {
-              shares["Thắng"] = Number(tx.aShare);
+              shares[CORE_MEMBERS[0]] = Number(tx.aShare);
             }
             if (tx.bShare !== undefined) {
-              shares["Phú"] = Number(tx.bShare);
+              shares[CORE_MEMBERS[1]] = Number(tx.bShare);
             }
 
             // Đồng bộ hóa các trường thông tin cơ bản
@@ -903,7 +970,7 @@
           } catch(e) {
             console.error("Lỗi lưu vào LocalStorage:", e);
             if (e.name === 'QuotaExceededError' || e.code === 22) {
-              alert("⚠️ Cảnh báo: Bộ nhớ thiết bị đã đầy! Vui lòng tải bản sao lưu (JSON) và dọn dẹp dung lượng máy.");
+              showToast("⚠️ Bộ nhớ thiết bị đã đầy! Vui lòng tải bản sao lưu (JSON) và dọn dẹp dung lượng máy.", 'error', 8000);
             }
           }
         },
@@ -918,10 +985,8 @@
         },
 
         getMembers() {
-          const core = ['Thắng', 'Phú'];
-          // Hợp nhất khách và loại bỏ trùng lặp
-          const merged = [...core, ...this.guests];
-          return merged.filter((item, index) => merged.indexOf(item) === index);
+          // Hợp nhất thành viên cốt lõi và khách, loại bỏ trùng lặp bằng Set (O(n) thay vì O(n²))
+          return [...new Set([...CORE_MEMBERS, ...this.guests])];
         },
 
         addTransaction(amount, mealType, description, selectedParticipants, customDate) {
@@ -1089,8 +1154,9 @@
             }
           } catch (err) {
             reject(err);
+          } finally {
+            textArea.remove(); // Đảm bảo luôn dọn dẹp DOM dù có lỗi hay không
           }
-          textArea.remove();
         });
       }
 
@@ -1126,8 +1192,8 @@
         }
         
         Object.entries(balances).forEach(([name, amt]) => {
-          // Chỉ hiển thị 'Thắng', 'Phú' hoặc những khách có số dư nợ > 0
-          if (name !== 'Thắng' && name !== 'Phú' && amt === 0) {
+          // Chỉ hiển thị thành viên cốt lõi hoặc những khách có số dư nợ > 0
+          if (!CORE_MEMBERS.includes(name) && amt === 0) {
             return;
           }
           
@@ -1768,7 +1834,7 @@
           vpb: 'VPBank',
           shb: 'SHB',
           hdb: 'HDBank',
-          scb: 'SCB',
+                scb: 'SCB',
           stb: 'Sacombank',
           vib: 'VIB',
           msb: 'MSB'
@@ -1826,7 +1892,7 @@
       };
 
       window.clearBankConfig = function() {
-        if (confirm("Bạn có chắc chắn muốn xóa thông tin tài khoản ngân hàng này?")) {
+        showConfirm("Bạn có chắc chắn muốn xóa thông tin tài khoản ngân hàng này?", function() {
           AppStore.saveBankConfig(null);
           const select = document.getElementById('qrBankSelect');
           const accInput = document.getElementById('qrBankAccount');
@@ -1836,7 +1902,7 @@
           if (nameInput) nameInput.value = '';
           renderBankConfigUI();
           triggerHaptic();
-        }
+        });
       };
 
       function getFormattedBankShareText() {
@@ -1865,7 +1931,7 @@
           }
           triggerHaptic();
         }).catch(() => {
-          alert(text);
+          showToast(text, 'info', 8000); // Fallback: hiển thị nội dung để người dùng copy thủ công
         });
       };
 
@@ -2237,7 +2303,7 @@
 
       window.copyQuickQrAccount = function() {
         if (!AppStore.bankConfig || !AppStore.bankConfig.account) {
-          alert("Chưa có thông tin số tài khoản!");
+          showToast("Chưa có thông tin số tài khoản!", 'warning');
           return;
         }
         const text = getFormattedBankShareText();
@@ -2250,13 +2316,89 @@
           }
           triggerHaptic();
         }).catch(() => {
-          alert(text);
+          showToast(text, 'info', 8000); // Hiển thị nội dung dài hơn để người dùng có thể copy thủ công
         });
       };
 
+      // ==========================================
+      // HELPER: XÂY DỰNG URL VIETQR (DÙNG CHUNG 3 NƠI)
+      // ==========================================
+      // noteClean: chuỗi nội dung đã được loại bỏ dấu tiếng Việt
+      // accountNameClean: tên chủ tài khoản đã được loại bỏ dấu
+      // template: 'compact2' (mặc định) hoặc 'compact'
+      function buildVietQrUrl(bank, account, amount, noteClean, accountNameClean, template) {
+        template = template || 'compact2';
+        const addInfo = encodeURIComponent(noteClean || 'Chuyen tien');
+        const accountName = encodeURIComponent(accountNameClean || '');
+        return 'https://img.vietqr.io/image/' + bank + '-' + account + '-' + template + '.png?amount=' + amount + '&addInfo=' + addInfo + '&accountName=' + accountName;
+      }
+
+      // ==========================================
+      // HELPER: CHỤP ẢNH VÀ CHIA SẺ (DÙNG CHUNG 2 HÀM CAPTURE)
+      // ==========================================
+      // options: { filename, shareTitle, shareText, btnEl, originalText, flagName }
+      function captureAndShare(container, options) {
+        var filename = options.filename;
+        var shareTitle = options.shareTitle;
+        var shareText = options.shareText;
+        var btnEl = options.btnEl;
+        var originalText = options.originalText;
+        var flagName = options.flagName;
+
+        document.body.appendChild(container);
+
+        setTimeout(function() {
+          if (typeof html2canvas === 'undefined') {
+            console.error('html2canvas is not loaded');
+            container.remove();
+            if (btnEl) btnEl.innerHTML = originalText;
+            if (flagName) window[flagName] = false;
+            showToast('Thư viện tạo ảnh chưa được tải xong, vui lòng thử lại sau.', 'error');
+            return;
+          }
+
+          html2canvas(container, {
+            backgroundColor: '#ffffff',
+            scale: 2,
+            useCORS: true,
+            logging: false
+          }).then(function(canvas) {
+            container.remove();
+            if (btnEl) btnEl.innerHTML = originalText;
+            if (flagName) window[flagName] = false;
+
+            if (navigator.share && navigator.canShare) {
+              canvas.toBlob(function(blob) {
+                if (!blob) { triggerDirectDownload(canvas, filename); return; }
+                var file = new File([blob], filename, { type: 'image/png' });
+                if (navigator.canShare({ files: [file] })) {
+                  navigator.share({
+                    files: [file],
+                    title: shareTitle,
+                    text: shareText
+                  }).catch(function() {
+                    triggerDirectDownload(canvas, filename);
+                  });
+                } else {
+                  triggerDirectDownload(canvas, filename);
+                }
+              }, 'image/png');
+            } else {
+              triggerDirectDownload(canvas, filename);
+            }
+          }).catch(function(err) {
+            console.error('Lỗi khi chụp ảnh:', err);
+            container.remove();
+            if (btnEl) btnEl.innerHTML = originalText;
+            if (flagName) window[flagName] = false;
+            showToast('Lỗi khi tạo ảnh: ' + err.message, 'error');
+          });
+        }, 350);
+      }
+
       window.downloadQuickQrImage = function() {
         if (!AppStore.bankConfig || !AppStore.bankConfig.bank || !AppStore.bankConfig.account) {
-          alert('Vui lòng cài đặt thông tin ngân hàng trước khi tải mã QR!');
+          showToast('Vui lòng cài đặt thông tin ngân hàng trước khi tải mã QR!', 'warning');
           return;
         }
 
@@ -2277,9 +2419,7 @@
         const bankName = getBankFullName(AppStore.bankConfig.bank) || (AppStore.bankConfig.bank || '').toUpperCase();
         const accountNumber = AppStore.bankConfig.account || '';
 
-        const addInfo = encodeURIComponent(noteDisplay);
-        const encodedAccName = encodeURIComponent(cleanAccountName);
-        const qrUrl = `https://img.vietqr.io/image/${AppStore.bankConfig.bank}-${AppStore.bankConfig.account}-compact2.png?amount=${amount}&addInfo=${addInfo}&accountName=${encodedAccName}`;
+        const qrUrl = buildVietQrUrl(AppStore.bankConfig.bank, AppStore.bankConfig.account, amount, cleanNote, cleanAccountName, 'compact2');
 
         // Tạo container tạm thời để render bằng html2canvas
         const tempContainer = document.createElement('div');
@@ -2318,80 +2458,34 @@
           </div>
         `;
 
-        document.body.appendChild(tempContainer);
+        const dateStr = new Date().toISOString().split('T')[0];
+        const filename = `VietQR_${amount || 'NhanTien'}_${dateStr}.png`;
+        const shareText = `Số tiền: ${formatVND(amount)} - STK: ${accountNumber} (${bankName})`;
 
-        setTimeout(() => {
-          if (typeof html2canvas === 'undefined') {
-            console.error('html2canvas is not loaded');
-            tempContainer.remove();
-            if (btnText) btnText.innerHTML = originalText;
-            window.isCapturingQrImage = false;
-            alert('Lỗi: Thư viện tạo ảnh chưa được tải xong, vui lòng thử lại sau.');
-            return;
-          }
-
-          html2canvas(tempContainer, {
-            backgroundColor: '#ffffff',
-            scale: 2, // Tăng chất lượng ảnh HD 2x
-            useCORS: true,
-            logging: false
-          }).then(canvas => {
-            tempContainer.remove();
-            if (btnText) btnText.innerHTML = originalText;
-            window.isCapturingQrImage = false;
-
-            const dateStr = new Date().toISOString().split('T')[0];
-            const filename = `VietQR_${amount || 'NhanTien'}_${dateStr}.png`;
-            const shareText = `Số tiền: ${formatVND(amount)} - STK: ${accountNumber} (${bankName})`;
-
-            // Tối ưu cho iPhone: Dùng Web Share API để mở iOS Share Sheet
-            if (navigator.share && navigator.canShare) {
-              canvas.toBlob(blob => {
-                if (!blob) {
-                  triggerDirectDownload(canvas, filename);
-                  return;
-                }
-                const file = new File([blob], filename, { type: 'image/png' });
-                if (navigator.canShare({ files: [file] })) {
-                  navigator.share({
-                    files: [file],
-                    title: `Mã QR thanh toán ${formatVND(amount)}`,
-                    text: shareText
-                  }).catch(shareErr => {
-                    console.log('Chia sẻ bị hủy hoặc lỗi:', shareErr);
-                    triggerDirectDownload(canvas, filename);
-                  });
-                } else {
-                  triggerDirectDownload(canvas, filename);
-                }
-              }, 'image/png');
-            } else {
-              triggerDirectDownload(canvas, filename);
-            }
-          }).catch(err => {
-            console.error('Lỗi khi chụp ảnh QR:', err);
-            tempContainer.remove();
-            if (btnText) btnText.innerHTML = originalText;
-            window.isCapturingQrImage = false;
-            alert('Lỗi khi tạo ảnh QR: ' + err.message);
-          });
-        }, 350);
+        captureAndShare(tempContainer, {
+          filename: filename,
+          shareTitle: `Mã QR thanh toán ${formatVND(amount)}`,
+          shareText: shareText,
+          btnEl: btnText,
+          originalText: originalText,
+          flagName: 'isCapturingQrImage'
+        });
       };
 
       // ==========================================
       // SAO LƯU & KHÔI PHỤC DỮ LIỆU (JSON ENGINE)
       // ==========================================
-      let isBackupExpanded = false;
+      let isBackupExpanded = false; // kept for compatibility, not used for state
       window.toggleBackupManager = function() {
-        isBackupExpanded = !isBackupExpanded;
         const panel = document.getElementById('backupManagerContent');
         const arrow = document.getElementById('backupToggleArrow');
-        if (isBackupExpanded) {
+        const shouldOpen = panel.classList.contains('hidden');
+        if (shouldOpen) {
           panel.classList.remove('hidden');
-          arrow.className = "text-xs text-slate-500 rotate-180 transition-transform duration-200";
+          arrow.style.transform = 'rotate(180deg)';
         } else {
           panel.classList.add('hidden');
-          arrow.className = "text-xs text-slate-500 transition-transform duration-200";
+          arrow.style.transform = 'rotate(0deg)';
         }
       };
 
@@ -2401,7 +2495,7 @@
           const fbConfig = fbConfigRaw ? JSON.parse(fbConfigRaw) : null;
 
           const backupObject = {
-            version: '2.5.28',
+            version: '2.5.46',
             exportedAt: new Date().toISOString(),
             guests: AppStore.guests || [],
             transactions: AppStore.transactions || [],
@@ -2446,7 +2540,7 @@
 
         } catch (e) {
           console.error("Lỗi xuất dữ liệu:", e);
-          alert("Không thể xuất dữ liệu sao lưu: " + e.message);
+          showToast("Không thể xuất dữ liệu sao lưu: " + e.message, 'error');
         }
       };
 
@@ -2486,7 +2580,7 @@
             const parsed = JSON.parse(content);
 
             if (!parsed || (typeof parsed !== 'object')) {
-              alert("Lỗi: Tệp sao lưu không đúng định dạng!");
+              showToast("Tệp sao lưu không đúng định dạng!", 'error');
               return;
             }
 
@@ -2504,45 +2598,45 @@
               firebaseConfig = parsed.firebaseConfig || null;
             }
 
-            const confirmMsg = `Bạn có chắc chắn muốn khôi phục dữ liệu từ tệp này?\n\n• ${txs.length} khoản chi\n• ${guests.length} khách khác\n\nDữ liệu hiện tại trên máy sẽ được cập nhật/thay thế.`;
-            if (!confirm(confirmMsg)) return;
+            const confirmMsg = `Khôi phục dữ liệu từ tệp này?<br><br>• <b>${txs.length}</b> khoản chi<br>• <b>${guests.length}</b> khách khác<br><br>Dữ liệu hiện tại sẽ được cập nhật/thay thế.`;
+            showConfirm(confirmMsg, function() {
+              AppStore.transactions = txs;
+              AppStore.guests = guests;
+              if (bankConfig) {
+                AppStore.saveBankConfig(bankConfig);
+              }
+              if (firebaseConfig) {
+                localStorage.setItem('ste_firebase_config', JSON.stringify(firebaseConfig));
+              }
 
-            AppStore.transactions = txs;
-            AppStore.guests = guests;
-            if (bankConfig) {
-              AppStore.saveBankConfig(bankConfig);
-            }
-            if (firebaseConfig) {
-              localStorage.setItem('ste_firebase_config', JSON.stringify(firebaseConfig));
-            }
+              AppStore.cleanUpEmptyMeals();
+              AppStore.sortTransactions();
+              AppStore.save();
 
-            AppStore.cleanUpEmptyMeals();
-            AppStore.sortTransactions();
-            AppStore.save();
+              syncGuestsToInput();
+              renderBalanceBoxes();
+              renderParticipantsSelector();
+              renderHistoryLog();
+              updateSplitPreview();
 
-            syncGuestsToInput();
-            renderBalanceBoxes();
-            renderParticipantsSelector();
-            renderHistoryLog();
-            updateSplitPreview();
+              if (AppStore.bankConfig) {
+                document.getElementById('qrBankSelect').value = AppStore.bankConfig.bank || '';
+                document.getElementById('qrBankAccount').value = AppStore.bankConfig.account || '';
+                document.getElementById('qrBankAccountName').value = AppStore.bankConfig.accountName || '';
+              }
 
-            if (AppStore.bankConfig) {
-              document.getElementById('qrBankSelect').value = AppStore.bankConfig.bank || '';
-              document.getElementById('qrBankAccount').value = AppStore.bankConfig.account || '';
-              document.getElementById('qrBankAccountName').value = AppStore.bankConfig.accountName || '';
-            }
+              const feedback = document.getElementById('backupStatusFeedback');
+              if (feedback) {
+                feedback.innerText = "✓ Khôi phục dữ liệu thành công!";
+                feedback.classList.remove('hidden');
+                setTimeout(() => feedback.classList.add('hidden'), 4000);
+              }
 
-            const feedback = document.getElementById('backupStatusFeedback');
-            if (feedback) {
-              feedback.innerText = "✓ Khôi phục dữ liệu thành công!";
-              feedback.classList.remove('hidden');
-              setTimeout(() => feedback.classList.add('hidden'), 4000);
-            }
-
-            alert("Khôi phục dữ liệu thành công!");
+              showToast("Khôi phục dữ liệu thành công!", 'success');
+            });
           } catch (err) {
             console.error("Lỗi đọc tệp sao lưu:", err);
-            alert("Không thể đọc tệp sao lưu. Vui lòng kiểm tra lại tệp JSON đã chọn!");
+            showToast("Không thể đọc tệp sao lưu. Vui lòng kiểm tra lại tệp JSON đã chọn!", 'error');
           }
         };
         reader.readAsText(file);
@@ -2551,7 +2645,7 @@
       window.captureHistoryImage = function() {
         const memberName = AppStore.activeFilter;
         if (!memberName) {
-          alert('Vui lòng chọn 1 thành viên ở bộ lọc bên dưới để tải ảnh bảng kê!');
+          showToast('Vui lòng chọn 1 thành viên ở bộ lọc bên dưới để tải ảnh bảng kê!', 'warning');
           return;
         }
 
@@ -2589,7 +2683,7 @@
             <div style="font-size: 10px; font-weight: 800; color: #94a3b8; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px;">SỔ THEO DÕI TIỀN ĂN</div>
             <div style="font-size: 20px; font-weight: 900; color: #4f46e5; margin-bottom: 8px;">PHIẾU CHI TIẾT</div>
             <div style="font-size: 13px; color: #475569; margin-top: 4px;">
-              Thành viên: <span style="font-weight: 750; color: #0f172a;">${memberName}</span>
+              Thành viên: <span style="font-weight: 750; color: #0f172a;">${escapeHTML(memberName)}</span>
             </div>
             <div style="font-size: 10px; color: #94a3b8; margin-top: 4px;">Ngày tạo: ${new Date().toLocaleDateString('vi-VN')}</div>
           </div>
@@ -2619,7 +2713,7 @@
             <div style="${rowStyle}">
               <div style="flex-grow: 1; padding-right: 12px; text-align: left;">
                 <span style="font-weight: 700; color: #64748b; margin-right: 6px;">[${dateStr}]</span>
-                <span style="${textStyle}">${tx.mealType} ${tx.description ? ' - ' + tx.description : ''}</span>
+                <span style="${textStyle}">${escapeHTML(tx.mealType)} ${tx.description ? ' - ' + escapeHTML(tx.description) : ''}</span>
               </div>
               <div style="${amountStyle}">${formatVND(tx.shares[memberName])}</div>
             </div>
@@ -2635,13 +2729,12 @@
           </div>
         `;
 
-        // QR Code Ngân hàng (nếu cấu hình)
+        // QR Code Ngân hàng (nếu cấu hình) — dùng buildVietQrUrl
         let qrHtml = '';
         if (AppStore.bankConfig && AppStore.bankConfig.bank && AppStore.bankConfig.account) {
           const cleanName = memberName.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D");
-          const addInfo = encodeURIComponent(`Tien an ${cleanName}`);
-          const accountName = encodeURIComponent(AppStore.bankConfig.accountName || '');
-          const qrUrl = `https://img.vietqr.io/image/${AppStore.bankConfig.bank}-${AppStore.bankConfig.account}-compact.png?amount=${totalDebt}&addInfo=${addInfo}&accountName=${accountName}`;
+          const cleanAccountName = (AppStore.bankConfig.accountName || '').normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D");
+          const qrUrl = buildVietQrUrl(AppStore.bankConfig.bank, AppStore.bankConfig.account, totalDebt, 'Tien an ' + cleanName, cleanAccountName, 'compact');
           
           qrHtml = `
             <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; border-top: 2px dashed #e2e8f0; padding-top: 16px; margin-top: 16px;">
@@ -2662,65 +2755,19 @@
         }
 
         tempContainer.innerHTML = headerHtml + itemsHtml + totalHtml + qrHtml;
-        document.body.appendChild(tempContainer);
 
-        // Đợi 350ms để các tài nguyên (VietQR) tải xong trước khi render canvas
-        setTimeout(() => {
-          if (typeof html2canvas === 'undefined') {
-            console.error('html2canvas is not loaded');
-            capBtn.innerHTML = originalText;
-            window.isCapturingImage = false;
-            tempContainer.remove();
-            alert('Lỗi: Thư viện tạo ảnh chưa được tải xong, vui lòng thử lại sau.');
-            return;
-          }
+        const dateStr = new Date().toISOString().split('T')[0];
+        const filename = `TienAn_${memberName}_${dateStr}.png`;
+        const shareText = `Số tiền: ${formatVND(totalDebt)}`;
 
-          html2canvas(tempContainer, {
-            backgroundColor: '#ffffff',
-            scale: 2, // Tăng chất lượng ảnh HD 2x
-            useCORS: true,
-            logging: false
-          }).then(canvas => {
-            tempContainer.remove();
-            capBtn.innerHTML = originalText;
-            window.isCapturingImage = false;
-
-            const dateStr = new Date().toISOString().split('T')[0];
-            const filename = `TienAn_${memberName}_${dateStr}.png`;
-            const shareText = `Số tiền: ${formatVND(totalDebt)}`;
-
-            // Tối ưu cho iPhone: Dùng Web Share API để mở iOS Share Sheet
-            if (navigator.share && navigator.canShare) {
-              canvas.toBlob(blob => {
-                if (!blob) {
-                  triggerDirectDownload(canvas, filename);
-                  return;
-                }
-                const file = new File([blob], filename, { type: 'image/png' });
-                if (navigator.canShare({ files: [file] })) {
-                  navigator.share({
-                    files: [file],
-                    title: `Tiền ăn của ${memberName}`,
-                    text: shareText
-                  }).catch(shareErr => {
-                    console.log('Chia sẻ bị hủy hoặc lỗi:', shareErr);
-                    triggerDirectDownload(canvas, filename);
-                  });
-                } else {
-                  triggerDirectDownload(canvas, filename);
-                }
-              }, 'image/png');
-            } else {
-              triggerDirectDownload(canvas, filename);
-            }
-          }).catch(err => {
-            console.error('Lỗi khi chụp ảnh:', err);
-            tempContainer.remove();
-            capBtn.innerHTML = originalText;
-            window.isCapturingImage = false;
-            alert('Lỗi khi tạo ảnh giao dịch: ' + err.message);
-          });
-        }, 350);
+        captureAndShare(tempContainer, {
+          filename: filename,
+          shareTitle: `Tiền ăn của ${memberName}`,
+          shareText: shareText,
+          btnEl: capBtn,
+          originalText: originalText,
+          flagName: 'isCapturingImage'
+        });
       };
 
       // Hàm phụ tải ảnh trực tiếp (download link) cho các trình duyệt desktop/android
@@ -2819,17 +2866,17 @@
         const participants = Array.from(selectedParticipants);
 
         if (!mealType) {
-          alert("Vui lòng chọn loại khoản chi (Sáng / Trưa / Tối / Mua hộ)!");
+          showToast("Vui lòng chọn loại khoản chi (Sáng / Trưa / Tối / Mua hộ)!", 'warning');
           return;
         }
 
         if (amount <= 0) {
-          alert("Vui lòng nhập số tiền lớn hơn 0!");
+          showToast("Vui lòng nhập số tiền lớn hơn 0!", 'warning');
           return;
         }
 
         if (participants.length === 0) {
-          alert("Vui lòng chọn ít nhất một người tham gia để phân chia tiền!");
+          showToast("Vui lòng chọn ít nhất một người tham gia để phân chia tiền!", 'warning');
           return;
         }
 
@@ -2917,7 +2964,7 @@
       };
 
       window.clearAllGuests = function() {
-        if (confirm("Bạn có chắc chắn muốn xóa toàn bộ danh sách khách?")) {
+        showConfirm("Bạn có chắc chắn muốn xóa toàn bộ danh sách khách?", function() {
           AppStore.guests = [];
           AppStore.save();
           const input = document.getElementById('guestNamesInput');
@@ -2927,7 +2974,7 @@
           updateSplitPreview();
           renderGuestConfigUI();
           triggerHaptic();
-        }
+        });
       };
 
       window.toggleGuestManager = function(forceOpen) {
@@ -2951,7 +2998,7 @@
         // Tách chuỗi theo dấu phẩy, dọn dẹp khoảng trắng dư thừa
         let parsedNames = rawText.split(',')
           .map(n => n.trim())
-          .filter(n => n !== "" && n !== "Tôi" && n !== "Thắng" && n !== "Phú");
+          .filter(n => n !== "" && n !== "Tôi" && !CORE_MEMBERS.includes(n));
         
         // Loại trùng lặp
         parsedNames = parsedNames.filter((item, index) => parsedNames.indexOf(item) === index);
@@ -3048,12 +3095,12 @@
 
       window.checkUpdatesManually = function() {
         if (window.location.protocol === 'file:') {
-          alert("Ứng dụng đang chạy cục bộ từ tệp (file://). Tính năng kiểm tra cập nhật PWA chỉ hoạt động khi bạn mở ứng dụng qua liên kết trực tuyến HTTPS (GitHub Pages).");
+          showToast("Ứng dụng đang chạy cục bộ (file://). Tính năng kiểm tra cập nhật chỉ hoạt động qua HTTPS (GitHub Pages).", 'info');
           return;
         }
 
         if (!navigator.onLine) {
-          alert("Hiện không có kết nối Internet! Vui lòng kết nối mạng để kiểm tra cập nhật.");
+          showToast("Hiện không có kết nối Internet! Vui lòng kết nối mạng để kiểm tra cập nhật.", 'warning');
           return;
         }
 
