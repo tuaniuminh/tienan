@@ -184,7 +184,7 @@
           <span>⚡</span>
           <span>Tạo QR</span>
         </button>
-        <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.43 PRO</button>
+        <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.44 PRO</button>
       </div>
     </header>
 
@@ -675,39 +675,6 @@
             </div>
           </div>
 
-        </div>
-    </div>
-
-    <!-- MODAL XEM & LƯU ẢNH (HỖ TRỢ ĐẶC BIỆT CHO iOS IPA / PWA / ANDROID / PC) -->
-    <div id="imagePreviewModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md transition-all duration-300">
-      <div class="bg-slate-900 border border-slate-750 w-full max-w-sm rounded-3xl p-5 shadow-2xl relative space-y-4 max-h-[92vh] flex flex-col items-center animate-fade-in">
-        <!-- Nút đóng -->
-        <button onclick="closeImagePreviewModal()" class="absolute top-4 right-4 h-8 w-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-100 flex items-center justify-center text-xs active:scale-95 transition-all">
-          ✕
-        </button>
-
-        <div class="text-center w-full pr-6">
-          <h3 id="imagePreviewTitle" class="text-xs font-black text-slate-100 tracking-wide uppercase">MÃ QR THANH TOÁN</h3>
-          <p class="text-[10.5px] text-amber-400 font-medium mt-1 leading-snug">
-            💡 <span class="font-bold">Nhấn giữ vào ảnh 1-2 giây</span> để chọn <span class="font-bold underline">"Lưu hình ảnh"</span> (Save to Photos)
-          </p>
-        </div>
-
-        <!-- Khung hiển thị ảnh -->
-        <div class="w-full flex justify-center items-center overflow-auto max-h-[55vh] py-1">
-          <img id="imagePreviewTarget" src="" alt="Ảnh thanh toán" class="max-h-[52vh] w-auto max-w-full rounded-2xl shadow-xl border border-slate-700 select-all" style="-webkit-touch-callout: default !important; -webkit-user-select: auto !important; touch-action: auto;" />
-        </div>
-
-        <!-- Nút hành động -->
-        <div class="w-full grid grid-cols-2 gap-2 pt-1">
-          <button id="btnCopyPreviewImage" onclick="copyPreviewImageToClipboard()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs py-2.5 rounded-xl active:scale-95 transition-all flex items-center justify-center space-x-1 shadow-md shadow-indigo-900/30">
-            <span>📋</span>
-            <span id="btnCopyPreviewImageText">Sao chép ảnh</span>
-          </button>
-          <button onclick="triggerDownloadFromPreview()" class="bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700 font-bold text-xs py-2.5 rounded-xl active:scale-95 transition-all flex items-center justify-center space-x-1">
-            <span>📥</span>
-            <span>Tải file PNG</span>
-          </button>
         </div>
       </div>
     </div>
@@ -2069,7 +2036,6 @@
 
         renderViPickerDays();
         modal.classList.remove('hidden');
-        modal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
         triggerHaptic();
       };
@@ -2078,7 +2044,6 @@
         const modal = document.getElementById('viDatePickerModal');
         if (modal) {
           modal.classList.add('hidden');
-          modal.style.display = 'none';
         }
         document.body.style.overflow = '';
       };
@@ -2284,85 +2249,6 @@
         });
       };
 
-      // ==========================================
-      // BỘ ĐIỀU KHIỂN XEM & LƯU ẢNH TRÊN MỌI NỀN TẢNG (iOS IPA / WEB)
-      // ==========================================
-      let currentPreviewBlob = null;
-      let currentPreviewFilename = 'anh_thanh_toan.png';
-
-      window.showImagePreviewModal = function(dataUrl, filename, title, blob) {
-        const modal = document.getElementById('imagePreviewModal');
-        const imgEl = document.getElementById('imagePreviewTarget');
-        const titleEl = document.getElementById('imagePreviewTitle');
-        if (!modal || !imgEl) return;
-
-        currentPreviewBlob = blob || null;
-        currentPreviewFilename = filename || 'anh_thanh_toan.png';
-
-        imgEl.src = dataUrl;
-        if (titleEl && title) titleEl.innerText = title;
-
-        modal.classList.remove('hidden');
-        document.body.style.overflow = 'hidden';
-        triggerHaptic();
-      };
-
-      window.closeImagePreviewModal = function() {
-        const modal = document.getElementById('imagePreviewModal');
-        if (modal) modal.classList.add('hidden');
-        document.body.style.overflow = '';
-      };
-
-      window.triggerDownloadFromPreview = function() {
-        const imgEl = document.getElementById('imagePreviewTarget');
-        if (!imgEl || !imgEl.src) return;
-        const link = document.createElement('a');
-        link.download = currentPreviewFilename || 'anh_thanh_toan.png';
-        link.href = imgEl.src;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      };
-
-      window.copyPreviewImageToClipboard = function() {
-        const btnText = document.getElementById('btnCopyPreviewImageText');
-        const fallbackAlert = () => {
-          alert("Vui lòng nhấn giữ trực tiếp vào ảnh 1-2 giây để chọn 'Lưu hình ảnh' (Save Image) hoặc Sao chép!");
-        };
-
-        if (!currentPreviewBlob) {
-          const imgEl = document.getElementById('imagePreviewTarget');
-          if (!imgEl || !imgEl.src) return fallbackAlert();
-          fetch(imgEl.src)
-            .then(res => res.blob())
-            .then(blob => writeBlobToClipboard(blob, btnText, fallbackAlert))
-            .catch(() => fallbackAlert());
-          return;
-        }
-
-        writeBlobToClipboard(currentPreviewBlob, btnText, fallbackAlert);
-      };
-
-      function writeBlobToClipboard(blob, btnText, fallbackAlert) {
-        if (navigator.clipboard && window.ClipboardItem) {
-          navigator.clipboard.write([
-            new ClipboardItem({ 'image/png': blob })
-          ]).then(() => {
-            if (btnText) {
-              const old = btnText.innerText;
-              btnText.innerText = "✓ Đã sao chép!";
-              setTimeout(() => { btnText.innerText = old; }, 2000);
-            }
-            triggerHaptic();
-          }).catch(err => {
-            console.log('Clipboard write failed:', err);
-            fallbackAlert();
-          });
-        } else {
-          fallbackAlert();
-        }
-      }
-
       window.downloadQuickQrImage = function() {
         if (!AppStore.bankConfig || !AppStore.bankConfig.bank || !AppStore.bankConfig.account) {
           alert('Vui lòng cài đặt thông tin ngân hàng trước khi tải mã QR!');
@@ -2447,14 +2333,14 @@
 
             const filename = `VietQR_${amount || 'NhanTien'}_${Date.now()}.png`;
             const shareText = `Số tiền: ${formatVND(amount)} - STK: ${accountNumber} (${bankName})`;
-            const dataUrl = canvas.toDataURL('image/png');
 
-            canvas.toBlob(blob => {
-              // 1. Luôn hiển thị Modal xem & lưu ảnh cho mọi nền tảng (đặc biệt iOS IPA / Web)
-              showImagePreviewModal(dataUrl, filename, `Mã QR Thanh Toán - ${formatVND(amount)}`, blob);
-
-              // 2. Thử Web Share API nếu trình duyệt hỗ trợ
-              if (navigator.share && navigator.canShare && blob) {
+            // Tối ưu Web Share API cho iOS & Android hoặc tải trực tiếp
+            if (navigator.share && navigator.canShare) {
+              canvas.toBlob(blob => {
+                if (!blob) {
+                  triggerDirectDownload(canvas, filename);
+                  return;
+                }
                 const file = new File([blob], filename, { type: 'image/png' });
                 if (navigator.canShare({ files: [file] })) {
                   navigator.share({
@@ -2463,13 +2349,15 @@
                     text: shareText
                   }).catch(shareErr => {
                     console.log('Chia sẻ bị hủy hoặc không hỗ trợ:', shareErr);
+                    triggerDirectDownload(canvas, filename);
                   });
+                } else {
+                  triggerDirectDownload(canvas, filename);
                 }
-              }
-
-              // 3. Kích hoạt tải trực tiếp trên PC
+              }, 'image/png');
+            } else {
               triggerDirectDownload(canvas, filename);
-            }, 'image/png');
+            }
           }).catch(err => {
             console.error('Lỗi khi render ảnh QR:', err);
             tempContainer.remove();
@@ -2789,14 +2677,14 @@
             const dateStr = new Date().toISOString().split('T')[0];
             const filename = `TienAn_${memberName}_${dateStr}.png`;
             const shareText = `Số tiền: ${formatVND(totalDebt)}`;
-            const dataUrl = canvas.toDataURL('image/png');
 
-            canvas.toBlob(blob => {
-              // 1. Luôn hiển thị Modal xem & lưu ảnh cho mọi nền tảng (đặc biệt iOS IPA / Web)
-              showImagePreviewModal(dataUrl, filename, `Bảng kê tiền ăn: ${memberName}`, blob);
-
-              // 2. Thử Web Share API nếu thiết bị hỗ trợ
-              if (navigator.share && navigator.canShare && blob) {
+            // Tối ưu cho iPhone: Dùng Web Share API để mở iOS Share Sheet
+            if (navigator.share && navigator.canShare) {
+              canvas.toBlob(blob => {
+                if (!blob) {
+                  triggerDirectDownload(canvas, filename);
+                  return;
+                }
                 const file = new File([blob], filename, { type: 'image/png' });
                 if (navigator.canShare({ files: [file] })) {
                   navigator.share({
@@ -2805,13 +2693,15 @@
                     text: shareText
                   }).catch(shareErr => {
                     console.log('Chia sẻ bị hủy hoặc lỗi:', shareErr);
+                    triggerDirectDownload(canvas, filename);
                   });
+                } else {
+                  triggerDirectDownload(canvas, filename);
                 }
-              }
-
-              // 3. Tải trực tiếp trên PC
+              }, 'image/png');
+            } else {
               triggerDirectDownload(canvas, filename);
-            }, 'image/png');
+            }
           }).catch(err => {
             console.error('Lỗi khi chụp ảnh:', err);
             tempContainer.remove();
@@ -3162,7 +3052,7 @@
         if (btn) btn.innerText = "Đang check...";
         if (headerBtn) headerBtn.innerText = "Checking...";
 
-        const currentVersion = "v2.5.43";
+        const currentVersion = "v2.5.44";
 
         // Tải file index.html trực tiếp từ server để bypass cache bằng timestamp
         fetch('./index.html?t=' + Date.now())
