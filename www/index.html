@@ -184,7 +184,7 @@
           <span>⚡</span>
           <span>Tạo QR</span>
         </button>
-        <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.35 PRO</button>
+        <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.36 PRO</button>
       </div>
     </header>
 
@@ -769,7 +769,7 @@
         },
 
         getMembers() {
-          const core = ['Thắng', 'Phú', 'Trường NV'];
+          const core = ['Thắng', 'Phú'];
           // Hợp nhất khách và loại bỏ trùng lặp
           const merged = [...core, ...this.guests];
           return merged.filter((item, index) => merged.indexOf(item) === index);
@@ -977,8 +977,8 @@
         }
         
         Object.entries(balances).forEach(([name, amt]) => {
-          // Chỉ hiển thị 'Thắng', 'Phú', 'Trường NV' hoặc những khách có số dư nợ > 0
-          if (name !== 'Thắng' && name !== 'Phú' && name !== 'Trường NV' && amt === 0) {
+          // Chỉ hiển thị 'Thắng', 'Phú' hoặc những khách có số dư nợ > 0
+          if (name !== 'Thắng' && name !== 'Phú' && amt === 0) {
             return;
           }
           
@@ -1774,37 +1774,120 @@
       };
 
       window.downloadQuickQrImage = function() {
+        if (!AppStore.bankConfig || !AppStore.bankConfig.bank || !AppStore.bankConfig.account) {
+          alert('Vui lòng cài đặt thông tin ngân hàng trước khi tải mã QR!');
+          return;
+        }
+
         const qrImg = document.getElementById('quickQrImage');
         if (!qrImg || !qrImg.src) {
           alert('Chưa có mã QR để tải!');
           return;
         }
-        const btnText = document.getElementById('btnDownloadQrText');
-        const oldText = btnText ? btnText.innerText : '';
-        if (btnText) btnText.innerText = "⏳ Đang tải...";
 
-        fetch(qrImg.src)
-          .then(res => res.blob())
-          .then(blob => {
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.style.display = 'none';
-            a.href = url;
-            const amount = parseQuickQrAmount();
-            a.download = `VietQR_${amount || 'NhanTien'}_${Date.now()}.png`;
-            document.body.appendChild(a);
-            a.click();
-            setTimeout(() => {
-              window.URL.revokeObjectURL(url);
-              a.remove();
-              if (btnText) btnText.innerText = oldText;
-            }, 500);
-          })
-          .catch(err => {
-            console.error('Lỗi tải ảnh QR:', err);
-            window.open(qrImg.src, '_blank');
+        const btnText = document.getElementById('btnDownloadQrText');
+        const oldText = btnText ? btnText.innerText : 'Tải ảnh QR';
+        if (btnText) btnText.innerText = "⏳ Đang tạo ảnh...";
+
+        const amount = parseQuickQrAmount();
+        const noteInput = document.getElementById('quickQrNoteInput');
+        const rawNote = noteInput ? noteInput.value.trim() : '';
+        const cleanNote = rawNote.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D").trim();
+        const noteDisplay = cleanNote || 'Chuyen tien';
+        const accountName = (AppStore.bankConfig.accountName || '').toUpperCase();
+        const bankName = (AppStore.bankConfig.bank || '').toUpperCase();
+        const accountNumber = AppStore.bankConfig.account || '';
+
+        // Tạo container tạm thời để render bằng html2canvas
+        const tempContainer = document.createElement('div');
+        tempContainer.style.position = 'absolute';
+        tempContainer.style.left = '-9999px';
+        tempContainer.style.top = '0';
+        tempContainer.style.width = '360px';
+        tempContainer.style.backgroundColor = '#ffffff';
+        tempContainer.style.color = '#1e293b';
+        tempContainer.style.fontFamily = 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        tempContainer.style.padding = '24px';
+        tempContainer.style.borderRadius = '20px';
+        tempContainer.style.boxShadow = '0 10px 25px -5px rgba(0, 0, 0, 0.1)';
+        tempContainer.style.textAlign = 'center';
+
+        tempContainer.innerHTML = `
+          <div style="border-bottom: 2px dashed #e2e8f0; padding-bottom: 14px; margin-bottom: 16px;">
+            <div style="font-size: 10px; font-weight: 800; color: #94a3b8; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px;">SỔ THEO DÕI TIỀN ĂN</div>
+            <div style="font-size: 18px; font-weight: 900; color: #4f46e5;">MÃ QR THANH TOÁN</div>
+            <div style="font-size: 11px; color: #64748b; margin-top: 3px;">Quét mã VietQR bằng ứng dụng ngân hàng bất kỳ</div>
+          </div>
+
+          <div style="display: flex; justify-content: center; margin-bottom: 14px;">
+            <img src="${qrImg.src}" alt="VietQR" style="width: 220px; height: 220px; border-radius: 12px; border: 1px solid #e2e8f0; padding: 6px; background-color: #ffffff;" />
+          </div>
+
+          <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 12px 16px; margin-bottom: 14px;">
+            <div style="font-size: 11px; color: #64748b; font-weight: 700; margin-bottom: 2px;">SỐ TIỀN CẦN THANH TOÁN</div>
+            <div style="font-size: 22px; font-weight: 900; color: #4f46e5; font-family: monospace;">${formatVND(amount)}</div>
+            <div style="font-size: 11px; color: #475569; margin-top: 4px;">Nội dung: <span style="font-weight: 700; color: #0f172a;">${noteDisplay}</span></div>
+          </div>
+
+          <div style="font-size: 12px; color: #475569; line-height: 1.5; border-top: 1px solid #f1f5f9; padding-top: 12px;">
+            ${accountName ? `<div style="font-weight: 800; color: #0f172a; font-size: 13px;">${accountName}</div>` : ''}
+            <div>STK: <span style="font-weight: 750; color: #4f46e5; font-family: monospace;">${accountNumber}</span> (${bankName})</div>
+          </div>
+        `;
+
+        document.body.appendChild(tempContainer);
+
+        setTimeout(() => {
+          if (typeof html2canvas === 'undefined') {
+            tempContainer.remove();
             if (btnText) btnText.innerText = oldText;
+            alert('Lỗi: Thư viện tạo ảnh chưa sẵn sàng!');
+            return;
+          }
+
+          html2canvas(tempContainer, {
+            backgroundColor: '#ffffff',
+            scale: 2,
+            useCORS: true,
+            logging: false
+          }).then(canvas => {
+            tempContainer.remove();
+            if (btnText) btnText.innerText = oldText;
+
+            const filename = `VietQR_${amount || 'NhanTien'}_${Date.now()}.png`;
+            const shareText = `Số tiền: ${formatVND(amount)} - STK: ${accountNumber} (${bankName})`;
+
+            // Tối ưu Web Share API cho iOS Safari & Android
+            if (navigator.share && navigator.canShare) {
+              canvas.toBlob(blob => {
+                if (!blob) {
+                  triggerDirectDownload(canvas, filename);
+                  return;
+                }
+                const file = new File([blob], filename, { type: 'image/png' });
+                if (navigator.canShare({ files: [file] })) {
+                  navigator.share({
+                    files: [file],
+                    title: `Mã QR thanh toán ${formatVND(amount)}`,
+                    text: shareText
+                  }).catch(shareErr => {
+                    console.log('Chia sẻ bị hủy hoặc không hỗ trợ:', shareErr);
+                    triggerDirectDownload(canvas, filename);
+                  });
+                } else {
+                  triggerDirectDownload(canvas, filename);
+                }
+              }, 'image/png');
+            } else {
+              triggerDirectDownload(canvas, filename);
+            }
+          }).catch(err => {
+            console.error('Lỗi khi render ảnh QR:', err);
+            tempContainer.remove();
+            if (btnText) btnText.innerText = oldText;
+            alert('Lỗi khi tạo ảnh QR: ' + err.message);
           });
+        }, 300);
       };
 
       // ==========================================
@@ -2310,7 +2393,7 @@
         // Tách chuỗi theo dấu phẩy, dọn dẹp khoảng trắng dư thừa
         let parsedNames = rawText.split(',')
           .map(n => n.trim())
-          .filter(n => n !== "" && n !== "Tôi" && n !== "Thắng" && n !== "Phú" && n !== "Trường NV");
+          .filter(n => n !== "" && n !== "Tôi" && n !== "Thắng" && n !== "Phú");
         
         // Loại trùng lặp
         parsedNames = parsedNames.filter((item, index) => parsedNames.indexOf(item) === index);
@@ -2428,7 +2511,7 @@
         if (btn) btn.innerText = "Đang check...";
         if (headerBtn) headerBtn.innerText = "Checking...";
 
-        const currentVersion = "v2.5.35";
+        const currentVersion = "v2.5.36";
 
         // Tải file index.html trực tiếp từ server để bypass cache bằng timestamp
         fetch('./index.html?t=' + Date.now())
