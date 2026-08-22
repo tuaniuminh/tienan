@@ -179,7 +179,7 @@
         <img src="icon-192.png" alt="Logo" class="h-8 w-8 rounded-lg object-contain border border-indigo-500/20 shadow-md shadow-indigo-500/10">
         <h1 class="text-sm font-black tracking-wider text-slate-200">SỔ THEO DÕI TIỀN ĂN</h1>
       </div>
-      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.33 PRO</button>
+      <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.34 PRO</button>
     </header>
 
     <!-- KHOẢN PHẢI THU (BALANCE CARD GRID) -->
@@ -593,6 +593,24 @@
 
         bankConfig: null,
 
+        sortTransactions() {
+          this.transactions.sort((a, b) => {
+            const dateA = a.date || '';
+            const dateB = b.date || '';
+            if (dateA !== dateB) {
+              return dateB.localeCompare(dateA);
+            }
+            const timeA = a.time || '00:00';
+            const timeB = b.time || '00:00';
+            if (timeA !== timeB) {
+              return timeB.localeCompare(timeA);
+            }
+            const idA = String(a.id || '');
+            const idB = String(b.id || '');
+            return idB.localeCompare(idA);
+          });
+        },
+
         load() {
           try {
             const savedGuests = localStorage.getItem('ste_guests');
@@ -613,6 +631,7 @@
           const rawTx = localStorage.getItem('ste_transactions');
           this.transactions = migrateLegacyData(rawTx);
           this.cleanUpEmptyMeals();
+          this.sortTransactions();
           this.save();
         },
 
@@ -705,6 +724,7 @@
           };
 
           this.transactions.unshift(newTx);
+          this.sortTransactions();
           this.save();
           return newTx;
         },
@@ -1641,6 +1661,7 @@
             }
 
             AppStore.cleanUpEmptyMeals();
+            AppStore.sortTransactions();
             AppStore.save();
 
             syncGuestsToInput();
@@ -2122,7 +2143,7 @@
         if (btn) btn.innerText = "Đang check...";
         if (headerBtn) headerBtn.innerText = "Checking...";
 
-        const currentVersion = "v2.5.33";
+        const currentVersion = "v2.5.34";
 
         // Tải file index.html trực tiếp từ server để bypass cache bằng timestamp
         fetch('./index.html?t=' + Date.now())
