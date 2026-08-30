@@ -10,13 +10,8 @@ jobs:
     runs-on: macos-14
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@main
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          
       - name: Install npm dependencies
         run: npm install
 
@@ -87,7 +82,7 @@ jobs:
           zip -r "sotienan_v${VERSION}.ipa" Payload
           
       - name: Upload IPA Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@main
         with:
           name: sotienan_v${{ env.APP_VERSION }}
           path: build/sotienan_v${{ env.APP_VERSION }}.ipa
