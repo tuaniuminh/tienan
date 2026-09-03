@@ -184,7 +184,7 @@
           <span>⚡</span>
           <span>Tạo QR</span>
         </button>
-        <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.47 PRO</button>
+        <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.48 PRO</button>
       </div>
     </header>
 
@@ -749,7 +749,7 @@
         <div class="flex items-center justify-between">
           <div class="flex flex-col">
             <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Hiện tại</span>
-            <span id="otaCurrentVersion" class="text-xs font-bold text-slate-400 font-mono">v2.5.47</span>
+            <span id="otaCurrentVersion" class="text-xs font-bold text-slate-400 font-mono">v2.5.48</span>
           </div>
           <span class="text-slate-600 font-bold">➔</span>
           <div class="flex flex-col items-end">
@@ -3189,7 +3189,7 @@
 
           const release = await res.json();
           const latestTag = release.tag_name;
-          const currentVer = "v2.5.47";
+          const currentVer = "v2.5.48";
           const hasUpdate = compareVersions(latestTag, currentVer) > 0;
           const ipaAsset = (release.assets || []).find(a => a.name && a.name.endsWith('.ipa'));
 
@@ -3229,7 +3229,7 @@
         const notesEl = document.getElementById('otaReleaseNotes');
         const dateEl = document.getElementById('otaReleaseDate');
 
-        if (curVerEl) curVerEl.innerText = "v2.5.47";
+        if (curVerEl) curVerEl.innerText = "v2.5.48";
         if (newVerEl) newVerEl.innerText = release.version;
         if (titleEl) titleEl.innerText = release.title;
         if (notesEl) notesEl.innerText = release.body;
@@ -3350,7 +3350,7 @@
         if (btn) btn.innerText = "Đang check...";
         if (headerBtn) headerBtn.innerText = "Checking...";
 
-        const currentVersion = "v2.5.47";
+        const currentVersion = "v2.5.48";
 
         // 1. Kiểm tra bản phát hành Native IPA trên GitHub Releases trước
         const hasIpaUpdate = await checkForAppUpdate(true);
