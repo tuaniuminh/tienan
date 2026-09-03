@@ -887,7 +887,7 @@
 
         var toast = document.createElement('div');
         toast.id = 'appToast';
-        toast.className = 'fixed top-5 left-1/2 -translate-x-1/2 z-[9999] w-[90%] max-w-sm rounded-2xl ' + c.bg + ' backdrop-blur-md border ' + c.border + ' shadow-2xl flex items-center space-x-3 px-4 py-3.5 toast-enter select-none';
+        toast.className = 'fixed top-[max(env(safe-area-inset-top,24px)+14px,54px)] left-1/2 -translate-x-1/2 z-[9999] w-[90%] max-w-sm rounded-2xl ' + c.bg + ' backdrop-blur-md border ' + c.border + ' shadow-2xl flex items-center space-x-3 px-4 py-3.5 toast-enter select-none';
         toast.innerHTML = '<span class="text-base flex-shrink-0">' + c.icon + '</span>'
           + '<span class="text-xs font-semibold ' + c.text + ' flex-grow leading-snug">' + message + '</span>'
           + '<button onclick="var t=this.closest(\'#appToast\');if(t)t.remove();" class="text-slate-400 hover:text-white text-sm flex-shrink-0 active:scale-90 transition-all pl-1">✕</button>';
@@ -3416,16 +3416,10 @@
             openOtaUpdateModal(currentOtaRelease);
             return true;
           } else {
-            if (!silent) {
-              showToast(`Bạn đang ở phiên bản mới nhất (${currentVer}) 🎉`, 'success');
-            }
             return false;
           }
         } catch (err) {
           console.error("Lỗi kiểm tra bản mới từ GitHub Releases:", err);
-          if (!silent) {
-            showToast("Không thể kiểm tra bản mới từ GitHub: " + err.message, 'warning');
-          }
           return false;
         }
       };
@@ -3549,25 +3543,62 @@
         }
       };
 
-      window.checkUpdatesManually = async function() {
-        if (!navigator.onLine) {
-          showToast("Hiện không có kết nối Internet! Vui lòng kết nối mạng để kiểm tra cập nhật.", 'warning');
-          return;
+      function showVersionUpToDateEffect() {
+        const headerBtn = document.getElementById('headerVersionTag');
+        const btn = document.getElementById('btnCheckUpdateText');
+        const currentVersion = "v2.5.49";
+
+        if (headerBtn) {
+          headerBtn.innerText = "✓ Mới nhất";
+          headerBtn.className = "text-[10px] bg-emerald-950/90 text-emerald-300 font-mono font-bold px-2 py-0.5 rounded border border-emerald-500/60 shadow-md shadow-emerald-900/40 glow-emerald scale-105 transition-all duration-300 focus:outline-none";
+          triggerHaptic();
+        }
+        if (btn) {
+          btn.innerText = `Đã ở bản mới nhất! (${currentVersion})`;
         }
 
-        const btn = document.getElementById('btnCheckUpdateText');
+        setTimeout(() => {
+          if (headerBtn) {
+            headerBtn.innerText = `${currentVersion} PRO`;
+            headerBtn.className = "text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none";
+          }
+          if (btn) {
+            btn.innerText = "Kiểm tra cập nhật";
+          }
+        }, 3000);
+      }
+
+      window.checkUpdatesManually = async function() {
         const headerBtn = document.getElementById('headerVersionTag');
+        const btn = document.getElementById('btnCheckUpdateText');
+        const currentVersion = "v2.5.49";
+
+        if (!navigator.onLine) {
+          if (headerBtn) {
+            headerBtn.innerText = "Offline";
+            headerBtn.className = "text-[10px] bg-amber-950/80 text-amber-300 font-mono px-2 py-0.5 rounded border border-amber-500/30";
+            setTimeout(() => {
+              headerBtn.innerText = `${currentVersion} PRO`;
+              headerBtn.className = "text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none";
+            }, 2500);
+          }
+          return;
+        }
         
         if (btn) btn.innerText = "Đang check...";
-        if (headerBtn) headerBtn.innerText = "Checking...";
-
-        const currentVersion = "v2.5.49";
+        if (headerBtn) {
+          headerBtn.innerText = "⟳ Check...";
+          headerBtn.className = "text-[10px] bg-slate-800 text-amber-300 font-mono px-2 py-0.5 rounded border border-amber-500/40 animate-pulse transition-all focus:outline-none";
+        }
 
         // 1. Kiểm tra bản phát hành Native IPA trên GitHub Releases trước
         const hasIpaUpdate = await checkForAppUpdate(true);
         if (hasIpaUpdate) {
           if (btn) btn.innerText = "Kiểm tra cập nhật";
-          if (headerBtn) headerBtn.innerText = `${currentVersion} PRO`;
+          if (headerBtn) {
+            headerBtn.innerText = `${currentVersion} PRO`;
+            headerBtn.className = "text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none";
+          }
           return;
         }
 
@@ -3579,15 +3610,15 @@
               return response.text();
             })
             .then(htmlText => {
-              if (btn) btn.innerText = "Kiểm tra cập nhật";
-              if (headerBtn) headerBtn.innerText = `${currentVersion} PRO`;
-
               const match = htmlText.match(/id="headerVersionTag"[^>]*>(v\d+\.\d+\.\d+)/);
               const serverVersion = match ? match[1] : null;
 
               if (serverVersion && serverVersion !== currentVersion) {
                 if (btn) btn.innerText = "Đang cập nhật...";
-                if (headerBtn) headerBtn.innerText = "Updating...";
+                if (headerBtn) {
+                  headerBtn.innerText = "Updating...";
+                  headerBtn.className = "text-[10px] bg-indigo-950 text-indigo-300 font-mono px-2 py-0.5 rounded border border-indigo-500 animate-pulse";
+                }
                 
                 if ('serviceWorker' in navigator && swRegistration) {
                   swRegistration.update().then(() => window.location.reload()).catch(() => window.location.reload());
@@ -3595,29 +3626,15 @@
                   window.location.reload();
                 }
               } else {
-                showToast(`Bạn đang ở phiên bản mới nhất (${currentVersion}) 🎉`, 'success');
-                if (btn) btn.innerText = `Đã ở bản mới nhất! (${currentVersion})`;
-                if (headerBtn) headerBtn.innerText = `Up to date (${currentVersion})`;
-                setTimeout(() => {
-                  if (btn) btn.innerText = "Kiểm tra cập nhật";
-                  if (headerBtn) headerBtn.innerText = `${currentVersion} PRO`;
-                }, 4000);
+                showVersionUpToDateEffect();
               }
             })
             .catch(err => {
               console.error("Lỗi kiểm tra phiên bản PWA:", err);
-              showToast(`Bạn đang ở phiên bản mới nhất (${currentVersion}) 🎉`, 'success');
-              if (btn) btn.innerText = "Kiểm tra cập nhật";
-              if (headerBtn) headerBtn.innerText = `${currentVersion} PRO`;
+              showVersionUpToDateEffect();
             });
         } else {
-          showToast(`Bạn đang ở phiên bản mới nhất (${currentVersion}) 🎉`, 'success');
-          if (btn) btn.innerText = `Đã ở bản mới nhất! (${currentVersion})`;
-          if (headerBtn) headerBtn.innerText = `Up to date (${currentVersion})`;
-          setTimeout(() => {
-            if (btn) btn.innerText = "Kiểm tra cập nhật";
-            if (headerBtn) headerBtn.innerText = `${currentVersion} PRO`;
-          }, 4000);
+          showVersionUpToDateEffect();
         }
       };
 
