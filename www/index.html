@@ -184,7 +184,7 @@
           <span>⚡</span>
           <span>Tạo QR</span>
         </button>
-        <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.49 PRO</button>
+        <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.50 PRO</button>
       </div>
     </header>
 
@@ -782,16 +782,16 @@
         <div class="flex items-center justify-between">
           <div class="flex flex-col">
             <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Hiện tại</span>
-            <span id="otaCurrentVersion" class="text-xs font-bold text-slate-400 font-mono">v2.5.49</span>
+            <span id="otaCurrentVersion" class="text-xs font-bold text-slate-400 font-mono">v2.5.50</span>
           </div>
           <span class="text-slate-600 font-bold">➔</span>
           <div class="flex flex-col items-end">
             <span class="text-[10px] text-indigo-400 font-bold uppercase tracking-wider">Phiên bản mới</span>
-            <span id="otaNewVersion" class="text-sm font-black text-indigo-300 font-mono glow-indigo">v2.5.49</span>
+            <span id="otaNewVersion" class="text-sm font-black text-indigo-300 font-mono glow-indigo">v2.5.50</span>
           </div>
         </div>
         <div class="border-t border-slate-850 pt-2">
-          <div class="text-[11px] font-bold text-slate-300 mb-1" id="otaReleaseTitle">Sổ Tiền Ăn v2.5.49</div>
+          <div class="text-[11px] font-bold text-slate-300 mb-1" id="otaReleaseTitle">Sổ Tiền Ăn v2.5.50</div>
           <div id="otaReleaseNotes" class="text-[11px] text-slate-400 leading-relaxed max-h-32 overflow-y-auto whitespace-pre-wrap select-text pr-1">Bản phát hành cập nhật tính năng mới.</div>
         </div>
       </div>
@@ -2768,7 +2768,7 @@
           const fbConfig = fbConfigRaw ? JSON.parse(fbConfigRaw) : null;
 
           const backupObject = {
-            version: '2.5.49',
+            version: '2.5.50',
             exportedAt: new Date().toISOString(),
             guests: AppStore.guests || [],
             transactions: AppStore.transactions || [],
@@ -3400,7 +3400,7 @@
 
           const release = await res.json();
           const latestTag = release.tag_name;
-          const currentVer = "v2.5.49";
+          const currentVer = "v2.5.50";
           const hasUpdate = compareVersions(latestTag, currentVer) > 0;
           const ipaAsset = (release.assets || []).find(a => a.name && a.name.endsWith('.ipa'));
 
@@ -3434,7 +3434,7 @@
         const notesEl = document.getElementById('otaReleaseNotes');
         const dateEl = document.getElementById('otaReleaseDate');
 
-        if (curVerEl) curVerEl.innerText = "v2.5.49";
+        if (curVerEl) curVerEl.innerText = "v2.5.50";
         if (newVerEl) newVerEl.innerText = release.version;
         if (titleEl) titleEl.innerText = release.title;
         if (notesEl) notesEl.innerText = release.body;
@@ -3546,7 +3546,7 @@
       function showVersionUpToDateEffect() {
         const headerBtn = document.getElementById('headerVersionTag');
         const btn = document.getElementById('btnCheckUpdateText');
-        const currentVersion = "v2.5.49";
+        const currentVersion = "v2.5.50";
 
         if (headerBtn) {
           headerBtn.innerText = "✓ Mới nhất";
@@ -3571,7 +3571,7 @@
       window.checkUpdatesManually = async function() {
         const headerBtn = document.getElementById('headerVersionTag');
         const btn = document.getElementById('btnCheckUpdateText');
-        const currentVersion = "v2.5.49";
+        const currentVersion = "v2.5.50";
 
         if (!navigator.onLine) {
           if (headerBtn) {
