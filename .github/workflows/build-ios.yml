@@ -50,6 +50,29 @@ jobs:
               print('Sync completed! Xcode version set to ' + version)
           "
 
+      - name: Configure iOS App Localization (Tiếng Việt)
+        run: |
+          python3 -c "
+          import plistlib, os
+          
+          # 1. Cấu hình Info.plist nhận diện Tiếng Việt là ngôn ngữ chính
+          plist_path = 'ios/App/App/Info.plist'
+          if os.path.exists(plist_path):
+              with open(plist_path, 'rb') as f:
+                  pl = plistlib.load(f)
+              pl['CFBundleDevelopmentRegion'] = 'vi'
+              pl['CFBundleLocalizations'] = ['vi', 'en']
+              with open(plist_path, 'wb') as f:
+                  plistlib.dump(pl, f)
+              print('Configured Info.plist for Vietnamese localization!')
+
+          # 2. Tạo vi.lproj để iOS nhận diện bundle Tiếng Việt chuẩn
+          vi_dir = 'ios/App/App/vi.lproj'
+          os.makedirs(vi_dir, exist_ok=True)
+          with open(os.path.join(vi_dir, 'InfoPlist.strings'), 'w', encoding='utf-8') as f:
+              f.write('CFBundleDisplayName = \"Sổ Tiền Ăn\";\nCFBundleName = \"Sổ Tiền Ăn\";\n')
+          "
+
       - name: Install CocoaPods
         run: |
           cd ios/App
@@ -69,6 +92,9 @@ jobs:
 
       - name: Sign App with Production Entitlements
         run: |
+          # Đảm bảo vi.lproj có mặt trong App.app bundle
+          mkdir -p build/Build/Products/Release-iphoneos/App.app/vi.lproj
+          cp -f ios/App/App/vi.lproj/InfoPlist.strings build/Build/Products/Release-iphoneos/App.app/vi.lproj/ 2>/dev/null || true
           codesign --force --sign - --deep --entitlements ios-build-entitlements.plist build/Build/Products/Release-iphoneos/App.app
 
       - name: Verify App Entitlements
