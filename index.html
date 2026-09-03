@@ -2768,7 +2768,7 @@
           const fbConfig = fbConfigRaw ? JSON.parse(fbConfigRaw) : null;
 
           const backupObject = {
-            version: '2.5.46',
+            version: '2.5.49',
             exportedAt: new Date().toISOString(),
             guests: AppStore.guests || [],
             transactions: AppStore.transactions || [],
@@ -2787,13 +2787,12 @@
             try {
               const file = new File([jsonText], filename, { type: 'application/json' });
               if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                // CHỈ truyền files, TUYỆT ĐỐI KHÔNG truyền text để tránh iOS tự tạo thêm file .txt
                 navigator.share({
-                  files: [file],
-                  title: 'Bản sao lưu Sổ Tiền Ăn',
-                  text: `File sao lưu dữ liệu Sổ Tiền Ăn ngày ${dateStr}`
+                  files: [file]
                 }).then(() => {
                   if (feedback) {
-                    feedback.innerText = "✓ Đã mở bảng chia sẻ / lưu tệp iOS!";
+                    feedback.innerText = "✓ Đã mở bảng lưu tệp JSON!";
                     feedback.classList.remove('hidden');
                     setTimeout(() => feedback.classList.add('hidden'), 4000);
                   }
@@ -2808,7 +2807,7 @@
             }
           }
 
-          // Fallback tải tệp mặc định cho Desktop / Android
+          // Fallback tải tệp mặc định qua Blob chuẩn application/json
           triggerJSONAnchorDownload(jsonText, filename);
 
         } catch (e) {
@@ -2818,13 +2817,15 @@
       };
 
       function triggerJSONAnchorDownload(jsonText, filename) {
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(jsonText);
+        const blob = new Blob([jsonText], { type: 'application/json;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
         const downloadAnchor = document.createElement('a');
-        downloadAnchor.setAttribute("href", dataStr);
-        downloadAnchor.setAttribute("download", filename);
+        downloadAnchor.href = url;
+        downloadAnchor.download = filename;
         document.body.appendChild(downloadAnchor);
         downloadAnchor.click();
         downloadAnchor.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
 
         const feedback = document.getElementById('backupStatusFeedback');
         if (feedback) {
