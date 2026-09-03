@@ -184,7 +184,7 @@
           <span>⚡</span>
           <span>Tạo QR</span>
         </button>
-        <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.48 PRO</button>
+        <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.49 PRO</button>
       </div>
     </header>
 
@@ -239,22 +239,55 @@
             </div>
           </div>
 
-          <!-- Loại bữa ăn (Auto Meal Detection) -->
+          <!-- Loại khoản chi: Segmented Control 2 Chế Độ (Ăn Chung vs Khoản Riêng) -->
           <div>
-            <label class="block text-xs font-medium text-slate-400 mb-1.5">Loại khoản chi:</label>
-            <div id="mealTypeContainer" class="grid grid-cols-5 gap-1">
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="text-xs font-medium text-slate-400">Hình thức chi tiêu:</label>
+              <span id="expenseModeBadge" class="text-[10px] font-bold text-indigo-400">Bữa ăn chung (Chia đều)</span>
+            </div>
+
+            <!-- Segmented Tab Header -->
+            <div class="grid grid-cols-2 p-1 bg-slate-900 border border-slate-750 rounded-2xl mb-2 gap-1 shadow-inner">
+              <button type="button" id="tabModeShared" onclick="switchExpenseMode('shared')"
+                class="py-1.5 px-2 rounded-xl text-xs font-black transition-all flex items-center justify-center space-x-1 bg-indigo-600 text-white shadow-md cursor-pointer">
+                <span>🍽️</span>
+                <span>Ăn Chung</span>
+              </button>
+              <button type="button" id="tabModePersonal" onclick="switchExpenseMode('personal')"
+                class="py-1.5 px-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1 text-slate-400 hover:text-slate-200 cursor-pointer">
+                <span>👤</span>
+                <span>Khoản Riêng</span>
+              </button>
+            </div>
+
+            <!-- Chế độ 1: Bữa Ăn Chung (Sáng / Trưa / Tối) -->
+            <div id="subTypeContainerShared" class="grid grid-cols-3 gap-1.5">
               <button type="button" id="btnMealSang" onclick="setMealType('Sáng')" 
-                class="meal-btn text-[10px] font-bold py-2 rounded-xl border border-slate-700/50 bg-slate-900 text-slate-400 focus:outline-none">Sáng</button>
+                class="meal-btn text-xs font-bold py-2 rounded-xl border border-slate-700/50 bg-slate-900 text-slate-400 focus:outline-none transition-all flex items-center justify-center space-x-1 cursor-pointer">
+                <span>☀️</span> <span>Sáng</span>
+              </button>
               <button type="button" id="btnMealTrua" onclick="setMealType('Trưa')" 
-                class="meal-btn text-[10px] font-bold py-2 rounded-xl border border-slate-700/50 bg-slate-900 text-slate-400 focus:outline-none">Trưa</button>
+                class="meal-btn text-xs font-bold py-2 rounded-xl border border-slate-700/50 bg-slate-900 text-slate-400 focus:outline-none transition-all flex items-center justify-center space-x-1 cursor-pointer">
+                <span>🌤️</span> <span>Trưa</span>
+              </button>
               <button type="button" id="btnMealToi" onclick="setMealType('Tối')" 
-                class="meal-btn text-[10px] font-bold py-2 rounded-xl border border-slate-700/50 bg-slate-900 text-slate-400 focus:outline-none">Tối</button>
-              <!-- Mua hộ Mode Button -->
-              <button type="button" id="btnMealMuaHo" onclick="setMealType('Mua hộ')" 
-                class="meal-btn text-[10px] font-bold py-2 rounded-xl border border-slate-700/50 bg-slate-900 text-slate-400 focus:outline-none">Mua hộ</button>
-              <!-- Cấn trừ Mode Button -->
-              <button type="button" id="btnMealCanTru" onclick="setMealType('Cấn trừ')" 
-                class="meal-btn text-[10px] font-bold py-2 rounded-xl border border-slate-700/50 bg-slate-900 text-slate-400 focus:outline-none">Cấn trừ</button>
+                class="meal-btn text-xs font-bold py-2 rounded-xl border border-slate-700/50 bg-slate-900 text-slate-400 focus:outline-none transition-all flex items-center justify-center space-x-1 cursor-pointer">
+                <span>🌙</span> <span>Tối</span>
+              </button>
+            </div>
+
+            <!-- Chế độ 2: Khoản Riêng (Tính riêng / Được trừ) -->
+            <div id="subTypeContainerPersonal" class="hidden grid grid-cols-2 gap-2">
+              <button type="button" id="btnMealTinhRieng" onclick="setMealType('Tính riêng')" 
+                class="meal-btn text-xs font-bold py-2.5 rounded-xl border border-slate-700/50 bg-slate-900 text-slate-400 focus:outline-none transition-all flex items-center justify-center space-x-1.5 cursor-pointer">
+                <span class="text-sm">🛍️</span>
+                <span>Tính riêng (+)</span>
+              </button>
+              <button type="button" id="btnMealDuocTru" onclick="setMealType('Được trừ')" 
+                class="meal-btn text-xs font-bold py-2.5 rounded-xl border border-slate-700/50 bg-slate-900 text-slate-400 focus:outline-none transition-all flex items-center justify-center space-x-1.5 cursor-pointer">
+                <span class="text-sm">✂️</span>
+                <span>Được trừ (-)</span>
+              </button>
             </div>
           </div>
 
@@ -749,16 +782,16 @@
         <div class="flex items-center justify-between">
           <div class="flex flex-col">
             <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Hiện tại</span>
-            <span id="otaCurrentVersion" class="text-xs font-bold text-slate-400 font-mono">v2.5.48</span>
+            <span id="otaCurrentVersion" class="text-xs font-bold text-slate-400 font-mono">v2.5.49</span>
           </div>
           <span class="text-slate-600 font-bold">➔</span>
           <div class="flex flex-col items-end">
             <span class="text-[10px] text-indigo-400 font-bold uppercase tracking-wider">Phiên bản mới</span>
-            <span id="otaNewVersion" class="text-sm font-black text-indigo-300 font-mono glow-indigo">v2.5.48</span>
+            <span id="otaNewVersion" class="text-sm font-black text-indigo-300 font-mono glow-indigo">v2.5.49</span>
           </div>
         </div>
         <div class="border-t border-slate-850 pt-2">
-          <div class="text-[11px] font-bold text-slate-300 mb-1" id="otaReleaseTitle">Sổ Tiền Ăn v2.5.48</div>
+          <div class="text-[11px] font-bold text-slate-300 mb-1" id="otaReleaseTitle">Sổ Tiền Ăn v2.5.49</div>
           <div id="otaReleaseNotes" class="text-[11px] text-slate-400 leading-relaxed max-h-32 overflow-y-auto whitespace-pre-wrap select-text pr-1">Bản phát hành cập nhật tính năng mới.</div>
         </div>
       </div>
@@ -943,9 +976,14 @@
             }
 
             // Đồng bộ hóa các trường thông tin cơ bản
-            const isProxy = tx.isProxy || tx.mealType === 'Mua hộ' || false;
+            const isProxy = tx.isProxy || tx.mealType === 'Tính riêng' || tx.mealType === 'Mua hộ' || false;
+            const isCanTru = tx.mealType === 'Được trừ' || tx.mealType === 'Cấn trừ' || false;
             const totalAmount = tx.totalAmount || tx.amount || 0;
-            const mealType = tx.mealType || (isProxy ? 'Mua hộ' : 'Trưa');
+            
+            let mealType = tx.mealType || (isProxy ? 'Tính riêng' : 'Trưa');
+            if (mealType === 'Mua hộ') mealType = 'Tính riêng';
+            if (mealType === 'Cấn trừ') mealType = 'Được trừ';
+
             const date = tx.date || new Date().toISOString().split('T')[0];
             const time = tx.time || new Date().toTimeString().split(' ')[0].substring(0, 5);
             const description = tx.description || tx.note || '';
@@ -966,7 +1004,7 @@
               mealType,
               totalAmount: Math.round(Number(totalAmount)) || 0,
               description,
-              isProxy,
+              isProxy: isProxy || isCanTru,
               shares: cleanShares
             };
           });
@@ -1056,8 +1094,12 @@
         },
 
         addTransaction(amount, mealType, description, selectedParticipants, customDate) {
-          const isProxy = (mealType === 'Mua hộ');
-          const isCanTru = (mealType === 'Cấn trừ');
+          const isProxy = (mealType === 'Tính riêng' || mealType === 'Mua hộ');
+          const isCanTru = (mealType === 'Được trừ' || mealType === 'Cấn trừ');
+          let normalizedMealType = mealType;
+          if (mealType === 'Mua hộ') normalizedMealType = 'Tính riêng';
+          if (mealType === 'Cấn trừ') normalizedMealType = 'Được trừ';
+
           const totalAmount = Math.round(Number(amount)) || 0;
           
           if (totalAmount <= 0) return null;
@@ -1079,7 +1121,7 @@
 
           const shares = {};
           if (isCanTru) {
-            // Cấn trừ: Tổng tiền chia đều 100% dạng trừ nợ (âm) cho những người được chọn. Chủ hộ không chịu phần này.
+            // Được trừ (Cấn trừ): Tổng tiền chia đều 100% dạng trừ nợ (âm) cho những người được chọn. Chủ hộ không chịu phần này.
             const divisor = selectedParticipants.length;
             const shareAmount = Math.ceil((totalAmount / divisor) / 1000) * 1000;
             
@@ -1087,7 +1129,7 @@
               shares[p] = -shareAmount;
             });
           } else if (isProxy) {
-            // Mua hộ: Tổng tiền chia đều 100% CHỈ cho người tham gia chọn. Chủ hộ 0 đồng.
+            // Tính riêng (Mua hộ): Tổng tiền chia đều 100% CHỈ cho người tham gia chọn. Chủ hộ 0 đồng.
             const divisor = selectedParticipants.length;
             const shareAmount = Math.ceil((totalAmount / divisor) / 1000) * 1000;
             
@@ -1108,7 +1150,7 @@
             id,
             date,
             time,
-            mealType,
+            mealType: normalizedMealType,
             totalAmount,
             description: description.trim(),
             isProxy: isProxy || isCanTru,
@@ -1239,11 +1281,35 @@
         return amount.toLocaleString('vi-VN') + 'đ';
       }
 
+      // Format tiền tệ Việt Nam có dấu + và - rõ ràng
+      function formatSignedVND(amount) {
+        if (amount > 0) return '+' + amount.toLocaleString('vi-VN') + 'đ';
+        if (amount < 0) return amount.toLocaleString('vi-VN') + 'đ'; // đã có sẵn dấu -
+        return '0đ';
+      }
+
+      // Tạo Avatar chữ cái đầu với Gradient màu riêng cho từng thành viên
+      function getMemberAvatar(name) {
+        const initial = (name || '?').trim().charAt(0).toUpperCase();
+        const palettes = [
+          'from-emerald-500 to-teal-600',
+          'from-indigo-500 to-violet-600',
+          'from-amber-500 to-orange-600',
+          'from-fuchsia-500 to-pink-600',
+          'from-cyan-500 to-blue-600',
+          'from-rose-500 to-red-600'
+        ];
+        let sum = 0;
+        for (let i = 0; i < name.length; i++) sum += name.charCodeAt(i);
+        const grad = palettes[sum % palettes.length];
+        return `<div class="w-6 h-6 rounded-full bg-gradient-to-br ${grad} text-white font-black text-[11px] flex items-center justify-center shrink-0 shadow-sm ring-1 ring-white/20">${escapeHTML(initial)}</div>`;
+      }
+
       // ==========================================
       // 6. RENDER ENGINE & UI MANIPULATION
       // ==========================================
 
-      // Cập nhật giao diện Hộp Số Dư
+      // Cập nhật giao diện Hộp Số Dư (Nâng cấp chuẩn Fintech với Avatar & Status Badge)
       function renderBalanceBoxes() {
         const balanceGrid = document.getElementById('balanceGrid');
         balanceGrid.innerHTML = '';
@@ -1258,7 +1324,7 @@
         }
         
         Object.entries(balances).forEach(([name, amt]) => {
-          // Chỉ hiển thị thành viên cốt lõi hoặc những khách có số dư nợ > 0
+          // Chỉ hiển thị thành viên cốt lõi hoặc những khách có số dư nợ khác 0
           if (!CORE_MEMBERS.includes(name) && amt === 0) {
             return;
           }
@@ -1269,20 +1335,42 @@
           box.type = 'button';
           box.onclick = () => selectFilterMember(name);
           
-          box.className = `p-3 rounded-2xl border text-left transition-all-300 duration-200 relative overflow-hidden active:scale-[0.97] flex flex-col justify-between h-20 ${
+          box.className = `p-3 rounded-2xl border text-left transition-all-300 duration-200 relative overflow-hidden active:scale-[0.97] flex flex-col justify-between min-h-[92px] cursor-pointer ${
             isActive 
-              ? 'bg-indigo-950/60 border-indigo-500 glow-indigo ring-2 ring-indigo-500/20' 
-              : 'bg-slate-800/80 border-slate-700/60 hover:border-slate-650'
+              ? 'bg-indigo-950/70 border-indigo-500 glow-indigo ring-2 ring-indigo-500/30' 
+              : 'bg-slate-900/90 border-slate-800 hover:border-slate-700 shadow-md'
           }`;
           
           const glowDot = isActive 
-            ? '<span class="absolute top-2 right-2 h-1.5 w-1.5 rounded-full bg-indigo-400"></span>' 
+            ? '<span class="absolute top-2.5 right-2.5 h-2 w-2 rounded-full bg-indigo-400 ring-4 ring-indigo-400/20 animate-pulse"></span>' 
             : '';
+
+          // Trạng thái badge nợ
+          let badgeHtml = '';
+          let amountColor = 'text-slate-100';
+          if (amt > 0) {
+            badgeHtml = '<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-950/60 text-rose-300 border border-rose-500/20 shrink-0">Còn nợ</span>';
+            amountColor = 'text-rose-300';
+          } else if (amt < 0) {
+            badgeHtml = '<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-fuchsia-950/60 text-fuchsia-300 border border-fuchsia-500/20 shrink-0">Dư tiền</span>';
+            amountColor = 'text-fuchsia-300';
+          } else {
+            badgeHtml = '<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-950/60 text-emerald-300 border border-emerald-500/20 shrink-0">Đã xong ✓</span>';
+            amountColor = 'text-emerald-400';
+          }
             
           box.innerHTML = `
             ${glowDot}
-            <span class="text-[11px] font-bold text-slate-400 tracking-wide truncate max-w-[85%]">${escapeHTML(name)}</span>
-            <span class="text-lg font-black tracking-tight text-slate-100 mt-1 truncate">${formatVND(amt)}</span>
+            <div class="flex items-center justify-between w-full pr-4 mb-2">
+              <div class="flex items-center space-x-2 min-w-0">
+                ${getMemberAvatar(name)}
+                <span class="text-xs font-bold text-slate-200 tracking-wide truncate">${escapeHTML(name)}</span>
+              </div>
+            </div>
+            <div class="flex items-baseline justify-between w-full mt-auto">
+              <span class="text-base font-black tracking-tight ${amountColor} truncate font-mono">${formatSignedVND(amt)}</span>
+              ${badgeHtml}
+            </div>
           `;
           
           balanceGrid.appendChild(box);
@@ -1297,13 +1385,57 @@
         }
       }
 
+      // Chuyển đổi giữa 2 Tab Chế độ: Bữa Ăn Chung vs Khoản Riêng
+      window.switchExpenseMode = function(mode) {
+        const tabShared = document.getElementById('tabModeShared');
+        const tabPersonal = document.getElementById('tabModePersonal');
+        const containerShared = document.getElementById('subTypeContainerShared');
+        const containerPersonal = document.getElementById('subTypeContainerPersonal');
+        const badge = document.getElementById('expenseModeBadge');
+
+        if (mode === 'shared') {
+          if (tabShared) tabShared.className = "py-1.5 px-2 rounded-xl text-xs font-black transition-all flex items-center justify-center space-x-1 bg-indigo-600 text-white shadow-md cursor-pointer";
+          if (tabPersonal) tabPersonal.className = "py-1.5 px-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1 text-slate-400 hover:text-slate-200 cursor-pointer";
+          if (containerShared) containerShared.classList.remove('hidden');
+          if (containerPersonal) containerPersonal.classList.add('hidden');
+          if (badge) {
+            badge.innerText = "Bữa ăn chung (Chia đều có Tôi)";
+            badge.className = "text-[10px] font-bold text-indigo-400";
+          }
+          if (AppStore.currentMealType !== 'Sáng' && AppStore.currentMealType !== 'Trưa' && AppStore.currentMealType !== 'Tối') {
+            setMealType(autoDetectMeal());
+          } else {
+            setMealType(AppStore.currentMealType);
+          }
+        } else {
+          if (tabShared) tabShared.className = "py-1.5 px-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1 text-slate-400 hover:text-slate-200 cursor-pointer";
+          if (tabPersonal) tabPersonal.className = "py-1.5 px-2 rounded-xl text-xs font-black transition-all flex items-center justify-center space-x-1 bg-gradient-to-r from-fuchsia-600 to-rose-600 text-white shadow-md cursor-pointer";
+          if (containerShared) containerShared.classList.add('hidden');
+          if (containerPersonal) containerPersonal.classList.remove('hidden');
+          if (badge) {
+            badge.innerText = "Khoản riêng (Tính 100% người chọn)";
+            badge.className = "text-[10px] font-bold text-rose-400";
+          }
+          if (AppStore.currentMealType !== 'Tính riêng' && AppStore.currentMealType !== 'Được trừ') {
+            setMealType('Tính riêng');
+          } else {
+            setMealType(AppStore.currentMealType);
+          }
+        }
+      };
+
       // Cập nhật Danh sách Checkbox chọn người tham gia trong Form
       function renderParticipantsSelector() {
         const selector = document.getElementById('participantsSelector');
         selector.innerHTML = '';
         
         const members = AppStore.getMembers();
-        const isProxy = (AppStore.currentMealType === 'Mua hộ');
+        const isProxy = (AppStore.currentMealType === 'Tính riêng' || AppStore.currentMealType === 'Mua hộ');
+        const isCanTru = (AppStore.currentMealType === 'Được trừ' || AppStore.currentMealType === 'Cấn trừ');
+
+        let activeClass = 'participant-active-indigo';
+        if (isProxy) activeClass = 'participant-active-fuchsia';
+        else if (isCanTru) activeClass = 'participant-active-rose';
 
         members.forEach((m, idx) => {
           const isChecked = selectedParticipants.has(m);
@@ -1312,11 +1444,6 @@
           const label = document.createElement('label');
           label.id = `label_cb_${escapeHTML(m)}`;
           
-          // Áp dụng chủ đề Fuchsia cho Mua hộ, Indigo cho Standard
-          const activeClass = isProxy 
-            ? 'participant-active-fuchsia'
-            : 'participant-active-indigo';
-            
           const inactiveClass = 'border-slate-700 bg-slate-900 text-slate-400 hover:border-slate-600';
 
           label.className = `flex flex-col items-center justify-center p-2.5 rounded-xl border text-center font-bold text-xs cursor-pointer select-none transition-colors duration-150 active:scale-95 ${
@@ -1345,10 +1472,12 @@
           selectedParticipants.delete(val);
         }
         
-        const isProxy = (AppStore.currentMealType === 'Mua hộ');
-        const activeClass = isProxy 
-          ? 'participant-active-fuchsia'
-          : 'participant-active-indigo';
+        const isProxy = (AppStore.currentMealType === 'Tính riêng' || AppStore.currentMealType === 'Mua hộ');
+        const isCanTru = (AppStore.currentMealType === 'Được trừ' || AppStore.currentMealType === 'Cấn trừ');
+        let activeClass = 'participant-active-indigo';
+        if (isProxy) activeClass = 'participant-active-fuchsia';
+        else if (isCanTru) activeClass = 'participant-active-rose';
+
         const inactiveClass = 'border-slate-700 bg-slate-900 text-slate-400 hover:border-slate-600';
 
         if (isChecked) {
@@ -1372,36 +1501,65 @@
         updateSplitPreview();
       };
 
-      // Cập nhật Loại Bữa Ăn (Sáng / Trưa / Tối / Mua hộ / Cấn trừ)
+      // Cập nhật Loại Bữa Ăn (Sáng / Trưa / Tối / Tính riêng / Được trừ)
       window.setMealType = function(type) {
+        if (type === 'Mua hộ') type = 'Tính riêng';
+        if (type === 'Cấn trừ') type = 'Được trừ';
         AppStore.currentMealType = type;
         
         // Cập nhật trạng thái Active trên UI Buttons
         document.querySelectorAll('.meal-btn').forEach(btn => {
-          btn.className = 'meal-btn text-[10px] font-bold py-2 rounded-xl border border-slate-700/50 bg-slate-900 text-slate-400 focus:outline-none';
+          btn.className = 'meal-btn text-xs font-bold py-2 rounded-xl border border-slate-700/50 bg-slate-900 text-slate-400 focus:outline-none transition-all flex items-center justify-center space-x-1 cursor-pointer';
         });
 
-        let idType = type;
-        if (type === 'Sáng') idType = 'Sang';
-        else if (type === 'Trưa') idType = 'Trua';
-        else if (type === 'Tối') idType = 'Toi';
-        else if (type === 'Mua hộ') idType = 'MuaHo';
-        else if (type === 'Cấn trừ') idType = 'CanTru';
+        const isProxy = (type === 'Tính riêng');
+        const isCanTru = (type === 'Được trừ');
 
-        const activeBtn = document.getElementById(`btnMeal${idType}`);
-        if (activeBtn) {
-          if (type === 'Mua hộ') {
-            activeBtn.className = 'meal-btn text-[10px] font-bold py-2 rounded-xl meal-btn-active-fuchsia focus:outline-none';
-          } else if (type === 'Cấn trừ') {
-            activeBtn.className = 'meal-btn text-[10px] font-bold py-2 rounded-xl meal-btn-active-rose focus:outline-none';
-          } else {
-            activeBtn.className = 'meal-btn text-[10px] font-bold py-2 rounded-xl meal-btn-active-indigo focus:outline-none';
+        // Tự động đồng bộ Tab header
+        const tabShared = document.getElementById('tabModeShared');
+        const tabPersonal = document.getElementById('tabModePersonal');
+        const containerShared = document.getElementById('subTypeContainerShared');
+        const containerPersonal = document.getElementById('subTypeContainerPersonal');
+        const badge = document.getElementById('expenseModeBadge');
+
+        if (isProxy || isCanTru) {
+          if (tabShared) tabShared.className = "py-1.5 px-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1 text-slate-400 hover:text-slate-200 cursor-pointer";
+          if (tabPersonal) tabPersonal.className = "py-1.5 px-2 rounded-xl text-xs font-black transition-all flex items-center justify-center space-x-1 bg-gradient-to-r from-fuchsia-600 to-rose-600 text-white shadow-md cursor-pointer";
+          if (containerShared) containerShared.classList.add('hidden');
+          if (containerPersonal) containerPersonal.classList.remove('hidden');
+          if (badge) {
+            badge.innerText = isCanTru ? "Được trừ (- Giảm nợ người chọn)" : "Tính riêng (+ Nợ 100% người chọn)";
+            badge.className = isCanTru ? "text-[10px] font-bold text-rose-400" : "text-[10px] font-bold text-fuchsia-400";
+          }
+        } else {
+          if (tabShared) tabShared.className = "py-1.5 px-2 rounded-xl text-xs font-black transition-all flex items-center justify-center space-x-1 bg-indigo-600 text-white shadow-md cursor-pointer";
+          if (tabPersonal) tabPersonal.className = "py-1.5 px-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1 text-slate-400 hover:text-slate-200 cursor-pointer";
+          if (containerShared) containerShared.classList.remove('hidden');
+          if (containerPersonal) containerPersonal.classList.add('hidden');
+          if (badge) {
+            badge.innerText = "Bữa ăn chung (Chia đều có Tôi)";
+            badge.className = "text-[10px] font-bold text-indigo-400";
           }
         }
 
-        // Thay vì vẽ lại toàn bộ DOM, chỉ cần đổi class active (Fuchsia/Indigo/Rose) cho các checkbox đang được chọn
-        const isProxy = (type === 'Mua hộ');
-        const isCanTru = (type === 'Cấn trừ');
+        let activeBtn = null;
+        if (type === 'Sáng') activeBtn = document.getElementById('btnMealSang');
+        else if (type === 'Trưa') activeBtn = document.getElementById('btnMealTrua');
+        else if (type === 'Tối') activeBtn = document.getElementById('btnMealToi');
+        else if (type === 'Tính riêng') activeBtn = document.getElementById('btnMealTinhRieng');
+        else if (type === 'Được trừ') activeBtn = document.getElementById('btnMealDuocTru');
+
+        if (activeBtn) {
+          if (isProxy) {
+            activeBtn.className = 'meal-btn text-xs font-bold py-2.5 rounded-xl meal-btn-active-fuchsia focus:outline-none transition-all flex items-center justify-center space-x-1.5 cursor-pointer shadow-lg shadow-fuchsia-950/40';
+          } else if (isCanTru) {
+            activeBtn.className = 'meal-btn text-xs font-bold py-2.5 rounded-xl meal-btn-active-rose focus:outline-none transition-all flex items-center justify-center space-x-1.5 cursor-pointer shadow-lg shadow-rose-950/40';
+          } else {
+            activeBtn.className = 'meal-btn text-xs font-bold py-2 rounded-xl meal-btn-active-indigo focus:outline-none transition-all flex items-center justify-center space-x-1 cursor-pointer shadow-lg shadow-indigo-950/40';
+          }
+        }
+
+        // Đổi class active (Fuchsia/Indigo/Rose) cho các checkbox đang được chọn
         let activeClass = 'participant-active-indigo';
         if (isProxy) activeClass = 'participant-active-fuchsia';
         else if (isCanTru) activeClass = 'participant-active-rose';
@@ -1428,8 +1586,8 @@
         const amount = Math.round(Number(amountInput.value)) * 1000 || 0;
         
         const checkedNames = Array.from(selectedParticipants);
-        const isProxy = (AppStore.currentMealType === 'Mua hộ');
-        const isCanTru = (AppStore.currentMealType === 'Cấn trừ');
+        const isProxy = (AppStore.currentMealType === 'Tính riêng' || AppStore.currentMealType === 'Mua hộ');
+        const isCanTru = (AppStore.currentMealType === 'Được trừ' || AppStore.currentMealType === 'Cấn trừ');
 
         const previewDetail = document.getElementById('splitPreviewDetail');
 
@@ -1449,7 +1607,7 @@
           const div = checkedNames.length;
           const share = Math.ceil((amount / div) / 1000) * 1000;
           previewDetail.innerHTML = `
-            <div class="text-rose-400 font-black">Chế độ Cấn Trừ / Giảm nợ</div>
+            <div class="text-rose-400 font-black">Chế độ Được Trừ / Giảm nợ (-)</div>
             <div>Giảm trừ cho <span class="font-bold text-slate-100">${div} người</span>: 
               <span class="font-bold text-rose-300">-${formatVND(share)}</span> / người.
             </div>
@@ -1459,9 +1617,9 @@
           const div = checkedNames.length;
           const share = Math.ceil((amount / div) / 1000) * 1000;
           previewDetail.innerHTML = `
-            <div class="text-fuchsia-400 font-black">Chế độ Mua Hộ (Tôi không tính tiền)</div>
-            <div>Chia cho <span class="font-bold text-slate-100">${div} người</span>: 
-              <span class="font-bold text-fuchsia-300">${formatVND(share)}</span> / người.
+            <div class="text-fuchsia-400 font-black">Chế độ Tính Riêng (+) (Tôi không tính tiền)</div>
+            <div>Tính riêng cho <span class="font-bold text-slate-100">${div} người</span>: 
+              <span class="font-bold text-fuchsia-300">+${formatVND(share)}</span> / người.
             </div>
             <div class="text-[10px] text-slate-400 mt-0.5">Thành viên nợ: ${safeCheckedNames}</div>
           `;
@@ -1471,9 +1629,9 @@
           previewDetail.innerHTML = `
             <div class="text-indigo-400 font-black">Chế độ Bữa Ăn Chung (Tính cả Tôi)</div>
             <div>Chia đều <span class="font-bold text-slate-100">${div} người</span> (Tôi + ${checkedNames.length} bạn): 
-              <span class="font-bold text-indigo-300">${formatVND(share)}</span> / người.
+              <span class="font-bold text-indigo-300">+${formatVND(share)}</span> / người.
             </div>
-            <div class="text-[10px] text-slate-400 mt-0.5">Tôi chịu: ${formatVND(share)} • Nợ từ bạn bè: ${safeCheckedNames}</div>
+            <div class="text-[10px] text-slate-400 mt-0.5">Tôi chịu: +${formatVND(share)} • Nợ từ bạn bè: ${safeCheckedNames}</div>
           `;
         }
       };
@@ -1635,12 +1793,9 @@
         let list = AppStore.transactions;
 
         if (filterMember) {
-          // Lọc danh sách giao dịch chỉ giữ lại các hóa đơn có mặt member này với dượng nợ khác 0
           list = list.filter(tx => tx.shares[filterMember] !== undefined && tx.shares[filterMember] !== 0);
           clearFilterBtn.classList.remove('hidden');
           if (captureBtn) captureBtn.classList.remove('hidden');
-          
-          // Chỉ hiển thị tiêu đề lịch sử sạch sẽ
           historyTitle.innerText = `📋 Lịch sử tiền ăn của ${filterMember}`;
         } else {
           clearFilterBtn.classList.add('hidden');
@@ -1657,149 +1812,199 @@
           return;
         }
 
+        // Nhóm các giao dịch theo từng Ngày (Grouped Date Timeline)
+        const dateGroups = [];
+        const dateMap = new Map();
+
         list.forEach(tx => {
-          const item = document.createElement('div');
-          
-          // Chủ đề viền màu sắc cho Mua hộ vs Standard vs Cấn trừ
-          let borderClass = 'border-l-4 border-indigo-500 bg-slate-850/30 hover:bg-slate-850/50';
-          if (tx.mealType === 'Mua hộ') {
-            borderClass = 'border-l-4 border-fuchsia-500 bg-slate-850/45 hover:bg-slate-850/70';
-          } else if (tx.mealType === 'Cấn trừ') {
-            borderClass = 'border-l-4 border-rose-500 bg-slate-850/45 hover:bg-slate-850/70';
+          const d = tx.date || 'Khác';
+          if (!dateMap.has(d)) {
+            const group = { date: d, items: [] };
+            dateMap.set(d, group);
+            dateGroups.push(group);
           }
+          dateMap.get(d).items.push(tx);
+        });
 
-          // Format thẻ loại bữa ăn có độ rộng CỐ ĐỊNH để căn lề chữ bên cạnh hoàn hảo
-          let tagColorClass = '';
-          switch (tx.mealType) {
-            case 'Sáng': tagColorClass = 'bg-amber-950/50 text-amber-400 border-amber-800/30'; break;
-            case 'Trưa': tagColorClass = 'bg-emerald-950/50 text-emerald-400 border-emerald-800/30'; break;
-            case 'Tối': tagColorClass = 'bg-indigo-950/50 text-indigo-400 border-indigo-800/30'; break;
-            case 'Mua hộ': tagColorClass = 'bg-fuchsia-950/50 text-fuchsia-400 border-fuchsia-800/30'; break;
-            case 'Cấn trừ': tagColorClass = 'bg-rose-950/50 text-rose-400 border-rose-800/30'; break;
-          }
+        dateGroups.forEach(group => {
+          const groupWrapper = document.createElement('div');
+          groupWrapper.className = 'space-y-2 mb-4';
 
-          // Format ngày tháng hiển thị dạng DD/MM HH:MM
-          let displayDateTime = '';
-          try {
-            const parts = tx.date.split('-');
-            displayDateTime = `${parts[2] || ''}/${parts[1] || ''} ${tx.time || ''}`;
-          } catch(e) {
-            displayDateTime = tx.date;
-          }
-
+          // Tính tổng tiền trong ngày
+          let dayTotal = 0;
           if (filterMember) {
-            // ==========================================
-            // LAYOUT KHI LỌC THÀNH VIÊN (SIÊU GỌN, TỰ PHÌNH NẾU CÓ NOTE)
-            // ==========================================
-            const displayAmount = tx.shares[filterMember] || 0;
+            dayTotal = group.items.reduce((sum, tx) => sum + (tx.shares[filterMember] || 0), 0);
+          } else {
+            dayTotal = group.items.reduce((sum, tx) => {
+              const isCanTru = (tx.mealType === 'Được trừ' || tx.mealType === 'Cấn trừ');
+              return sum + (isCanTru ? -tx.totalAmount : tx.totalAmount);
+            }, 0);
+          }
+
+          // Tiêu đề ngày tháng (Sticky Header)
+          const dateHeader = document.createElement('div');
+          dateHeader.className = 'sticky top-0 z-10 bg-slate-950/90 backdrop-blur-md py-1.5 px-3 flex items-center justify-between border-b border-slate-800 rounded-xl mb-2 shadow-sm';
+          dateHeader.innerHTML = `
+            <div class="flex items-center space-x-1.5">
+              <span class="text-xs">📅</span>
+              <span class="text-xs font-bold text-slate-200">${escapeHTML(formatVietnameseDate(group.date))}</span>
+              <span class="text-[10px] text-slate-500 font-mono">(${group.items.length} món)</span>
+            </div>
+            <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${
+              dayTotal >= 0 
+                ? 'bg-indigo-950/80 text-indigo-300 border border-indigo-500/30' 
+                : 'bg-rose-950/80 text-rose-300 border border-rose-500/30'
+            }">
+              Tổng ngày: ${formatSignedVND(dayTotal)}
+            </span>
+          `;
+          groupWrapper.appendChild(dateHeader);
+
+          group.items.forEach(tx => {
+            const item = document.createElement('div');
             
-            let tagClass = 'bg-indigo-950/20 text-indigo-400 border-indigo-800/20';
-            if (tx.mealType === 'Mua hộ') {
-              tagClass = 'bg-fuchsia-950/20 text-fuchsia-400 border-fuchsia-800/20';
-            } else if (tx.mealType === 'Cấn trừ') {
-              tagClass = 'bg-rose-950/20 text-rose-400 border-rose-800/20';
+            let displayMeal = tx.mealType;
+            if (displayMeal === 'Mua hộ') displayMeal = 'Tính riêng';
+            if (displayMeal === 'Cấn trừ') displayMeal = 'Được trừ';
+
+            // Chủ đề viền màu sắc cho Tính riêng vs Standard vs Được trừ
+            let borderClass = 'border-l-4 border-indigo-500 bg-slate-900/60 hover:bg-slate-900/90';
+            if (displayMeal === 'Tính riêng') {
+              borderClass = 'border-l-4 border-fuchsia-500 bg-slate-900/70 hover:bg-slate-900/95';
+            } else if (displayMeal === 'Được trừ') {
+              borderClass = 'border-l-4 border-rose-500 bg-slate-900/70 hover:bg-slate-900/95';
             }
 
-            // Chiều cao tự to ra nếu có description (ghi chú)
-            item.className = `rounded-2xl border border-slate-800/80 transition-all-300 relative ${borderClass} ${tx.description ? 'p-3.5' : 'py-2 px-3.5'}`;
+            // Format thẻ loại bữa ăn
+            let tagColorClass = '';
+            switch (displayMeal) {
+              case 'Sáng': tagColorClass = 'bg-amber-950/50 text-amber-400 border-amber-800/30'; break;
+              case 'Trưa': tagColorClass = 'bg-emerald-950/50 text-emerald-400 border-emerald-800/30'; break;
+              case 'Tối': tagColorClass = 'bg-indigo-950/50 text-indigo-400 border-indigo-800/30'; break;
+              case 'Tính riêng': tagColorClass = 'bg-fuchsia-950/50 text-fuchsia-400 border-fuchsia-800/30'; break;
+              case 'Được trừ': tagColorClass = 'bg-rose-950/50 text-rose-400 border-rose-800/30'; break;
+              default: tagColorClass = 'bg-slate-800 text-slate-300 border-slate-700'; break;
+            }
 
-            const amountTag = `
-              <span class="inline-block border rounded px-1.5 py-0.5 text-[10px] font-semibold ${tagClass} shrink-0">
-                số tiền: ${formatVND(displayAmount)}
-              </span>
-            `;
+            const displayTime = tx.time || '';
 
-            const descMarkup = tx.description 
-              ? `<div class="pl-[74px] mt-1.5 flex flex-col">
-                   <span class="text-xs font-bold text-slate-200 truncate select-text">${escapeHTML(tx.description)}</span>
-                 </div>` 
-              : '';
-
-            item.innerHTML = `
-              <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-2.5 overflow-hidden flex-grow mr-2 min-w-0">
-                  <!-- Thẻ loại bữa ăn CỐ ĐỊNH CHIỀU RỘNG w-16 -->
-                  <span class="inline-block w-16 text-center text-[10px] font-extrabold py-1 px-1.5 rounded-lg border shrink-0 ${tagColorClass}">
-                    ${escapeHTML(tx.mealType)}
-                  </span>
-                  
-                  <div class="flex items-center space-x-2.5 min-w-0">
-                    <span class="text-[10px] text-slate-500 font-mono shrink-0">${escapeHTML(displayDateTime)}</span>
-                    ${amountTag}
-                  </div>
-                </div>
-
-                <!-- Nút Xóa nợ -->
-                <div class="flex items-center shrink-0">
-                  <button onclick="handleDeleteShare(this, '${tx.id}')" 
-                    class="btn-delete-share h-6 w-6 text-[10px] rounded-lg bg-slate-900 border border-slate-800 hover:bg-rose-950/20 hover:border-rose-500/20 hover:text-rose-400 flex items-center justify-center transition-all duration-150 active:scale-90 animate-all">
-                    ✕
-                  </button>
-                </div>
-              </div>
-              ${descMarkup}
-            `;
-          } else {
-            // ==========================================
-            // LAYOUT KHI XEM CHUNG (ĐẦY ĐỦ THÀNH VIÊN, LOẠI BỎ TÔI)
-            // ==========================================
-            item.className = `p-3.5 rounded-2xl border border-slate-800/80 transition-all-300 relative ${borderClass}`;
-
-            const shareEntries = Object.entries(tx.shares).filter(([_, v]) => v !== 0);
-            const sharesMarkup = shareEntries.map(([name, amt]) => {
-              let badgeClass = 'bg-slate-900 text-slate-300 border-slate-850';
-              if (tx.mealType === 'Mua hộ') {
-                badgeClass = 'bg-fuchsia-950/20 text-fuchsia-400 border-fuchsia-800/20';
-              } else if (tx.mealType === 'Cấn trừ') {
-                badgeClass = 'bg-rose-950/20 text-rose-400 border-rose-800/20';
+            if (filterMember) {
+              // ==========================================
+              // LAYOUT KHI LỌC THÀNH VIÊN
+              // ==========================================
+              const displayAmount = tx.shares[filterMember] || 0;
+              
+              let tagClass = 'bg-indigo-950/40 text-indigo-300 border-indigo-800/30';
+              if (displayMeal === 'Tính riêng') {
+                tagClass = 'bg-fuchsia-950/40 text-fuchsia-300 border-fuchsia-800/30';
+              } else if (displayMeal === 'Được trừ') {
+                tagClass = 'bg-rose-950/40 text-rose-300 border-rose-800/30';
               }
-              return `
-                <span class="inline-block border rounded px-1.5 py-0.5 text-[10px] font-semibold mr-1 mb-1 ${badgeClass}">
-                  ${escapeHTML(name)}: ${formatVND(amt)}
+
+              item.className = `rounded-2xl border border-slate-800/80 transition-all-300 relative shadow-sm ${borderClass} ${tx.description ? 'p-3.5' : 'py-2 px-3.5'}`;
+
+              const amountTag = `
+                <span class="inline-block border rounded px-1.5 py-0.5 text-[11px] font-bold font-mono ${tagClass} shrink-0">
+                  ${formatSignedVND(displayAmount)}
                 </span>
               `;
-            }).join('');
 
-            const descMarkup = tx.description 
-              ? `<span class="text-xs font-bold text-slate-200 mt-0.5 truncate select-text">${escapeHTML(tx.description)}</span>` 
-              : '';
+              const descMarkup = tx.description 
+                ? `<div class="pl-[74px] mt-1.5 flex flex-col">
+                     <span class="text-xs font-bold text-slate-200 truncate select-text">${escapeHTML(tx.description)}</span>
+                   </div>` 
+                : '';
 
-            item.innerHTML = `
-              <div class="flex items-start justify-between">
-                <div class="flex items-start space-x-2.5 overflow-hidden flex-grow mr-2">
-                  <!-- Thẻ loại bữa ăn CỐ ĐỊNH CHIỀU RỘNG w-16 -->
-                  <span class="inline-block w-16 text-center text-[10px] font-extrabold py-1 px-1.5 rounded-lg border shrink-0 ${tagColorClass}">
-                    ${escapeHTML(tx.mealType)}
-                  </span>
-                  
-                  <div class="flex flex-col overflow-hidden min-w-0">
-                    <div class="flex items-center space-x-2 text-[10px] text-slate-500 font-mono">
-                      <span>${escapeHTML(displayDateTime)}</span>
+              item.innerHTML = `
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center space-x-2.5 overflow-hidden flex-grow mr-2 min-w-0">
+                    <!-- Thẻ loại bữa ăn CỐ ĐỊNH CHIỀU RỘNG w-16 -->
+                    <span class="inline-block w-16 text-center text-[10px] font-extrabold py-1 px-1 rounded-lg border shrink-0 ${tagColorClass}">
+                      ${escapeHTML(displayMeal)}
+                    </span>
+                    
+                    <div class="flex items-center space-x-2.5 min-w-0">
+                      <span class="text-[10px] text-slate-500 font-mono shrink-0">${escapeHTML(displayTime)}</span>
+                      ${amountTag}
                     </div>
-                    ${descMarkup}
+                  </div>
+
+                  <!-- Nút Xóa nợ -->
+                  <div class="flex items-center shrink-0">
+                    <button onclick="handleDeleteShare(this, '${tx.id}')" 
+                      class="btn-delete-share h-6 w-6 text-[10px] rounded-lg bg-slate-900 border border-slate-800 hover:bg-rose-950/20 hover:border-rose-500/20 hover:text-rose-400 flex items-center justify-center transition-all duration-150 active:scale-90 animate-all cursor-pointer">
+                      ✕
+                    </button>
                   </div>
                 </div>
+                ${descMarkup}
+              `;
+            } else {
+              // ==========================================
+              // LAYOUT KHI XEM CHUNG TẤT CẢ
+              // ==========================================
+              item.className = `p-3.5 rounded-2xl border border-slate-800/80 transition-all-300 relative shadow-sm ${borderClass}`;
 
-                <!-- Số tiền & Nút xóa căn phải -->
-                <div class="flex items-center space-x-2 shrink-0">
-                  <span class="text-xs font-black tracking-tight text-slate-200 select-text">
-                    ${tx.mealType === 'Cấn trừ' ? '-' : ''}${formatVND(tx.totalAmount)}
+              const shareEntries = Object.entries(tx.shares).filter(([_, v]) => v !== 0);
+              const sharesMarkup = shareEntries.map(([name, amt]) => {
+                let badgeClass = 'bg-slate-900 text-slate-300 border-slate-850';
+                if (displayMeal === 'Tính riêng') {
+                  badgeClass = 'bg-fuchsia-950/30 text-fuchsia-300 border-fuchsia-800/30';
+                } else if (displayMeal === 'Được trừ') {
+                  badgeClass = 'bg-rose-950/30 text-rose-300 border-rose-800/30';
+                }
+                return `
+                  <span class="inline-block border rounded px-1.5 py-0.5 text-[10px] font-semibold font-mono mr-1 mb-1 ${badgeClass}">
+                    ${escapeHTML(name)}: ${formatSignedVND(amt)}
                   </span>
-                  <button onclick="handleDeleteShare(this, '${tx.id}')" 
-                    class="btn-delete-share h-6 w-6 text-[10px] rounded-lg bg-slate-900 border border-slate-800 hover:bg-rose-950/20 hover:border-rose-500/20 hover:text-rose-400 flex items-center justify-center transition-all duration-150 active:scale-90 animate-all">
-                    ✕
-                  </button>
-                </div>
-              </div>
-              
-              <!-- Phân chia nợ bên dưới -->
-              <div class="pl-[74px] mt-2 flex flex-wrap items-center">
-                ${sharesMarkup}
-              </div>
-            `;
-          }
+                `;
+              }).join('');
 
-          container.appendChild(item);
+              const descMarkup = tx.description 
+                ? `<span class="text-xs font-bold text-slate-200 mt-0.5 truncate select-text">${escapeHTML(tx.description)}</span>` 
+                : '';
+
+              const isCanTru = (displayMeal === 'Được trừ');
+
+              item.innerHTML = `
+                <div class="flex items-start justify-between">
+                  <div class="flex items-start space-x-2.5 overflow-hidden flex-grow mr-2">
+                    <!-- Thẻ loại bữa ăn CỐ ĐỊNH CHIỀU RỘNG w-16 -->
+                    <span class="inline-block w-16 text-center text-[10px] font-extrabold py-1 px-1 rounded-lg border shrink-0 ${tagColorClass}">
+                      ${escapeHTML(displayMeal)}
+                    </span>
+                    
+                    <div class="flex flex-col overflow-hidden min-w-0">
+                      <div class="flex items-center space-x-2 text-[10px] text-slate-500 font-mono">
+                        <span>${escapeHTML(displayTime)}</span>
+                      </div>
+                      ${descMarkup}
+                    </div>
+                  </div>
+
+                  <!-- Số tiền & Nút xóa căn phải -->
+                  <div class="flex items-center space-x-2 shrink-0">
+                    <span class="text-xs font-black tracking-tight ${isCanTru ? 'text-rose-300' : 'text-slate-100'} select-text font-mono">
+                      ${isCanTru ? '-' : '+'}${formatVND(tx.totalAmount)}
+                    </span>
+                    <button onclick="handleDeleteShare(this, '${tx.id}')" 
+                      class="btn-delete-share h-6 w-6 text-[10px] rounded-lg bg-slate-900 border border-slate-800 hover:bg-rose-950/20 hover:border-rose-500/20 hover:text-rose-400 flex items-center justify-center transition-all duration-150 active:scale-90 animate-all cursor-pointer">
+                      ✕
+                    </button>
+                  </div>
+                </div>
+                
+                <!-- Phân chia nợ bên dưới -->
+                <div class="pl-[74px] mt-2 flex flex-wrap items-center">
+                  ${sharesMarkup}
+                </div>
+              `;
+            }
+
+            groupWrapper.appendChild(item);
+          });
+
+          container.appendChild(groupWrapper);
         });
       }
 
@@ -2068,6 +2273,8 @@
             return `Hôm nay (${formattedDMY})`;
           } else if (diffDays === 1) {
             return `Hôm qua (${formattedDMY})`;
+          } else if (diffDays === 2) {
+            return `Hôm kia (${formattedDMY})`;
           } else if (diffDays === -1) {
             return `Ngày mai (${formattedDMY})`;
           } else {
@@ -2766,11 +2973,16 @@
             dateStr = tx.date;
           }
           
-          const isDeduction = (tx.mealType === 'Cấn trừ' || tx.shares[memberName] < 0);
+          const isDeduction = (tx.mealType === 'Được trừ' || tx.mealType === 'Cấn trừ' || tx.shares[memberName] < 0);
+          const isProxy = (tx.mealType === 'Tính riêng' || tx.mealType === 'Mua hộ');
+          let displayMealType = tx.mealType;
+          if (displayMealType === 'Mua hộ') displayMealType = 'Tính riêng';
+          if (displayMealType === 'Cấn trừ') displayMealType = 'Được trừ';
+
           const rowStyle = 'display: flex; justify-content: space-between; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid #f1f5f9; font-size: 12px;';
           const amountStyle = isDeduction 
-            ? 'font-weight: 800; color: #e11d48; white-space: nowrap;' 
-            : 'font-weight: 700; color: #0f172a; white-space: nowrap;';
+            ? 'font-weight: 800; color: #e11d48; white-space: nowrap; font-family: monospace;' 
+            : 'font-weight: 700; color: #0f172a; white-space: nowrap; font-family: monospace;';
           const textStyle = isDeduction 
             ? 'font-weight: 700; color: #9f1239;' 
             : 'font-weight: 600; color: #1e293b;';
@@ -2779,9 +2991,9 @@
             <div style="${rowStyle}">
               <div style="flex-grow: 1; padding-right: 12px; text-align: left;">
                 <span style="font-weight: 700; color: #64748b; margin-right: 6px;">[${dateStr}]</span>
-                <span style="${textStyle}">${escapeHTML(tx.mealType)} ${tx.description ? ' - ' + escapeHTML(tx.description) : ''}</span>
+                <span style="${textStyle}">[${escapeHTML(displayMealType)}] ${tx.description ? escapeHTML(tx.description) : ''}</span>
               </div>
-              <div style="${amountStyle}">${formatVND(tx.shares[memberName])}</div>
+              <div style="${amountStyle}">${formatSignedVND(tx.shares[memberName])}</div>
             </div>
           `;
         });
@@ -2791,7 +3003,7 @@
         let totalHtml = `
           <div style="display: flex; justify-content: space-between; align-items: center; background-color: #f8fafc; padding: 14px 16px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 16px;">
             <span style="font-size: 12px; font-weight: 800; color: #475569;">TỔNG CỘNG:</span>
-            <span style="font-size: 18px; font-weight: 900; color: #e11d48;">${formatVND(totalDebt)}</span>
+            <span style="font-size: 18px; font-weight: 900; color: #e11d48; font-family: monospace;">${formatSignedVND(totalDebt)}</span>
           </div>
         `;
 
@@ -2953,21 +3165,19 @@
         selectedParticipants.clear();
         renderParticipantsSelector(); // Vẽ lại để khôi phục trạng thái mặc định
 
-        // Reset form
+        // Reset form nhập (chỉ xóa tiền và ghi chú, GIỮ NGUYÊN ngày chi và loại khoản chi hiện tại để tiện nhập nhiều món liên tiếp)
         amountInput.value = '';
         descInput.value = '';
-        if (dateInput) {
-          dateInput.value = new Date().toISOString().split('T')[0];
-          updateExpenseDateDisplay();
-        }
         
-        // Phát hiện lại bữa ăn theo giờ thực
-        setMealType(autoDetectMeal());
+        // Tự động bỏ lọc để người dùng nhìn thấy ngay khoản vừa nhập trên màn hình
+        AppStore.activeFilter = null;
         
         // Cập nhật lại UI
         renderBalanceBoxes();
         renderHistoryLog();
         updateSplitPreview();
+
+        showToast("Đã ghi nhận giao dịch thành công! 🎉", "success", 2500);
       };
 
       // ==========================================
@@ -3189,7 +3399,7 @@
 
           const release = await res.json();
           const latestTag = release.tag_name;
-          const currentVer = "v2.5.48";
+          const currentVer = "v2.5.49";
           const hasUpdate = compareVersions(latestTag, currentVer) > 0;
           const ipaAsset = (release.assets || []).find(a => a.name && a.name.endsWith('.ipa'));
 
@@ -3229,7 +3439,7 @@
         const notesEl = document.getElementById('otaReleaseNotes');
         const dateEl = document.getElementById('otaReleaseDate');
 
-        if (curVerEl) curVerEl.innerText = "v2.5.48";
+        if (curVerEl) curVerEl.innerText = "v2.5.49";
         if (newVerEl) newVerEl.innerText = release.version;
         if (titleEl) titleEl.innerText = release.title;
         if (notesEl) notesEl.innerText = release.body;
@@ -3350,7 +3560,7 @@
         if (btn) btn.innerText = "Đang check...";
         if (headerBtn) headerBtn.innerText = "Checking...";
 
-        const currentVersion = "v2.5.48";
+        const currentVersion = "v2.5.49";
 
         // 1. Kiểm tra bản phát hành Native IPA trên GitHub Releases trước
         const hasIpaUpdate = await checkForAppUpdate(true);
