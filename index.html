@@ -184,7 +184,7 @@
           <span>⚡</span>
           <span>Tạo QR</span>
         </button>
-        <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.46 PRO</button>
+        <button id="headerVersionTag" onclick="checkUpdatesManually()" class="text-[10px] bg-slate-800 text-indigo-400 font-mono px-2 py-0.5 rounded border border-indigo-500/20 active:scale-95 transition-all hover:bg-slate-750 focus:outline-none">v2.5.47 PRO</button>
       </div>
     </header>
 
@@ -724,6 +724,72 @@
       <div class="pt-2 border-t border-slate-800">
         <button type="button" onclick="selectViPickerToday()" class="w-full py-2 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 text-xs font-bold active:scale-95 transition-all cursor-pointer text-center">
           📅 Chọn hôm nay
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CẬP NHẬT TRỰC TIẾP TRONG ỨNG DỤNG (IN-APP OTA UPDATER) -->
+  <div id="otaUpdateModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4" onclick="if(event.target === this && !window.isDownloadingIpa) closeOtaUpdateModal()">
+    <div class="bg-slate-900 border border-slate-700/80 rounded-3xl p-5 max-w-sm w-full space-y-4 shadow-2xl relative animate-all">
+      <!-- Header Modal -->
+      <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+        <div class="flex items-center space-x-2">
+          <span class="text-xl">🚀</span>
+          <div>
+            <h3 class="text-sm font-black text-slate-100">Bản Cập Nhật Mới</h3>
+            <span id="otaReleaseDate" class="text-[10px] text-slate-400">Phiên bản mới nhất trên GitHub</span>
+          </div>
+        </div>
+        <button type="button" onclick="closeOtaUpdateModal()" class="text-slate-400 hover:text-slate-200 h-7 w-7 rounded-full bg-slate-800/80 hover:bg-slate-700 flex items-center justify-center text-xs font-bold transition-all active:scale-90">✕</button>
+      </div>
+
+      <!-- Khung thông tin phiên bản -->
+      <div class="bg-slate-950/70 border border-slate-800 rounded-2xl p-3.5 space-y-2.5">
+        <div class="flex items-center justify-between">
+          <div class="flex flex-col">
+            <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Hiện tại</span>
+            <span id="otaCurrentVersion" class="text-xs font-bold text-slate-400 font-mono">v2.5.47</span>
+          </div>
+          <span class="text-slate-600 font-bold">➔</span>
+          <div class="flex flex-col items-end">
+            <span class="text-[10px] text-indigo-400 font-bold uppercase tracking-wider">Phiên bản mới</span>
+            <span id="otaNewVersion" class="text-sm font-black text-indigo-300 font-mono glow-indigo">v2.5.48</span>
+          </div>
+        </div>
+        <div class="border-t border-slate-850 pt-2">
+          <div class="text-[11px] font-bold text-slate-300 mb-1" id="otaReleaseTitle">Sổ Tiền Ăn v2.5.48</div>
+          <div id="otaReleaseNotes" class="text-[11px] text-slate-400 leading-relaxed max-h-32 overflow-y-auto whitespace-pre-wrap select-text pr-1">Bản phát hành cập nhật tính năng mới.</div>
+        </div>
+      </div>
+
+      <!-- Khung tiến trình tải file (ẩn mặc định, hiện khi bắt đầu tải) -->
+      <div id="otaProgressBox" class="hidden bg-slate-950/70 border border-indigo-500/20 rounded-2xl p-3.5 space-y-2">
+        <div class="flex justify-between items-center text-xs">
+          <span id="otaProgressStatus" class="font-bold text-indigo-300 flex items-center space-x-1.5">
+            <span class="inline-block animate-spin">⏳</span>
+            <span>Đang tải file IPA...</span>
+          </span>
+          <span id="otaProgressPercent" class="font-mono font-black text-indigo-400">0%</span>
+        </div>
+        <!-- Progress Bar -->
+        <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden p-0.5">
+          <div id="otaProgressBar" class="bg-gradient-to-r from-indigo-500 to-violet-500 h-full rounded-full transition-all duration-150 w-0"></div>
+        </div>
+        <div class="flex justify-between items-center text-[10px] text-slate-400 font-mono">
+          <span id="otaProgressSize">0.0 MB / 0.0 MB</span>
+          <span id="otaProgressSpeed" class="text-indigo-300 font-bold">0 KB/s</span>
+        </div>
+      </div>
+
+      <!-- Nút hành động -->
+      <div class="space-y-2 pt-1">
+        <button type="button" id="btnOtaAction" onclick="handleOtaUpdateClick()" class="w-full py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white shadow-lg shadow-indigo-900/30 active:scale-[0.98] transition-all flex items-center justify-center space-x-1.5 cursor-pointer">
+          <span>📲</span>
+          <span id="btnOtaActionText">Tải & Cài đặt qua TrollStore</span>
+        </button>
+        <button type="button" id="btnOtaCancel" onclick="closeOtaUpdateModal()" class="w-full py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-slate-200 bg-slate-800/60 hover:bg-slate-800 active:scale-[0.98] transition-all cursor-pointer">
+          Để sau
         </button>
       </div>
     </div>
@@ -3093,12 +3159,186 @@
         };
       }
 
-      window.checkUpdatesManually = function() {
-        if (window.location.protocol === 'file:') {
-          showToast("Ứng dụng đang chạy cục bộ (file://). Tính năng kiểm tra cập nhật chỉ hoạt động qua HTTPS (GitHub Pages).", 'info');
+      // ==========================================
+      // IN-APP OTA UPDATER & GITHUB RELEASES SERVICE
+      // ==========================================
+      const GITHUB_REPO = 'tuaniuminh/tienan';
+      let currentOtaRelease = null;
+      let otaProgressListener = null;
+      window.isDownloadingIpa = false;
+
+      function compareVersions(v1, v2) {
+        const clean1 = (v1 || '').replace(/^v/, '').trim().split('.').map(Number);
+        const clean2 = (v2 || '').replace(/^v/, '').trim().split('.').map(Number);
+        for (let i = 0; i < Math.max(clean1.length, clean2.length); i++) {
+          const num1 = clean1[i] || 0;
+          const num2 = clean2[i] || 0;
+          if (num1 > num2) return 1;
+          if (num1 < num2) return -1;
+        }
+        return 0;
+      }
+
+      window.checkForAppUpdate = async function(silent = false) {
+        try {
+          const url = `https://api.github.com/repos/${GITHUB_REPO}/releases/latest?t=${Date.now()}`;
+          const res = await fetch(url, {
+            headers: { 'Accept': 'application/vnd.github.v3+json' }
+          });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+          const release = await res.json();
+          const latestTag = release.tag_name;
+          const currentVer = "v2.5.47";
+          const hasUpdate = compareVersions(latestTag, currentVer) > 0;
+          const ipaAsset = (release.assets || []).find(a => a.name && a.name.endsWith('.ipa'));
+
+          if (hasUpdate && ipaAsset) {
+            currentOtaRelease = {
+              version: latestTag,
+              title: release.name || latestTag,
+              body: release.body || 'Bản phát hành tự động mới nhất với các cải tiến và sửa lỗi.',
+              downloadUrl: ipaAsset.browser_download_url,
+              size: ipaAsset.size ? (ipaAsset.size / 1024 / 1024).toFixed(1) + ' MB' : '',
+              date: release.published_at ? new Date(release.published_at).toLocaleDateString('vi-VN') : ''
+            };
+            openOtaUpdateModal(currentOtaRelease);
+            return true;
+          } else {
+            if (!silent) {
+              showToast(`Bạn đang ở phiên bản mới nhất (${currentVer}) 🎉`, 'success');
+            }
+            return false;
+          }
+        } catch (err) {
+          console.error("Lỗi kiểm tra bản mới từ GitHub Releases:", err);
+          if (!silent) {
+            showToast("Không thể kiểm tra bản mới từ GitHub: " + err.message, 'warning');
+          }
+          return false;
+        }
+      };
+
+      function openOtaUpdateModal(release) {
+        const modal = document.getElementById('otaUpdateModal');
+        if (!modal) return;
+
+        const curVerEl = document.getElementById('otaCurrentVersion');
+        const newVerEl = document.getElementById('otaNewVersion');
+        const titleEl = document.getElementById('otaReleaseTitle');
+        const notesEl = document.getElementById('otaReleaseNotes');
+        const dateEl = document.getElementById('otaReleaseDate');
+
+        if (curVerEl) curVerEl.innerText = "v2.5.47";
+        if (newVerEl) newVerEl.innerText = release.version;
+        if (titleEl) titleEl.innerText = release.title;
+        if (notesEl) notesEl.innerText = release.body;
+        if (dateEl && release.date) {
+          dateEl.innerText = `Phát hành ngày ${release.date}`;
+        }
+
+        // Reset UI tiến trình
+        const progressBox = document.getElementById('otaProgressBox');
+        if (progressBox) progressBox.classList.add('hidden');
+        
+        const actionBtn = document.getElementById('btnOtaAction');
+        const actionText = document.getElementById('btnOtaActionText');
+        if (actionBtn) {
+          actionBtn.classList.remove('hidden', 'opacity-50', 'cursor-not-allowed');
+          actionBtn.disabled = false;
+        }
+        if (actionText) actionText.innerText = "Tải & Cài đặt qua TrollStore";
+        window.isDownloadingIpa = false;
+
+        modal.classList.remove('hidden');
+        triggerHaptic();
+      }
+
+      window.closeOtaUpdateModal = function() {
+        if (window.isDownloadingIpa) {
+          showToast("Đang tải bản cập nhật, vui lòng đợi trong giây lát...", "info");
+          return;
+        }
+        const modal = document.getElementById('otaUpdateModal');
+        if (modal) modal.classList.add('hidden');
+      };
+
+      window.handleOtaUpdateClick = async function() {
+        if (!currentOtaRelease || !currentOtaRelease.downloadUrl) {
+          showToast("Không tìm thấy link tải IPA hợp lệ!", "error");
           return;
         }
 
+        const downloadUrl = currentOtaRelease.downloadUrl;
+        const cap = (typeof window !== 'undefined' && window.Capacitor) ? window.Capacitor : (typeof window !== 'undefined' && window.parent ? window.parent.Capacitor : null);
+        const livePlugin = cap && cap.Plugins && cap.Plugins.LiveActivityPlugin ? cap.Plugins.LiveActivityPlugin : (cap && cap.registerPlugin ? cap.registerPlugin('LiveActivityPlugin') : null);
+
+        // Nếu chạy trên Native App iOS có plugin LiveActivityPlugin
+        if (livePlugin && typeof livePlugin.downloadAndOpenIPA === 'function') {
+          window.isDownloadingIpa = true;
+          const progressBox = document.getElementById('otaProgressBox');
+          const progressBar = document.getElementById('otaProgressBar');
+          const progressPercent = document.getElementById('otaProgressPercent');
+          const progressSize = document.getElementById('otaProgressSize');
+          const progressSpeed = document.getElementById('otaProgressSpeed');
+          const actionBtn = document.getElementById('btnOtaAction');
+          const actionText = document.getElementById('btnOtaActionText');
+          const progressStatus = document.getElementById('otaProgressStatus');
+
+          if (progressBox) progressBox.classList.remove('hidden');
+          if (progressStatus) progressStatus.innerHTML = '<span class="inline-block animate-spin">⏳</span><span>Đang tải file IPA...</span>';
+          if (actionBtn) {
+            actionBtn.disabled = true;
+            actionBtn.classList.add('opacity-50', 'cursor-not-allowed');
+          }
+          if (actionText) actionText.innerText = "Đang tải xuống...";
+
+          try {
+            if (otaProgressListener) {
+              await otaProgressListener.remove();
+            }
+
+            otaProgressListener = await livePlugin.addListener('ipaDownloadProgress', data => {
+              const pct = Math.round((data.progress || 0) * 100);
+              if (progressBar) progressBar.style.width = `${pct}%`;
+              if (progressPercent) progressPercent.innerText = `${pct}%`;
+              if (progressSize) progressSize.innerText = `${data.downloadedMB || '0'} MB / ${data.totalMB || '0'} MB`;
+              if (progressSpeed) progressSpeed.innerText = data.speed || '0 KB/s';
+            });
+
+            await livePlugin.downloadAndOpenIPA({ url: downloadUrl });
+            window.isDownloadingIpa = false;
+            if (actionBtn) {
+              actionBtn.disabled = false;
+              actionBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+            if (actionText) actionText.innerText = "Mở lại Share Sheet";
+            if (progressStatus) progressStatus.innerHTML = '<span>✅ Tải xong! Chọn TrollStore để cài đặt.</span>';
+            showToast("Tải file hoàn tất! Vui lòng chọn TrollStore để cài đặt đè.", "success", 6000);
+          } catch (err) {
+            window.isDownloadingIpa = false;
+            if (actionBtn) {
+              actionBtn.disabled = false;
+              actionBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+            if (actionText) actionText.innerText = "Thử tải lại";
+            console.error("Lỗi download IPA:", err);
+            showToast("Lỗi tải file: " + (err.message || err), "error");
+          } finally {
+            if (otaProgressListener) {
+              otaProgressListener.remove();
+              otaProgressListener = null;
+            }
+          }
+        } else {
+          // Fallback khi chạy trên Safari PWA hoặc PC
+          showToast("Đang mở link tải file IPA từ GitHub Releases...", "info");
+          window.open(downloadUrl, '_blank');
+          closeOtaUpdateModal();
+        }
+      };
+
+      window.checkUpdatesManually = async function() {
         if (!navigator.onLine) {
           showToast("Hiện không có kết nối Internet! Vui lòng kết nối mạng để kiểm tra cập nhật.", 'warning');
           return;
@@ -3110,98 +3350,41 @@
         if (btn) btn.innerText = "Đang check...";
         if (headerBtn) headerBtn.innerText = "Checking...";
 
-        const currentVersion = "v2.5.46";
+        const currentVersion = "v2.5.47";
 
-        // Tải file index.html trực tiếp từ server để bypass cache bằng timestamp
-        fetch('./index.html?t=' + Date.now())
-          .then(response => {
-            if (!response.ok) throw new Error("Không thể kết nối máy chủ");
-            return response.text();
-          })
-          .then(htmlText => {
-            if (btn) btn.innerText = "Kiểm tra cập nhật";
-            if (headerBtn) headerBtn.innerText = `${currentVersion} PRO`;
+        // 1. Kiểm tra bản phát hành Native IPA trên GitHub Releases trước
+        const hasIpaUpdate = await checkForAppUpdate(true);
+        if (hasIpaUpdate) {
+          if (btn) btn.innerText = "Kiểm tra cập nhật";
+          if (headerBtn) headerBtn.innerText = `${currentVersion} PRO`;
+          return;
+        }
 
-            // Tìm version hiện tại trên server bằng Regex (tìm từ headerVersionTag)
-            const match = htmlText.match(/id="headerVersionTag"[^>]*>(v\d+\.\d+\.\d+)/);
-            const serverVersion = match ? match[1] : null;
+        // 2. Nếu đang chạy PWA trên web, kiểm tra cập nhật index.html từ máy chủ
+        if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+          fetch('./index.html?t=' + Date.now())
+            .then(response => {
+              if (!response.ok) throw new Error("Không thể kết nối máy chủ");
+              return response.text();
+            })
+            .then(htmlText => {
+              if (btn) btn.innerText = "Kiểm tra cập nhật";
+              if (headerBtn) headerBtn.innerText = `${currentVersion} PRO`;
 
-            if (serverVersion) {
-              if (serverVersion !== currentVersion) {
+              const match = htmlText.match(/id="headerVersionTag"[^>]*>(v\d+\.\d+\.\d+)/);
+              const serverVersion = match ? match[1] : null;
+
+              if (serverVersion && serverVersion !== currentVersion) {
                 if (btn) btn.innerText = "Đang cập nhật...";
                 if (headerBtn) headerBtn.innerText = "Updating...";
                 
-                // Hàm phụ trợ thực hiện reload di cư an toàn
-                const performUpdateReload = () => {
-                  const savedConfig = localStorage.getItem('ste_firebase_config');
-                  if (savedConfig) {
-                    try {
-                      const configObj = JSON.parse(savedConfig);
-                      const configStr = btoa(unescape(encodeURIComponent(JSON.stringify(configObj))));
-                      window.location.href = window.location.origin + window.location.pathname + '?fb=' + configStr;
-                      return;
-                    } catch(e) {
-                      console.error("Lỗi mã hóa cấu hình di cư:", e);
-                    }
-                  }
-                  window.location.reload();
-                };
-
-                // Nếu hỗ trợ Service Worker và có đăng ký swRegistration
                 if ('serviceWorker' in navigator && swRegistration) {
-                  // Lắng nghe sự kiện cài đặt xong của Service Worker mới
-                  const handleUpdate = (reg) => {
-                    const newWorker = reg.installing || reg.waiting;
-                    if (newWorker) {
-                      const stateChangeHandler = () => {
-                        if (newWorker.state === 'installed') {
-                          // Đã tải xong mọi thứ và đang chờ, ra lệnh SKIP_WAITING để kích hoạt ngay
-                          newWorker.postMessage({ type: 'SKIP_WAITING' });
-                        } else if (newWorker.state === 'activated') {
-                          // Đã kích hoạt thành công, tiến hành tải lại trang ngay để nhận mã nguồn mới
-                          newWorker.removeEventListener('statechange', stateChangeHandler);
-                          performUpdateReload();
-                        }
-                      };
-                      newWorker.addEventListener('statechange', stateChangeHandler);
-                      
-                      // Nếu trạng thái đã là installed rồi (waiting)
-                      if (newWorker.state === 'installed') {
-                        newWorker.postMessage({ type: 'SKIP_WAITING' });
-                      } else if (newWorker.state === 'activated') {
-                        performUpdateReload();
-                      }
-                    }
-                  };
-
-                  // Lắng nghe sự kiện tìm thấy update tiếp theo
-                  swRegistration.addEventListener('updatefound', () => {
-                    handleUpdate(swRegistration);
-                  });
-
-                  // Nếu đã có sẵn worker đang chờ kích hoạt ở nền
-                  if (swRegistration.waiting) {
-                    swRegistration.waiting.postMessage({ type: 'SKIP_WAITING' });
-                  } else {
-                    // Nếu chưa có, kích hoạt tìm kiếm update thủ công
-                    swRegistration.update().then(reg => {
-                      handleUpdate(reg);
-                    }).catch(err => {
-                      console.error("Lỗi update SW:", err);
-                      performUpdateReload();
-                    });
-                  }
-
-                  // Thiết lập một bộ hẹn giờ dự phòng (timeout fallback) phòng trường hợp SW bị treo
-                  setTimeout(() => {
-                    performUpdateReload();
-                  }, 8000);
-
+                  swRegistration.update().then(() => window.location.reload()).catch(() => window.location.reload());
                 } else {
-                  // Nếu không có Service Worker, reload trực tiếp
-                  performUpdateReload();
+                  window.location.reload();
                 }
               } else {
+                showToast(`Bạn đang ở phiên bản mới nhất (${currentVersion}) 🎉`, 'success');
                 if (btn) btn.innerText = `Đã ở bản mới nhất! (${currentVersion})`;
                 if (headerBtn) headerBtn.innerText = `Up to date (${currentVersion})`;
                 setTimeout(() => {
@@ -3209,19 +3392,22 @@
                   if (headerBtn) headerBtn.innerText = `${currentVersion} PRO`;
                 }, 4000);
               }
-            } else {
-              window.location.reload();
-            }
-          })
-          .catch(err => {
-            console.error("Lỗi kiểm tra phiên bản:", err);
-            if (btn) btn.innerText = "Lỗi kết nối máy chủ!";
-            if (headerBtn) headerBtn.innerText = "Error!";
-            setTimeout(() => {
+            })
+            .catch(err => {
+              console.error("Lỗi kiểm tra phiên bản PWA:", err);
+              showToast(`Bạn đang ở phiên bản mới nhất (${currentVersion}) 🎉`, 'success');
               if (btn) btn.innerText = "Kiểm tra cập nhật";
               if (headerBtn) headerBtn.innerText = `${currentVersion} PRO`;
-            }, 4000);
-          });
+            });
+        } else {
+          showToast(`Bạn đang ở phiên bản mới nhất (${currentVersion}) 🎉`, 'success');
+          if (btn) btn.innerText = `Đã ở bản mới nhất! (${currentVersion})`;
+          if (headerBtn) headerBtn.innerText = `Up to date (${currentVersion})`;
+          setTimeout(() => {
+            if (btn) btn.innerText = "Kiểm tra cập nhật";
+            if (headerBtn) headerBtn.innerText = `${currentVersion} PRO`;
+          }, 4000);
+        }
       };
 
       // ==========================================
@@ -3412,6 +3598,13 @@
             quickQrDebounceTimer = setTimeout(updateQuickQrDisplay, 250);
           });
         }
+
+        // Tự động kiểm tra phiên bản mới OTA trong nền sau 2.5 giây khởi động
+        setTimeout(function() {
+          if (typeof checkForAppUpdate === 'function' && navigator.onLine) {
+            checkForAppUpdate(true);
+          }
+        }, 2500);
       });
 
     })();

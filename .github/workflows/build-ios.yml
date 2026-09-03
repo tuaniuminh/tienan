@@ -1,16 +1,25 @@
-name: Build Unsigned iOS IPA
+name: Build Unsigned iOS IPA & Publish Release
 
 on:
   push:
     branches: [ main, master ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build-ios:
     runs-on: macos-14
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@main
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
 
       - name: Install npm dependencies
         run: npm install
@@ -18,7 +27,7 @@ jobs:
       - name: Build Web Assets
         run: npm run build
 
-      - name: Add iOS Platform
+      - name: Add iOS Platform & Sync Plugins
         run: |
           npx cap add ios
           npx cap sync ios
@@ -82,7 +91,19 @@ jobs:
           zip -r "sotienan_v${VERSION}.ipa" Payload
           
       - name: Upload IPA Artifact
-        uses: actions/upload-artifact@main
+        uses: actions/upload-artifact@v4
         with:
           name: sotienan_v${{ env.APP_VERSION }}
           path: build/sotienan_v${{ env.APP_VERSION }}.ipa
+
+      - name: Publish to GitHub Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v${{ env.APP_VERSION }}"
+          name: "Sổ Tiền Ăn v${{ env.APP_VERSION }}"
+          body: "Bản phát hành tự động cho Sổ Tiền Ăn v${{ env.APP_VERSION }}"
+          files: build/sotienan_v${{ env.APP_VERSION }}.ipa
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
